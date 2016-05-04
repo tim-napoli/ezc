@@ -1,0 +1,119 @@
+
+                                LE LANGAGE EZ
+
+ SOMMAIRE
+
+ Avant-propos
+ Introduction
+ Definitions
+    Programme
+
+
+ ELEMENTS DU LANGAGE ET GRAMMAIRE
+
+ Le langage permet de définir un programme dans un fichier source.
+
+ Les commentaires du langage ont la même syntaxe qu'en C ou C++, à savoir :
+
+    // commentaire in-line
+    /* Commentaire
+       multi-lignes */
+
+ C -> // .* <eol> C
+ C -> /* .* */ C
+ C -> *
+
+ Un identifieur a exactement le même pattern que ceux en C++ :
+ I -> [a-zA-Z_][a-zA-Z0-9_]*
+
+ Un fichier source .ez commence donc par une directive
+ "program <identifier> <eol>".
+ PH -> C program I $
+
+ Ensuite, viennent les définitions :
+ - De variables ;
+ - De constantes ;
+ - De fonctions ;
+ - De types ;
+
+ Une définition de variable est de la forme :
+ G -> global
+ G -> *
+ V -> G variable <identifier> is <type> <eol>
+
+ Une définition de constante est de la forme :
+ C -> constant <identifier> is <type> = <value> <eol>
+
+ Une définition de type est de la forme :
+ T -> integer
+ T -> real
+ T -> string
+ T -> array of T
+ T -> map of T
+ T -> list of T
+ T -> <identifier>   // Cas spécial quand l'on rencontre un identifiant qui
+                     // est une structure/définition de type (voir en
+                     // dessous).
+
+ Une définition de structure est de la forme :
+ S -> structure <identifier> is <eol> SN
+ SN -> VD SN
+ SN -> end <eol>
+ VD -> <identifier> is <type> <eol>
+
+
+ Une définition de procédure est de la forme :
+ PR -> procedure <identifier> ( ARGS ) <eol> PRVARLIST begin INSTRUCTIONS end
+ ARGS -> ACCESSOR VD ARGS
+ ARGS -> , VD ARGS
+ ARGS -> *
+ ACCESSOR -> in
+ ACCESSOR -> out
+ ACCESSOR -> inout
+
+ La définition des instructions (de loin la plus complexe) :
+
+ INSTRUCTIONS -> INSTRUCTION INSTRUCTIONS
+ INSTRUCTIONS -> *
+
+ INSTRUCTION -> FLOWCONTROL
+ INSTRUCTION -> AFFECTATION
+ INSTRUCTION -> FUNCCALL
+
+ FLOWCONTROL -> IF
+ FLOWCONTROL -> FOR
+ FLOWCONTROL -> FOREACH
+ FLOWCONTROL -> WHILE
+ FLOWCONTROL -> DOWHILE
+ FLOWCONTROL -> ON      // On devrait faire en sorte que cette instruction
+                        // ne puisse se situer qu'au début d'un bloc.
+
+ IF -> if BOOLEXPR then INSTRUCTIONS endif
+ FOR -> for FOREXPR do INSTRUCTIONS endfor
+ FOREACH -> foreach <identifier> as <identifier> do INSTRUCTIONS endforeach
+ WHILE -> while BOOLEXPR do INSTRUCTIONS endwhile
+ DOWHILE -> do INSTRUCTIONS while BOOLEXPR <eol>
+
+ AFFECTATION -> VARREF = EXPR
+
+ VARREF -> <identifier> VARREF
+ VARREF -> . <identifier> VARREF
+ VARREF -> *
+
+ EXPR -> UNARY_OPERATOR VARREF EXPR2
+ EXPR -> ( EXPR ) EXPR2
+ EXPR2 -> ARITHMETIC_OPERATOR VALUE
+ EXPR2 -> BOOLEAN_OPERATOR VALUE
+ EXPR2 -> *
+ // TODO FUNCCALL in EXPR
+
+ UNARY_OPERATOR -> not | -
+ UNARY_OPERATOR -> *
+ ARITHMETIC_OPERATOR -> + | * | - | /
+ BOOLEAN_OPERATOR -> or | and
+
+ FUNCCALL -> VARREF ( PARAMETERS )
+ PARAMETERS -> PARAMETER PARAMETERS
+ PARAMETERS -> , PARAMETER PARAMETERS
+ PARAMETERS -> *
+ PARAMETER -> EXPR
