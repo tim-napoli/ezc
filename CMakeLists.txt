@@ -11,5 +11,10 @@ include_directories("${PROJECT_SOURCE_DIR}/include")
 #target_link_libraries(
 #)
 
-add_library(rand-grey STATIC
-            src/cparser/parser.c)
+
+add_library(cparser STATIC
+            src/parser.c)
+
+# Tests
+add_executable(test-parser test/parser.c)
+target_link_libraries(test-parser cparser)
