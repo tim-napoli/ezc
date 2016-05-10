@@ -73,6 +73,26 @@ parser_status_t until_word_parser(FILE* input, const char* word, char** output)
     return PARSER_SUCCESS;
 }
 
+
+void get_file_coordinates(FILE* f, int* line, int* column, char* c) {
+    long offset = ftell(f);
+
+    *line = 1;
+    *column = 1;
+    fseek(f, 0, SEEK_SET);
+    while (ftell(f) < offset) {
+        *c = fgetc(f);
+        if (*c == '\n') {
+            (*line)++;
+            *column = 1;
+        } else {
+            (*column)++;
+        }
+    }
+
+    fseek(f, offset, SEEK_SET);
+}
+
 #if 0
 
 parser_status_t parser_parse(parser_t* parser,

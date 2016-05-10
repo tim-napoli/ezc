@@ -164,11 +164,43 @@ static parser_status_t function_args_parser(FILE* input, const void* args,
     return PARSER_SUCCESS;
 }
 
+static parser_status_t local_variables_parser(FILE* input, const void* args,
+                                              void* output)
+{
+    if (TRY(input, word_parser(input, "local", NULL)) == PARSER_SUCCESS) {
+        PARSE_ERR(space_parser(input, NULL, NULL),
+                  "expected space after 'local'");
+        SKIP_MANY(input, space_parser(input, NULL, NULL));
+
+        PARSE_ERR(identifier_parser(input, NULL, NULL),
+                  "a valid identifier must follow a 'local' declaration");
+
+        PARSE_ERR(space_parser(input, NULL, NULL),
+                  "expected space after local variable identifier");
+        SKIP_MANY(input, space_parser(input, NULL, NULL));
+
+        PARSE_ERR(word_parser(input, "is", NULL),
+                  "expected 'is' after local variable identifier");
+        PARSE_ERR(space_parser(input, NULL, NULL),
+                  "expected space after 'is'");
+        SKIP_MANY(input, space_parser(input, NULL, NULL));
+
+        PARSE_ERR(type_parser(input, NULL, NULL),
+                  "expected valid type for variable ''");
+
+        PARSE_ERR(end_of_line_parser(input, NULL, NULL),
+                  "a new line must follow a local variable declaration");
+
+        SKIP_MANY(input, comment_or_empty_parser(input, NULL, NULL));
+        PARSE(local_variables_parser(input, NULL, NULL));
+    }
+
+    return PARSER_SUCCESS;
+}
+
 static parser_status_t function_parser(FILE* input, const void* args,
                                        void* output)
 {
-    printf("function parser\n");
-
     SKIP_MANY(input, comment_or_empty_parser(input, NULL, NULL));
     PARSE(word_parser(input, "function", NULL));
 
@@ -189,17 +221,21 @@ static parser_status_t function_parser(FILE* input, const void* args,
     PARSE_ERR(end_of_line_parser(input, NULL, NULL),
               "a new line is expected after a function head");
 
-    /* TODO variable declarations */
+    SKIP_MANY(input, comment_or_empty_parser(input, NULL, NULL));
+    PARSE(local_variables_parser(input, NULL, NULL));
 
     SKIP_MANY(input, comment_or_empty_parser(input, NULL, NULL));
-    PARSE(word_parser(input, "begin", NULL));
+    PARSE_ERR(word_parser(input, "begin", NULL),
+              "function's variable declaration must be followed by a "
+              "'begin' keyword");
     PARSE_ERR(end_of_line_parser(input, NULL, NULL),
               "a newline is expected after the 'begin' keyword");
 
     /* TODO instructions parser */
 
     PARSE(until_word_parser(input, "end", NULL));
-    PARSE(word_parser(input, "end", NULL));
+    PARSE_ERR(word_parser(input, "end", NULL),
+              "A function must be ended with 'end' keyword");
     PARSE_ERR(end_of_line_parser(input, NULL, NULL),
               "a newline is expected after the 'end' keyword");
 

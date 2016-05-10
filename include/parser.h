@@ -23,6 +23,8 @@ typedef enum {
  * sequence of chars. It returns the number of chars read. */
 typedef parser_status_t (*parser_func_t)(FILE*, const void*, void*, int*);
 
+void get_file_coordinates(FILE* f, int* line, int* column, char* c);
+
 /* Parse using a parser func. If the function failed, return NULL. */
 #define PARSE(_parser) \
     if ((_parser) == PARSER_FAILURE) { \
@@ -34,7 +36,12 @@ typedef parser_status_t (*parser_func_t)(FILE*, const void*, void*, int*);
  */
 #define PARSE_ERR(_parser, _err_msg) \
     if ((_parser) == PARSER_FAILURE) { \
-        fprintf(stderr, "error: " _err_msg "\n"); \
+        int _line, _column; \
+        char _c; \
+        /* TODO input in PARSE_ERR args */ \
+        get_file_coordinates(input, &_line, &_column, &_c); \
+        fprintf(stderr, "error (line %d column %d at '%c'): " _err_msg "\n", \
+                _line, _column, _c); \
         return PARSER_FAILURE; \
     }
 
