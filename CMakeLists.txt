@@ -11,9 +11,12 @@ include_directories("${PROJECT_SOURCE_DIR}/include")
 #target_link_libraries(
 #)
 
+file(COPY samples DESTINATION .)
 
 add_library(cparser STATIC
             src/parser.c)
+
+add_executable(ezc src/ezc.c src/parser.c src/ez-parser.c)
 
 # Tests
 add_executable(test-parser test/parser.c)

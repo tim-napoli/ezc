@@ -1,0 +1,7 @@
+/* First EZ program : a hello world */
+program hello_world
+
+function hello_world(input args is vector of string) : integer
+begin
+    print("Hello, world")
+end

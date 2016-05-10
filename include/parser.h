@@ -29,6 +29,15 @@ typedef parser_status_t (*parser_func_t)(FILE*, const void*, void*, int*);
         return PARSER_FAILURE; \
     }
 
+/* Parse using a parser func. If the function failed, return NULL and print
+ * the given error message.
+ */
+#define PARSE_ERR(_parser, _err_msg) \
+    if ((_parser) == PARSER_FAILURE) { \
+        fprintf(stderr, "error: " _err_msg "\n"); \
+        return PARSER_FAILURE; \
+    }
+
 /* Try to parse using a parser func. If the function failed, reset the
  * offset of `input` stream to its original seek. Return the parser status.
  */
