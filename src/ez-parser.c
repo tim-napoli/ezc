@@ -80,6 +80,132 @@ static parser_status_t header_parser(FILE* input,
     return PARSER_SUCCESS;
 }
 
+static parser_status_t modifier_parser(FILE* input, const void* args,
+                                       void* output)
+{
+    if (TRY(input, word_parser(input, "in", NULL)) == PARSER_SUCCESS) {
+        return PARSER_SUCCESS;
+    } else
+    if (TRY(input, word_parser(input, "out", NULL)) == PARSER_SUCCESS) {
+        return PARSER_SUCCESS;
+    } else
+    if (TRY(input, word_parser(input, "inout", NULL)) == PARSER_SUCCESS) {
+        return PARSER_SUCCESS;
+    }
+
+    return PARSER_FAILURE;
+}
+
+static parser_status_t type_parser(FILE* input, const void* args,
+                                   void* output)
+{
+    if (TRY(input, word_parser(input, "integer", NULL)) == PARSER_SUCCESS) {
+        return PARSER_SUCCESS;
+    } else
+    if (TRY(input, word_parser(input, "natural", NULL)) == PARSER_SUCCESS) {
+        return PARSER_SUCCESS;
+    } else
+    if (TRY(input, word_parser(input, "real", NULL)) == PARSER_SUCCESS) {
+        return PARSER_SUCCESS;
+    } else
+    if (TRY(input, word_parser(input, "string", NULL)) == PARSER_SUCCESS) {
+        return PARSER_SUCCESS;
+    } else
+    if (TRY(input, word_parser(input, "vector", NULL)) == PARSER_SUCCESS) {
+        PARSE_ERR(space_parser(input, NULL, NULL),
+                  "expected spaces after 'vector'");
+        SKIP_MANY(input, space_parser(input, NULL, NULL));
+
+        PARSE_ERR(word_parser(input, "of", NULL),
+                  "expected 'of' after vector");
+
+        PARSE_ERR(space_parser(input, NULL, NULL),
+                  "expected spaces after 'of'");
+        SKIP_MANY(input, space_parser(input, NULL, NULL));
+
+        PARSE(type_parser(input, NULL, NULL));
+
+        return PARSER_SUCCESS;
+    }
+
+    return PARSER_FAILURE;
+}
+
+
+static parser_status_t function_args_parser(FILE* input, const void* args,
+                                            void* output)
+{
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
+
+    if (TRY(input, modifier_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
+        PARSE_ERR(space_parser(input, NULL, NULL),
+                  "expected spaces");
+        SKIP_MANY(input, space_parser(input, NULL, NULL));
+
+        PARSE_ERR(identifier_parser(input, NULL, NULL),
+                  "a valid identifier must follow a modifier in function "
+                  "arguments");
+        PARSE(space_parser(input, NULL, NULL));
+        SKIP_MANY(input, space_parser(input, NULL, NULL));
+
+        PARSE_ERR(word_parser(input, "is", NULL),
+                  "expected 'is'");
+        PARSE(space_parser(input, NULL, NULL));
+        SKIP_MANY(input, space_parser(input, NULL, NULL));
+
+        PARSE_ERR(type_parser(input, NULL, NULL),
+                  "expected valid type");
+        SKIP_MANY(input, space_parser(input, NULL, NULL));
+        if (TRY(input, char_parser(input, ",", NULL)) == PARSER_SUCCESS) {
+            PARSE(function_args_parser(input, args, output));
+        }
+    }
+
+    return PARSER_SUCCESS;
+}
+
+static parser_status_t function_parser(FILE* input, const void* args,
+                                       void* output)
+{
+    printf("function parser\n");
+
+    SKIP_MANY(input, comment_or_empty_parser(input, NULL, NULL));
+    PARSE(word_parser(input, "function", NULL));
+
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
+    PARSE_ERR(identifier_parser(input, NULL, NULL),
+              "a function must have a valid identifier");
+
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
+    PARSE_ERR(char_parser(input, "(", NULL), "missing '('");
+    PARSE(function_args_parser(input, NULL, NULL));
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
+    PARSE_ERR(char_parser(input, ")", NULL), "missing ')'");
+
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
+    PARSE_ERR(char_parser(input, ":", NULL), "missing ':'");
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
+    PARSE(type_parser(input, NULL, NULL));
+    PARSE_ERR(end_of_line_parser(input, NULL, NULL),
+              "a new line is expected after a function head");
+
+    /* TODO variable declarations */
+
+    SKIP_MANY(input, comment_or_empty_parser(input, NULL, NULL));
+    PARSE(word_parser(input, "begin", NULL));
+    PARSE_ERR(end_of_line_parser(input, NULL, NULL),
+              "a newline is expected after the 'begin' keyword");
+
+    /* TODO instructions parser */
+
+    PARSE(until_word_parser(input, "end", NULL));
+    PARSE(word_parser(input, "end", NULL));
+    PARSE_ERR(end_of_line_parser(input, NULL, NULL),
+              "a newline is expected after the 'end' keyword");
+
+    return PARSER_SUCCESS;
+}
+
 parser_status_t program_parser_func(FILE* input,
                                     const void* unused_args,
                                     void* unused_output)
@@ -93,6 +219,8 @@ parser_status_t program_parser_func(FILE* input,
     printf("Program name: %s\n", program_name);
 
     /* TODO entity parser */
+    PARSE(function_parser(input, NULL, NULL));
+
     return PARSER_SUCCESS;
 }
 
