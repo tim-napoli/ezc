@@ -1,12 +1,12 @@
 program fibonacci
 
-function fibonacci(in n is integer) : integer
+function fibonacci(in n is integer) return integer
 begin
-    on n < 2 return 1
+    on n < 2 do return 1
     return fibonacci(n - 2) + fibonacci(n - 1)
 end
 
-function main(in args is vector of string) : integer
+function main(in args is vector of string) return integer
     local n is integer
     local result is integer
 begin

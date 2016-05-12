@@ -272,6 +272,7 @@ static parser_status_t funccall_parser(FILE* input, const void* args,
     PARSE(varref_parser(input, NULL, NULL));
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
+
     PARSE(char_parser(input, "(", NULL));
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
@@ -297,10 +298,10 @@ static parser_status_t value_parser(FILE* input, const void* args,
     if (TRY(input, string_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
         return PARSER_SUCCESS;
     } else
-    if (TRY(input, varref_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
+    if (TRY(input, funccall_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
         return PARSER_SUCCESS;
     } else
-    if (TRY(input, funccall_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
+    if (TRY(input, varref_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
         return PARSER_SUCCESS;
     }
 
@@ -366,9 +367,10 @@ static parser_status_t boolexpr_cmp_parser(FILE* input, const void* args,
 {
     if (TRY(input, cmp_op_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
         SKIP_MANY(input, space_parser(input, NULL, NULL));
-        PARSE(value_parser(input, NULL, NULL));
+        PARSE_ERR(value_parser(input, NULL, NULL),
+                  "a value must follow a commparison operator");
         SKIP_MANY(input, space_parser(input, NULL, NULL));
-        PARSE(boolexpr_parser(input, NULL, NULL));
+        PARSE(boolexpr_next_parser(input, NULL, NULL));
     } else {
         PARSE(boolexpr_next_parser(input, NULL, NULL));
     }
@@ -379,6 +381,7 @@ static parser_status_t boolexpr_cmp_parser(FILE* input, const void* args,
 static parser_status_t boolexpr_parser(FILE* input, const void* args,
                                        void* output)
 {
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
     if (TRY(input, char_parser(input, "(", NULL)) == PARSER_SUCCESS) {
         SKIP_MANY(input, space_parser(input, NULL, NULL));
         PARSE(boolexpr_parser(input, NULL, NULL));
@@ -393,10 +396,9 @@ static parser_status_t boolexpr_parser(FILE* input, const void* args,
         return PARSER_SUCCESS;
     } else
     if (TRY(input, value_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
-        PARSE(space_parser(input, NULL, NULL));
         SKIP_MANY(input, space_parser(input, NULL, NULL));
 
-        PARSE(boolexpr_cmp_parser(input, NULL, NULL));
+        TRY(input, boolexpr_cmp_parser(input, NULL, NULL));
 
         return PARSER_SUCCESS;
     }
@@ -482,6 +484,19 @@ static parser_status_t print_parser(FILE* input, const void* args,
     return PARSER_SUCCESS;
 }
 
+static parser_status_t return_parser(FILE* input, const void* args,
+                                     void* output)
+{
+    PARSE(word_parser(input, "return", NULL));
+    PARSE_ERR(space_parser(input, NULL, NULL),
+          "a space is expcted after 'print' keyword");
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
+    PARSE_ERR(expression_parser(input, NULL, NULL),
+              "bad return expression");
+
+    return PARSER_SUCCESS;
+}
+
 static parser_status_t if_parser(FILE* input, const void* args,
                                  void* output)
 {
@@ -502,11 +517,28 @@ static parser_status_t if_parser(FILE* input, const void* args,
     return PARSER_SUCCESS;
 }
 
+static parser_status_t on_parser(FILE* input, const void* args,
+                                 void* output)
+{
+    PARSE(word_parser(input, "on", NULL));
+    PARSE_ERR(boolexpr_parser(input, NULL, NULL),
+              "a boolean expression must follow a 'on' keyword");
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
+    PARSE_ERR(word_parser(input, "do", NULL),
+              "a 'do' keyword must follow the 'on' boolean expression");
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
+    PARSE(instruction_parser(input, NULL, NULL));
+
+    return PARSER_SUCCESS;
+}
 
 static parser_status_t flowcontrol_parser(FILE* input, const void* args,
                                           void* output)
 {
     if (TRY(input, if_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
+        return PARSER_SUCCESS;
+    } else
+    if (TRY(input, on_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
         return PARSER_SUCCESS;
     }
 
@@ -525,7 +557,6 @@ static parser_status_t affectation_parser(FILE* input, const void* args,
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
     PARSE(expression_parser(input, NULL, NULL));
-
     PARSE(end_of_line_parser(input, NULL, NULL));
 
     return PARSER_SUCCESS;
@@ -534,6 +565,7 @@ static parser_status_t affectation_parser(FILE* input, const void* args,
 static parser_status_t instruction_parser(FILE* input, const void* args,
                                           void* output)
 {
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
     if (TRY(input, flowcontrol_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
         return PARSER_SUCCESS;
     } else
@@ -541,6 +573,9 @@ static parser_status_t instruction_parser(FILE* input, const void* args,
         return PARSER_SUCCESS;
     } else
     if (TRY(input, print_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
+        return PARSER_SUCCESS;
+    } else
+    if (TRY(input, return_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
         return PARSER_SUCCESS;
     }
 
