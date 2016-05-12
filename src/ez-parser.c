@@ -198,9 +198,371 @@ static parser_status_t local_variables_parser(FILE* input, const void* args,
     return PARSER_SUCCESS;
 }
 
+/* ---------------------------------- Values ------------------------------- */
+
+static parser_status_t expression_parser(FILE* input, const void* args,
+                                         void* output);
+
+static parser_status_t string_parser(FILE* input, const void* args,
+                                     char** output)
+{
+    char string[512];
+    char *string_ptr = string;
+
+    PARSE(char_parser(input, "\"", NULL));
+    PARSE(until_char_parser(input, "\"", &string_ptr));
+
+    /* Handling " escaping */
+    /* XXX find something else than this trick */
+    while (*(string_ptr - 1) == '\\') {
+        PARSE(char_parser(input, "\"", &string_ptr));
+        PARSE(until_char_parser(input, "\"", &string_ptr));
+    }
+    PARSE_ERR(char_parser(input, "\"", NULL),
+              "unclosed string");
+    return PARSER_SUCCESS;
+}
+
+static parser_status_t integer_parser(FILE* input, const void* args,
+                                      char** output)
+{
+    PARSE(chars_parser(input, "0123456789", output));
+    return PARSER_SUCCESS;
+}
+
+static parser_status_t bool_parser(FILE* input, const void* args,
+                                   char** output)
+{
+    if (TRY(input, word_parser(input, "true", NULL)) == PARSER_SUCCESS) {
+        return PARSER_SUCCESS;
+    }
+    PARSE(word_parser(input, "false", NULL));
+    return PARSER_SUCCESS;
+}
+
+static parser_status_t varref_parser(FILE* input, const void* args,
+                                     void* output)
+{
+    PARSE(identifier_parser(input, NULL, NULL));
+    if (TRY(input, char_parser(input, ".", NULL)) == PARSER_SUCCESS) {
+        PARSE_ERR(varref_parser(input, NULL, NULL),
+                  "expected identifier after '.'");
+    }
+
+    return PARSER_SUCCESS;
+}
+
+static parser_status_t parameters_parser(FILE* input, const void* args,
+                                         void* output)
+{
+    if (TRY(input, expression_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
+        SKIP_MANY(input, space_parser(input, NULL, NULL));
+        if (TRY(input, char_parser(input, ",", NULL)) == PARSER_SUCCESS) {
+            SKIP_MANY(input, space_parser(input, NULL, NULL));
+            PARSE(parameters_parser(input, NULL, NULL));
+        }
+    }
+
+    return PARSER_SUCCESS;
+}
+
+static parser_status_t funccall_parser(FILE* input, const void* args,
+                                       void* output)
+{
+    PARSE(varref_parser(input, NULL, NULL));
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
+
+    PARSE(char_parser(input, "(", NULL));
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
+
+    PARSE(parameters_parser(input, NULL, NULL));
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
+    PARSE(char_parser(input, ")", NULL));
+
+    return PARSER_SUCCESS;
+}
+
+static parser_status_t value_parser(FILE* input, const void* args,
+                                    void* output)
+{
+    if (TRY(input, string_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
+        return PARSER_SUCCESS;
+    } else
+    if (TRY(input, integer_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
+        return PARSER_SUCCESS;
+    } else
+    if (TRY(input, bool_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
+        return PARSER_SUCCESS;
+    } else
+    if (TRY(input, string_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
+        return PARSER_SUCCESS;
+    } else
+    if (TRY(input, varref_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
+        return PARSER_SUCCESS;
+    } else
+    if (TRY(input, funccall_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
+        return PARSER_SUCCESS;
+    }
+
+    return PARSER_FAILURE;
+}
+
+/* ------------------------- Boolean expression ---------------------------- */
+
+static parser_status_t cmp_op_parser(FILE* input, const void* args,
+                                     void* output)
+{
+    if (TRY(input, word_parser(input, "==", NULL)) == PARSER_SUCCESS) {
+        return PARSER_SUCCESS;
+    } else
+    if (TRY(input, word_parser(input, "!=", NULL)) == PARSER_SUCCESS) {
+        return PARSER_SUCCESS;
+    } else
+    if (TRY(input, word_parser(input, "<=", NULL)) == PARSER_SUCCESS) {
+        return PARSER_SUCCESS;
+    } else
+    if (TRY(input, word_parser(input, ">=", NULL)) == PARSER_SUCCESS) {
+        return PARSER_SUCCESS;
+    } else
+    if (TRY(input, word_parser(input, ">", NULL)) == PARSER_SUCCESS) {
+        return PARSER_SUCCESS;
+    } else
+    if (TRY(input, word_parser(input, "<", NULL)) == PARSER_SUCCESS) {
+        return PARSER_SUCCESS;
+    }
+
+    return PARSER_FAILURE;
+}
+
+
+static parser_status_t
+boolexpr_parser(FILE* input, const void* args, void* output);
+
+static parser_status_t bool_op_parser(FILE* input, const void* args,
+                                      void* output)
+{
+    if (TRY(input, word_parser(input, "and", NULL)) == PARSER_SUCCESS) {
+        return PARSER_SUCCESS;
+    } else
+    if (TRY(input, word_parser(input, "or", NULL)) == PARSER_SUCCESS) {
+        return PARSER_SUCCESS;
+    }
+
+    return PARSER_FAILURE;
+}
+
+static parser_status_t boolexpr_next_parser(FILE* input, const void* args,
+                                            void* output)
+{
+    if (TRY(input, bool_op_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
+        SKIP_MANY(input, space_parser(input, NULL, NULL));
+        PARSE(boolexpr_parser(input, args, output));
+    }
+    return PARSER_SUCCESS;
+}
+
+static parser_status_t boolexpr_cmp_parser(FILE* input, const void* args,
+                                           void* output)
+{
+    if (TRY(input, cmp_op_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
+        SKIP_MANY(input, space_parser(input, NULL, NULL));
+        PARSE(value_parser(input, NULL, NULL));
+        SKIP_MANY(input, space_parser(input, NULL, NULL));
+        PARSE(boolexpr_parser(input, NULL, NULL));
+    } else {
+        PARSE(boolexpr_next_parser(input, NULL, NULL));
+    }
+
+    return PARSER_SUCCESS;
+}
+
+static parser_status_t boolexpr_parser(FILE* input, const void* args,
+                                       void* output)
+{
+    if (TRY(input, char_parser(input, "(", NULL)) == PARSER_SUCCESS) {
+        SKIP_MANY(input, space_parser(input, NULL, NULL));
+        PARSE(boolexpr_parser(input, NULL, NULL));
+        SKIP_MANY(input, space_parser(input, NULL, NULL));
+        PARSE(char_parser(input, ")", NULL));
+        TRY(input, boolexpr_next_parser(input, NULL, NULL));
+        return PARSER_SUCCESS;
+    } else
+    if (TRY(input, word_parser(input, "not", NULL)) == PARSER_SUCCESS) {
+        SKIP_MANY(input, space_parser(input, NULL, NULL));
+        PARSE(boolexpr_parser(input, NULL, NULL));
+        return PARSER_SUCCESS;
+    } else
+    if (TRY(input, value_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
+        PARSE(space_parser(input, NULL, NULL));
+        SKIP_MANY(input, space_parser(input, NULL, NULL));
+
+        PARSE(boolexpr_cmp_parser(input, NULL, NULL));
+
+        return PARSER_SUCCESS;
+    }
+
+    return PARSER_FAILURE;
+}
+
+/* ----------------------------- Expression -------------------------------- */
+
+static parser_status_t arithmetic_op_parser(FILE* input, const void* args,
+                                            void* output)
+{
+    if (TRY(input, word_parser(input, "+", NULL)) == PARSER_SUCCESS) {
+        return PARSER_SUCCESS;
+    } else
+    if (TRY(input, word_parser(input, "-", NULL)) == PARSER_SUCCESS) {
+        return PARSER_SUCCESS;
+    } else
+    if (TRY(input, word_parser(input, "*", NULL)) == PARSER_SUCCESS) {
+        return PARSER_SUCCESS;
+    } else
+    if (TRY(input, word_parser(input, "/", NULL)) == PARSER_SUCCESS) {
+        return PARSER_SUCCESS;
+    } else
+    if (TRY(input, word_parser(input, "%", NULL)) == PARSER_SUCCESS) {
+        return PARSER_SUCCESS;
+    }
+
+    return PARSER_FAILURE;
+}
+
+static parser_status_t expression_next_parser(FILE* input, const void* args,
+                                              void* output)
+{
+    if (TRY(input, arithmetic_op_parser(input, NULL, NULL)) == PARSER_SUCCESS)
+    {
+        SKIP_MANY(input, space_parser(input, NULL, NULL));
+        PARSE(expression_parser(input, NULL, NULL));
+    }
+
+    /* TODO boolean expression */
+
+    return PARSER_SUCCESS;
+}
+
+static parser_status_t expression_parser(FILE* input, const void* args,
+                                         void* output)
+{
+    if (TRY(input, char_parser(input, "(", NULL)) == PARSER_SUCCESS) {
+        SKIP_MANY(input, space_parser(input, NULL, NULL));
+        PARSE(expression_parser(input, NULL, NULL));
+        SKIP_MANY(input, space_parser(input, NULL, NULL));
+        PARSE(expression_next_parser(input, NULL, NULL));
+        SKIP_MANY(input, space_parser(input, NULL, NULL));
+        PARSE(char_parser(input, ")", NULL));
+    } else
+    if (TRY(input, value_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
+        SKIP_MANY(input, space_parser(input, NULL, NULL));
+        PARSE(expression_next_parser(input, NULL, NULL));
+    }
+
+    return PARSER_SUCCESS;
+}
+
+/* ---------------------------- Instructions ------------------------------- */
+
+static parser_status_t instruction_parser(FILE* input, const void* args,
+                                          void* output);
+
+static parser_status_t instructions_parser(FILE* input, const void* args,
+                                           void* output);
+
+static parser_status_t print_parser(FILE* input, const void* args,
+                                    void* output)
+{
+    PARSE(word_parser(input, "print", NULL));
+    PARSE_ERR(space_parser(input, NULL, NULL),
+          "a space is expcted after 'print' keyword");
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
+    PARSE(parameters_parser(input, NULL, NULL));
+    PARSE(end_of_line_parser(input, NULL, NULL));
+
+    return PARSER_SUCCESS;
+}
+
+static parser_status_t if_parser(FILE* input, const void* args,
+                                 void* output)
+{
+    PARSE(word_parser(input, "if", NULL));
+    PARSE(boolexpr_parser(input, NULL, NULL));
+    PARSE(word_parser(input, "then", NULL));
+    PARSE(end_of_line_parser(input, NULL, NULL));
+
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
+    PARSE(instructions_parser(input, NULL, NULL));
+
+    /* TODO elsif / else parser */
+
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
+    PARSE(word_parser(input, "endif", NULL));
+    PARSE(end_of_line_parser(input, NULL, NULL));
+
+    return PARSER_SUCCESS;
+}
+
+
+static parser_status_t flowcontrol_parser(FILE* input, const void* args,
+                                          void* output)
+{
+    if (TRY(input, if_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
+        return PARSER_SUCCESS;
+    }
+
+    return PARSER_FAILURE;
+}
+
+static parser_status_t affectation_parser(FILE* input, const void* args,
+                                          void* output)
+{
+    PARSE(varref_parser(input, NULL,  NULL));
+    PARSE(space_parser(input, NULL, NULL));
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
+
+    PARSE(char_parser(input, "=", NULL));
+    PARSE(space_parser(input, NULL, NULL));
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
+
+    PARSE(expression_parser(input, NULL, NULL));
+
+    PARSE(end_of_line_parser(input, NULL, NULL));
+
+    return PARSER_SUCCESS;
+}
+
+static parser_status_t instruction_parser(FILE* input, const void* args,
+                                          void* output)
+{
+    if (TRY(input, flowcontrol_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
+        return PARSER_SUCCESS;
+    } else
+    if (TRY(input, affectation_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
+        return PARSER_SUCCESS;
+    } else
+    if (TRY(input, print_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
+        return PARSER_SUCCESS;
+    }
+
+    return PARSER_FAILURE;
+}
+
+static parser_status_t instructions_parser(FILE* input, const void* args,
+                                           void* output)
+{
+    SKIP_MANY(input, comment_or_empty_parser(input, NULL, NULL));
+    if (TRY(input, instruction_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
+        PARSE(instructions_parser(input, NULL, NULL));
+        return PARSER_SUCCESS;
+    }
+
+    return PARSER_SUCCESS;
+}
+
 static parser_status_t function_parser(FILE* input, const void* args,
                                        void* output)
 {
+
     SKIP_MANY(input, comment_or_empty_parser(input, NULL, NULL));
     PARSE(word_parser(input, "function", NULL));
 
@@ -215,11 +577,13 @@ static parser_status_t function_parser(FILE* input, const void* args,
     PARSE_ERR(char_parser(input, ")", NULL), "missing ')'");
 
     SKIP_MANY(input, space_parser(input, NULL, NULL));
-    PARSE_ERR(char_parser(input, ":", NULL), "missing ':'");
+    PARSE_ERR(word_parser(input, "return", NULL), "missing 'return'");
     SKIP_MANY(input, space_parser(input, NULL, NULL));
-    PARSE(type_parser(input, NULL, NULL));
+    PARSE_ERR(type_parser(input, NULL, NULL),
+              "unknown return type");
     PARSE_ERR(end_of_line_parser(input, NULL, NULL),
               "a new line is expected after a function head");
+
 
     SKIP_MANY(input, comment_or_empty_parser(input, NULL, NULL));
     PARSE(local_variables_parser(input, NULL, NULL));
@@ -231,9 +595,10 @@ static parser_status_t function_parser(FILE* input, const void* args,
     PARSE_ERR(end_of_line_parser(input, NULL, NULL),
               "a newline is expected after the 'begin' keyword");
 
-    /* TODO instructions parser */
 
-    PARSE(until_word_parser(input, "end", NULL));
+    PARSE(instructions_parser(input, NULL, NULL));
+    SKIP_MANY(input, comment_or_empty_parser(input, NULL, NULL));
+
     PARSE_ERR(word_parser(input, "end", NULL),
               "A function must be ended with 'end' keyword");
     PARSE_ERR(end_of_line_parser(input, NULL, NULL),

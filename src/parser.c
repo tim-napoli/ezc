@@ -31,6 +31,17 @@ parser_status_t char_parser(FILE* input, const char* allowed, char** output)
     }
 }
 
+parser_status_t chars_parser(FILE* input, const char* allowed, char** output)
+{
+    parser_status_t status = PARSER_FAILURE;
+
+    while (TRY(input, char_parser(input, allowed, output)) == PARSER_SUCCESS) {
+        status = PARSER_SUCCESS;
+    }
+
+    return status;
+}
+
 parser_status_t word_parser(FILE* input, const char* word, char** output) {
     char allowed[2];
 

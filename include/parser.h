@@ -72,9 +72,11 @@ void get_file_coordinates(FILE* f, int* line, int* column, char* c);
         while ((TRY(_input, _parser)) != PARSER_FAILURE) { } \
     }
 
-#define PARSE_MANY  SKIP_MANY
+#define PARSE_MANY SKIP_MANY
 
 parser_status_t char_parser(FILE* input, const char* allowed, char** output);
+
+parser_status_t chars_parser(FILE* input, const char* allowed, char** output);
 
 parser_status_t word_parser(FILE* input, const char* word, char** output);
 
