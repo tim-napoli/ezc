@@ -30,3 +30,6 @@ target_link_libraries(ezc ez-parser)
 # Tests
 add_executable(test-parser test/parser.c)
 target_link_libraries(test-parser parser)
+
+add_executable(test-ez-parser test/ez-parser.c)
+target_link_libraries(test-ez-parser ez-parser)
