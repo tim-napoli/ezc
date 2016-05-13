@@ -11,12 +11,11 @@ function main(in args is vector of string) return integer
     local result is integer
 begin
     if args.size() < 2 then
-    begin
         print "usage: fibonacci n\n"
         return 1
-    end
+    endif
 
-    n = atoi(args[0])
+    n = atoi(args.at(0))
     result = fibonacci(n)
 
     print "fibonacci({n}) = {result}"

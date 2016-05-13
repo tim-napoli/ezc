@@ -101,3 +101,21 @@ parser_status_t type_parser(FILE* input, const void* args,
     return PARSER_FAILURE;
 }
 
+parser_status_t variable_tail_parser(FILE* input, const void* args,
+                                     void* output)
+{
+    PARSE(identifier_parser(input, NULL, NULL));
+    PARSE_ERR(space_parser(input, NULL, NULL),
+              "a space must follow a variable identifier");
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
+
+    PARSE(word_parser(input, "is", NULL));
+    PARSE_ERR(space_parser(input, NULL, NULL),
+              "a space must follow a variable 'is' keyword");
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
+
+    PARSE_ERR(type_parser(input, NULL, NULL),
+              "a variable must have a valid type");
+    return PARSER_SUCCESS;
+}
+

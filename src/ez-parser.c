@@ -99,8 +99,6 @@ parser_status_t local_variables_parser(FILE* input, const void* args,
 parser_status_t function_parser(FILE* input, const void* args,
                                 void* output)
 {
-
-    SKIP_MANY(input, comment_or_empty_parser(input, NULL, NULL));
     PARSE(word_parser(input, "function", NULL));
 
     SKIP_MANY(input, space_parser(input, NULL, NULL));
@@ -144,22 +142,80 @@ parser_status_t function_parser(FILE* input, const void* args,
     return PARSER_SUCCESS;
 }
 
+parser_status_t procedure_parser(FILE* input, const void* args,
+                                 void* output)
+{
+    PARSE(word_parser(input, "procedure", NULL));
+
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
+    PARSE_ERR(identifier_parser(input, NULL, NULL),
+              "a procedure must have a valid identifier");
+
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
+    PARSE_ERR(char_parser(input, "(", NULL), "missing '('");
+    PARSE(function_args_parser(input, NULL, NULL));
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
+    PARSE_ERR(char_parser(input, ")", NULL), "missing ')'");
+
+    PARSE_ERR(end_of_line_parser(input, NULL, NULL),
+              "a new line is expected after a procedure head");
+
+
+    SKIP_MANY(input, comment_or_empty_parser(input, NULL, NULL));
+    PARSE(local_variables_parser(input, NULL, NULL));
+
+    SKIP_MANY(input, comment_or_empty_parser(input, NULL, NULL));
+    PARSE_ERR(word_parser(input, "begin", NULL),
+              "procedure's variables declaration must be followed by a "
+              "'begin' keyword");
+    PARSE_ERR(end_of_line_parser(input, NULL, NULL),
+              "a newline is expected after the 'begin' keyword");
+
+
+    PARSE(instructions_parser(input, NULL, NULL));
+    SKIP_MANY(input, comment_or_empty_parser(input, NULL, NULL));
+
+    PARSE_ERR(word_parser(input, "end", NULL),
+              "A procedure must be ended with 'end' keyword");
+    PARSE_ERR(end_of_line_parser(input, NULL, NULL),
+              "a newline is expected after the 'end' keyword");
+
+    return PARSER_SUCCESS;
+}
+
+parser_status_t constant_parser(FILE* input,
+                                const void* unused_args,
+                                void* unused_output)
+{
+    PARSE(word_parser(input, "constant", NULL));
+    PARSE_ERR(space_parser(input, NULL, NULL),
+              "a space must follow a 'constant' keyword");
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
+
+    PARSE(variable_tail_parser(input, NULL, NULL));
+    PARSE_ERR(end_of_line_parser(input, NULL, NULL),
+              "a new line is expected after a constant declaration");
+}
+
+parser_status_t global_parser(FILE* input,
+                              const void* unused_args,
+                              void* unused_output)
+{
+    PARSE(word_parser(input, "global", NULL));
+    PARSE_ERR(space_parser(input, NULL, NULL),
+              "a space must follow a 'global' keyword");
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
+
+    PARSE(variable_tail_parser(input, NULL, NULL));
+    PARSE_ERR(end_of_line_parser(input, NULL, NULL),
+              "a new line is expected after a global declaration");
+}
+
 parser_status_t structure_member_parser(FILE* input,
                                         const void* unused_args,
                                         void* unused_output)
 {
-    PARSE(identifier_parser(input, NULL, NULL));
-    PARSE_ERR(space_parser(input, NULL, NULL),
-              "a space must follow a member identifier");
-    SKIP_MANY(input, space_parser(input, NULL, NULL));
-
-    PARSE(word_parser(input, "is", NULL));
-    PARSE_ERR(space_parser(input, NULL, NULL),
-              "a space must follow a member 'is' keyword");
-    SKIP_MANY(input, space_parser(input, NULL, NULL));
-
-    PARSE_ERR(type_parser(input, NULL, NULL),
-              "a structure member must have a valid type");
+    PARSE(variable_tail_parser(input, NULL, NULL));
     PARSE_ERR(end_of_line_parser(input, NULL, NULL),
               "a new line is expected after the member type");
 
@@ -197,6 +253,29 @@ parser_status_t structure_parser(FILE* input,
     return PARSER_SUCCESS;
 }
 
+parser_status_t entity_parser(FILE* input, const void* unused_args,
+                              void* output)
+{
+    SKIP_MANY(input, comment_or_empty_parser(input, NULL, NULL));
+    if (TRY(input, constant_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
+        return PARSER_SUCCESS;
+    } else
+    if (TRY(input, global_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
+        return PARSER_SUCCESS;
+    } else
+    if (TRY(input, structure_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
+        return PARSER_SUCCESS;
+    } else
+    if (TRY(input, function_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
+        return PARSER_SUCCESS;
+    } else
+    if (TRY(input, procedure_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
+        return PARSER_SUCCESS;
+    }
+
+    return PARSER_FAILURE;
+}
+
 parser_status_t program_parser(FILE* input,
                                const void* unused_args,
                                void* unused_output)
@@ -209,8 +288,9 @@ parser_status_t program_parser(FILE* input,
 
     printf("Program name: %s\n", program_name);
 
-    /* TODO entity parser */
-    PARSE(function_parser(input, NULL, NULL));
+    while (entity_parser(input, NULL, NULL) == PARSER_SUCCESS) {
+        
+    }
 
     return PARSER_SUCCESS;
 }
