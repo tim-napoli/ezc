@@ -87,9 +87,9 @@ parser_status_t expression_parser(FILE* input, const void* args,
         SKIP_MANY(input, space_parser(input, NULL, NULL));
         PARSE(expression_parser(input, NULL, NULL));
         SKIP_MANY(input, space_parser(input, NULL, NULL));
-        PARSE(expression_next_parser(input, NULL, NULL));
-        SKIP_MANY(input, space_parser(input, NULL, NULL));
         PARSE(char_parser(input, ")", NULL));
+        SKIP_MANY(input, space_parser(input, NULL, NULL));
+        PARSE(expression_next_parser(input, NULL, NULL));
         return PARSER_SUCCESS;
     } else
     if (TRY(input, value_parser(input, NULL, NULL)) == PARSER_SUCCESS) {

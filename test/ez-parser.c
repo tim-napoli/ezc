@@ -242,6 +242,25 @@ void if_test() {
     END_TEST;
 }
 
+void affectation_test() {
+    FILE* f;
+    char valid_1[] = "x = (32 + 6) / 2\n";
+    char valid_2[] = "x.y.z = (32 + 6) / 2\n";
+    char invalid[] = "x.y.z() = (32 + 6) / 2\n";
+
+    TEST_ON(valid_1);
+    assert(affectation_parser(f, NULL, NULL) == PARSER_SUCCESS);
+    END_TEST;
+
+    TEST_ON(valid_2);
+    assert(affectation_parser(f, NULL, NULL) == PARSER_SUCCESS);
+    END_TEST;
+
+    TEST_ON(invalid);
+    assert(affectation_parser(f, NULL, NULL) == PARSER_FAILURE);
+    END_TEST;
+}
+
 int main(int argc, char** argv) {
 
     comment_test();
@@ -253,6 +272,7 @@ int main(int argc, char** argv) {
     return_test();
     on_test();
     if_test();
+    affectation_test();
 
     return 0;
 }

@@ -122,15 +122,16 @@ parser_status_t affectation_parser(FILE* input, const void* args,
                                    void* output)
 {
     PARSE(varref_parser(input, NULL,  NULL));
-    PARSE(space_parser(input, NULL, NULL));
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
     PARSE(char_parser(input, "=", NULL));
-    PARSE(space_parser(input, NULL, NULL));
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
-    PARSE(expression_parser(input, NULL, NULL));
-    PARSE(end_of_line_parser(input, NULL, NULL));
+
+    PARSE_ERR(expression_parser(input, NULL, NULL),
+              "a valid expression must be provided after an affectation '='");
+    PARSE_ERR(end_of_line_parser(input, NULL, NULL),
+              "a new line must follow affaction's expression");
 
     return PARSER_SUCCESS;
 }
