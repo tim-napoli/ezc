@@ -31,7 +31,7 @@ int main(int argc, char** argv) {
     output_path = argv[optind + 1];
 
     FILE* input = fopen(input_path, "r");
-    if (program_parser_func(input, NULL, NULL) == PARSER_FAILURE) {
+    if (program_parser(input, NULL, NULL) == PARSER_FAILURE) {
         fprintf(stderr, "parser failure\n");
     }
 
