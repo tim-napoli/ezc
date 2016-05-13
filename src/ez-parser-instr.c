@@ -18,7 +18,7 @@ parser_status_t return_parser(FILE* input, const void* args,
 {
     PARSE(word_parser(input, "return", NULL));
     PARSE_ERR(space_parser(input, NULL, NULL),
-          "a space is expcted after 'print' keyword");
+          "a space is expcted after 'return' keyword");
     SKIP_MANY(input, space_parser(input, NULL, NULL));
     PARSE_ERR(expression_parser(input, NULL, NULL),
               "bad return expression");
@@ -31,7 +31,11 @@ parser_status_t if_parser(FILE* input, const void* args,
                           void* output)
 {
     PARSE(word_parser(input, "if", NULL));
-    PARSE(boolexpr_parser(input, NULL, NULL));
+    PARSE_ERR(space_parser(input, NULL, NULL),
+          "a space is expcted after 'if' keyword");
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
+    PARSE(expression_parser(input, NULL, NULL));
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
     PARSE(word_parser(input, "then", NULL));
     PARSE(end_of_line_parser(input, NULL, NULL));
 
@@ -51,8 +55,11 @@ parser_status_t on_parser(FILE* input, const void* args,
                           void* output)
 {
     PARSE(word_parser(input, "on", NULL));
-    PARSE_ERR(boolexpr_parser(input, NULL, NULL),
-              "a boolean expression must follow a 'on' keyword");
+    PARSE_ERR(space_parser(input, NULL, NULL),
+          "a space is expcted after 'on' keyword");
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
+    PARSE_ERR(expression_parser(input, NULL, NULL),
+              "an expression must follow a 'on' keyword");
     SKIP_MANY(input, space_parser(input, NULL, NULL));
     PARSE_ERR(word_parser(input, "do", NULL),
               "a 'do' keyword must follow the 'on' boolean expression");

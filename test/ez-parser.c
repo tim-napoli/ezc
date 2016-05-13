@@ -195,7 +195,7 @@ void return_test() {
 
 void on_test() {
     FILE* f;
-    char valid_on[] = "on true do print \"x = \", x\n";
+    char valid_on[] = "on x + 1 == 2 do print \"x = \", x\n";
     char invalid_on_1[] = "on do print \"hello\"\n";
     char invalid_on_2[] = "on true print \"hello\"\n";
 
@@ -212,6 +212,17 @@ void on_test() {
     END_TEST;
 }
 
+void if_test() {
+    FILE* f;
+
+    char simple_if[] = "if x + 1 == 2 then\n"
+                       "    print \"Hello\"\n"
+                       "endif\n";
+    TEST_ON(simple_if);
+    assert(if_parser(f, NULL, NULL) == PARSER_SUCCESS);
+    END_TEST;
+}
+
 int main(int argc, char** argv) {
 
     comment_test();
@@ -222,6 +233,7 @@ int main(int argc, char** argv) {
     print_test();
     return_test();
     on_test();
+    if_test();
 
     return 0;
 }

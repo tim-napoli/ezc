@@ -52,15 +52,6 @@ parser_status_t cmp_op_parser(FILE* input, const void* args,
 parser_status_t bool_op_parser(FILE* input, const void* args,
                                void* output);
 
-parser_status_t boolexpr_next_parser(FILE* input, const void* args,
-                                     void* output);
-
-parser_status_t boolexpr_cmp_parser(FILE* input, const void* args,
-                                    void* output);
-
-parser_status_t boolexpr_parser(FILE* input, const void* args,
-                                void* output);
-
 parser_status_t arithmetic_op_parser(FILE* input, const void* args,
                                      void* output);
 
