@@ -27,6 +27,39 @@ parser_status_t return_parser(FILE* input, const void* args,
     return PARSER_SUCCESS;
 }
 
+parser_status_t elsif_parser(FILE* input, const void* args,
+                             void* output)
+{
+    PARSE(word_parser(input, "elsif", NULL));
+    PARSE_ERR(space_parser(input, NULL, NULL),
+          "a space is expcted after 'elsif' keyword");
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
+    PARSE(expression_parser(input, NULL, NULL));
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
+    PARSE(word_parser(input, "then", NULL));
+    PARSE(end_of_line_parser(input, NULL, NULL));
+
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
+    PARSE(instructions_parser(input, NULL, NULL));
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
+
+    TRY(input, elsif_parser(input, NULL, NULL));
+
+    return PARSER_SUCCESS;
+}
+
+parser_status_t else_parser(FILE* input, const void* args, void* output)
+{
+    PARSE(word_parser(input, "else", NULL));
+    PARSE(end_of_line_parser(input, NULL, NULL));
+
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
+    PARSE(instructions_parser(input, NULL, NULL));
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
+
+    return PARSER_SUCCESS;
+}
+
 parser_status_t if_parser(FILE* input, const void* args,
                           void* output)
 {
@@ -42,7 +75,10 @@ parser_status_t if_parser(FILE* input, const void* args,
     SKIP_MANY(input, space_parser(input, NULL, NULL));
     PARSE(instructions_parser(input, NULL, NULL));
 
-    /* TODO elsif / else parser */
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
+    TRY(input, elsif_parser(input, NULL, NULL));
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
+    TRY(input, else_parser(input, NULL, NULL));
 
     SKIP_MANY(input, space_parser(input, NULL, NULL));
     PARSE(word_parser(input, "endif", NULL));

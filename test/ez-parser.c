@@ -218,7 +218,26 @@ void if_test() {
     char simple_if[] = "if x + 1 == 2 then\n"
                        "    print \"Hello\"\n"
                        "endif\n";
+    char complexe_if[] = "if x + 1 == 2 then\n"
+                         "    print \"Hello\"\n"
+                         "    if true then\n"
+                         "        print \"ok\"\n"
+                         "    endif\n"
+                         "elsif true then\n"
+                         "    print \"elsif\"\n"
+                         "    if true then\n"
+                         "        print \"ok\"\n"
+                         "    endif\n"
+                         "else\n"
+                         "    print \"else\"\n"
+                         "    if true then\n"
+                         "        print \"ok\"\n"
+                         "    endif\n"
+                         "endif\n";
     TEST_ON(simple_if);
+    assert(if_parser(f, NULL, NULL) == PARSER_SUCCESS);
+    END_TEST;
+    TEST_ON(complexe_if);
     assert(if_parser(f, NULL, NULL) == PARSER_SUCCESS);
     END_TEST;
 }
