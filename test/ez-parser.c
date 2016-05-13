@@ -261,6 +261,20 @@ void affectation_test() {
     END_TEST;
 }
 
+void structure_test() {
+    FILE* f;
+
+    char valid_1[] = "structure Vector2d is\n"
+                     "    x is real\n"
+                     "    \n"
+                     "    y is real\n"
+                     "   \n"
+                     "end\n";
+    TEST_ON(valid_1);
+    assert(structure_parser(f, NULL, NULL) == PARSER_SUCCESS);
+    END_TEST;
+}
+
 int main(int argc, char** argv) {
 
     comment_test();
@@ -273,6 +287,7 @@ int main(int argc, char** argv) {
     on_test();
     if_test();
     affectation_test();
+    structure_test();
 
     return 0;
 }

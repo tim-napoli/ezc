@@ -85,6 +85,10 @@ parser_status_t instruction_parser(FILE* input, const void* args,
 parser_status_t instructions_parser(FILE* input, const void* args,
                                     void* output);
 
+parser_status_t structure_parser(FILE* input,
+                                 const void* unused_args,
+                                 void* unused_output);
+
 parser_status_t program_parser(FILE* input,
                                const void* unused_args,
                                void* unused_output);

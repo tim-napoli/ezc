@@ -144,6 +144,59 @@ parser_status_t function_parser(FILE* input, const void* args,
     return PARSER_SUCCESS;
 }
 
+parser_status_t structure_member_parser(FILE* input,
+                                        const void* unused_args,
+                                        void* unused_output)
+{
+    PARSE(identifier_parser(input, NULL, NULL));
+    PARSE_ERR(space_parser(input, NULL, NULL),
+              "a space must follow a member identifier");
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
+
+    PARSE(word_parser(input, "is", NULL));
+    PARSE_ERR(space_parser(input, NULL, NULL),
+              "a space must follow a member 'is' keyword");
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
+
+    PARSE_ERR(type_parser(input, NULL, NULL),
+              "a structure member must have a valid type");
+    PARSE_ERR(end_of_line_parser(input, NULL, NULL),
+              "a new line is expected after the member type");
+
+    return PARSER_SUCCESS;
+}
+
+parser_status_t structure_parser(FILE* input,
+                                 const void* unused_args,
+                                 void* unused_output)
+{
+    PARSE(word_parser(input, "structure", NULL));
+    PARSE_ERR(space_parser(input, NULL, NULL),
+              "a space must follow the 'structure' keyword");
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
+
+    PARSE(identifier_parser(input, NULL, NULL));
+    PARSE_ERR(space_parser(input, NULL, NULL),
+              "a space must follow the structure identifier");
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
+
+    PARSE_ERR(word_parser(input, "is", NULL),
+              "a 'is' keyword must follow the structure identifier");
+    PARSE_ERR(end_of_line_parser(input, NULL, NULL),
+              "a new line is expected after the structure 'is' keyword");
+
+    SKIP_MANY(input, empty_parser(input, NULL, NULL));
+    while (TRY(input, word_parser(input, "end", NULL)) == PARSER_FAILURE) {
+        PARSE(structure_member_parser(input, NULL, NULL));
+        SKIP_MANY(input, empty_parser(input, NULL, NULL));
+    }
+
+    PARSE_ERR(end_of_line_parser(input, NULL, NULL),
+              "a new line is expected after the structure 'end' keyword");
+
+    return PARSER_SUCCESS;
+}
+
 parser_status_t program_parser(FILE* input,
                                const void* unused_args,
                                void* unused_output)
