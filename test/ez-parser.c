@@ -242,6 +242,18 @@ void if_test() {
     END_TEST;
 }
 
+void while_test() {
+    FILE* f;
+
+    char simple_while[] = "while true do\n"
+                          "    print \"true\"\n"
+                          "endwhile\n";
+
+    TEST_ON(simple_while);
+    assert(while_parser(f, NULL, NULL) == PARSER_SUCCESS);
+    END_TEST;
+}
+
 void affectation_test() {
     FILE* f;
     char valid_1[] = "x = (32 + 6) / 2\n";
@@ -287,6 +299,7 @@ int main(int argc, char** argv) {
     on_test();
     if_test();
     affectation_test();
+    while_test();
     structure_test();
 
     return 0;

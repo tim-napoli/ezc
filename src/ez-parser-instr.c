@@ -110,6 +110,33 @@ parser_status_t on_parser(FILE* input, const void* args,
     return PARSER_SUCCESS;
 }
 
+parser_status_t while_parser(FILE* input, const void* args,
+                             void* output)
+{
+    PARSE(word_parser(input, "while", NULL));
+    PARSE_ERR(space_parser(input, NULL, NULL),
+          "a space is expcted after 'while' keyword");
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
+
+    PARSE_ERR(expression_parser(input, NULL, NULL),
+              "a valid expression is expected after the 'while' keyword");
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
+    PARSE_ERR(word_parser(input, "do", NULL),
+              "a 'do' keyword must follow the 'while' expression");
+
+    PARSE_ERR(end_of_line_parser(input, NULL, NULL),
+              "a new line is expected after the while 'do' keyword");
+
+    PARSE(instructions_parser(input, NULL, NULL));
+    SKIP_MANY(input, comment_or_empty_parser(input, NULL, NULL));
+
+    PARSE_ERR(word_parser(input, "endwhile", NULL),
+              "a 'endwhile' keyword is expected to close a 'while' block");
+    PARSE_ERR(end_of_line_parser(input, NULL, NULL),
+              "a new line must follow the 'endwhile' keyword");
+    return PARSER_SUCCESS;
+}
+
 parser_status_t flowcontrol_parser(FILE* input, const void* args,
                                    void* output)
 {
@@ -155,6 +182,9 @@ parser_status_t instruction_parser(FILE* input, const void* args,
         return PARSER_SUCCESS;
     } else
     if (TRY(input, return_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
+        return PARSER_SUCCESS;
+    } else
+    if (TRY(input, while_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
         return PARSER_SUCCESS;
     }
 
