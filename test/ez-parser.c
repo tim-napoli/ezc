@@ -91,6 +91,7 @@ void value_test() {
     char varref_rec[] = "a.b.c";
     char funccall_simple[] = "x()";
     char funccall_rec[] = "x.y.z().x(5).z";
+    char array_rec[] = "x[0][1 + 2 * 3][5].z";
 
     TEST_ON(string_simple);
     assert(value_parser(f, NULL, NULL) == PARSER_SUCCESS);
@@ -125,6 +126,10 @@ void value_test() {
     END_TEST;
 
     TEST_ON(funccall_rec);
+    assert(value_parser(f, NULL, NULL) == PARSER_SUCCESS);
+    END_TEST;
+
+    TEST_ON(array_rec);
     assert(value_parser(f, NULL, NULL) == PARSER_SUCCESS);
     END_TEST;
 }
