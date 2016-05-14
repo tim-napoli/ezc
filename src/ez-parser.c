@@ -195,6 +195,8 @@ parser_status_t constant_parser(FILE* input,
     PARSE(variable_tail_parser(input, NULL, NULL));
     PARSE_ERR(end_of_line_parser(input, NULL, NULL),
               "a new line is expected after a constant declaration");
+
+    return PARSER_SUCCESS;
 }
 
 parser_status_t global_parser(FILE* input,
@@ -209,6 +211,8 @@ parser_status_t global_parser(FILE* input,
     PARSE(variable_tail_parser(input, NULL, NULL));
     PARSE_ERR(end_of_line_parser(input, NULL, NULL),
               "a new line is expected after a global declaration");
+
+    return PARSER_SUCCESS;
 }
 
 parser_status_t structure_member_parser(FILE* input,

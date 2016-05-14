@@ -5,7 +5,7 @@ parser_status_t print_parser(FILE* input, const void* args,
 {
     PARSE(word_parser(input, "print", NULL));
     PARSE_ERR(space_parser(input, NULL, NULL),
-          "a space is expcted after 'print' keyword");
+          "a space is expected after 'print' keyword");
     SKIP_MANY(input, space_parser(input, NULL, NULL));
     PARSE(parameters_parser(input, NULL, NULL));
     PARSE(end_of_line_parser(input, NULL, NULL));
@@ -67,10 +67,13 @@ parser_status_t if_parser(FILE* input, const void* args,
     PARSE_ERR(space_parser(input, NULL, NULL),
           "a space is expcted after 'if' keyword");
     SKIP_MANY(input, space_parser(input, NULL, NULL));
-    PARSE(expression_parser(input, NULL, NULL));
+    PARSE_ERR(expression_parser(input, NULL, NULL),
+          "'if' invalid expression");
     SKIP_MANY(input, space_parser(input, NULL, NULL));
-    PARSE(word_parser(input, "then", NULL));
-    PARSE(end_of_line_parser(input, NULL, NULL));
+    PARSE_ERR(word_parser(input, "then", NULL),
+              "missing 'then' keyword after 'if' expression");
+    PARSE_ERR(end_of_line_parser(input, NULL, NULL),
+              "an end of line must follow the 'then' keyword");
 
     SKIP_MANY(input, space_parser(input, NULL, NULL));
     PARSE(instructions_parser(input, NULL, NULL));
@@ -81,8 +84,10 @@ parser_status_t if_parser(FILE* input, const void* args,
     TRY(input, else_parser(input, NULL, NULL));
 
     SKIP_MANY(input, space_parser(input, NULL, NULL));
-    PARSE(word_parser(input, "endif", NULL));
-    PARSE(end_of_line_parser(input, NULL, NULL));
+    PARSE_ERR(word_parser(input, "endif", NULL),
+              "a 'if' must be closed with the 'endif' keyword");
+    PARSE_ERR(end_of_line_parser(input, NULL, NULL),
+              "a new line must follow the 'endif' keyword");
 
     return PARSER_SUCCESS;
 }
@@ -139,7 +144,7 @@ parser_status_t affectation_parser(FILE* input, const void* args,
 parser_status_t instruction_parser(FILE* input, const void* args,
                                    void* output)
 {
-    SKIP_MANY(input, space_parser(input, NULL, NULL));
+    SKIP_MANY(input, comment_or_empty_parser(input, NULL, NULL));
     if (TRY(input, flowcontrol_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
         return PARSER_SUCCESS;
     } else
@@ -159,10 +164,8 @@ parser_status_t instruction_parser(FILE* input, const void* args,
 parser_status_t instructions_parser(FILE* input, const void* args,
                                     void* output)
 {
-    SKIP_MANY(input, comment_or_empty_parser(input, NULL, NULL));
-    if (TRY(input, instruction_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
-        PARSE(instructions_parser(input, NULL, NULL));
-        return PARSER_SUCCESS;
+    while (TRY(input, instruction_parser(input, NULL, NULL)) == PARSER_SUCCESS)
+    {
     }
 
     return PARSER_SUCCESS;

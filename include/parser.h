@@ -17,6 +17,7 @@
 typedef enum {
     PARSER_SUCCESS,
     PARSER_FAILURE,
+    PARSER_FATAL,
 } parser_status_t;
 
 /* A parser is a simple function that, taking as input a FILE* will read a
@@ -25,10 +26,15 @@ typedef parser_status_t (*parser_func_t)(FILE*, const void*, void*, int*);
 
 void get_file_coordinates(FILE* f, int* line, int* column, char* c);
 
-/* Parse using a parser func. If the function failed, return NULL. */
+/* Parse using a parser func. */
 #define PARSE(_parser) \
-    if ((_parser) == PARSER_FAILURE) { \
-        return PARSER_FAILURE; \
+    { \
+        long _status = (_parser); \
+        if (_status == PARSER_FAILURE) { \
+            return PARSER_FAILURE; \
+        } else if (_status == PARSER_FATAL) { \
+            return PARSER_FATAL; \
+        } \
     }
 
 /* Parse using a parser func. If the function failed, return NULL and print
@@ -42,7 +48,7 @@ void get_file_coordinates(FILE* f, int* line, int* column, char* c);
         get_file_coordinates(input, &_line, &_column, &_c); \
         fprintf(stderr, "error (line %d column %d at '%c'): " _err_msg "\n", \
                 _line, _column, _c); \
-        return PARSER_FAILURE; \
+        return PARSER_FATAL; \
     }
 
 /* Try to parse using a parser func. If the function failed, reset the
@@ -54,6 +60,8 @@ void get_file_coordinates(FILE* f, int* line, int* column, char* c);
         parser_status_t _try_status = (_parser); \
         if (_try_status == PARSER_FAILURE) { \
             fseek(_input, _offset, SEEK_SET); \
+        } else if (_try_status == PARSER_FATAL) { \
+            return PARSER_FATAL; \
         } \
         _try_status; \
     })

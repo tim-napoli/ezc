@@ -56,7 +56,8 @@ parser_status_t parameters_parser(FILE* input, const void* args,
         SKIP_MANY(input, space_parser(input, NULL, NULL));
         if (TRY(input, char_parser(input, ",", NULL)) == PARSER_SUCCESS) {
             SKIP_MANY(input, space_parser(input, NULL, NULL));
-            PARSE(parameters_parser(input, NULL, NULL));
+            PARSE_ERR(parameters_parser(input, NULL, NULL),
+                      "invalid parameter");
         }
     }
 

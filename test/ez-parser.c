@@ -189,7 +189,7 @@ void return_test() {
     END_TEST;
 
     TEST_ON(invalid_return);
-    assert(return_parser(f, NULL, NULL) == PARSER_FAILURE);
+    assert(return_parser(f, NULL, NULL) == PARSER_FATAL);
     END_TEST;
 }
 
@@ -204,11 +204,11 @@ void on_test() {
     END_TEST;
 
     TEST_ON(invalid_on_1);
-    assert(on_parser(f, NULL, NULL) == PARSER_FAILURE);
+    assert(on_parser(f, NULL, NULL) == PARSER_FATAL);
     END_TEST;
 
     TEST_ON(invalid_on_2);
-    assert(on_parser(f, NULL, NULL) == PARSER_FAILURE);
+    assert(on_parser(f, NULL, NULL) == PARSER_FATAL);
     END_TEST;
 }
 
