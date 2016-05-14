@@ -22,6 +22,9 @@ parser_status_t end_of_line_parser(FILE* input, const void* args,
 parser_status_t identifier_parser(FILE* input, const void* args,
                                   char** output);
 
+parser_status_t range_parser(FILE* input, const void* args,
+                             void* output);
+
 parser_status_t type_parser(FILE* input, const void* args,
                             void* output);
 
@@ -75,6 +78,9 @@ parser_status_t on_parser(FILE* input, const void* args,
 
 parser_status_t while_parser(FILE* input, const void* args,
                              void* output);
+
+parser_status_t for_parser(FILE* input, const void* args,
+                           void* output);
 
 parser_status_t flowcontrol_parser(FILE* input, const void* args,
                                    void* output);

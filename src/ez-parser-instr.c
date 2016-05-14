@@ -137,6 +137,47 @@ parser_status_t while_parser(FILE* input, const void* args,
     return PARSER_SUCCESS;
 }
 
+parser_status_t for_parser(FILE* input, const void* args,
+                           void* output)
+{
+    PARSE(word_parser(input, "for", NULL));
+    PARSE_ERR(space_parser(input, NULL, NULL),
+          "a space is expcted after 'for' keyword");
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
+
+    PARSE_ERR(identifier_parser(input, NULL, NULL),
+              "a valid identifier is expected after the 'for' keyword");
+
+    PARSE_ERR(space_parser(input, NULL, NULL),
+          "a space is expcted after for identifier");
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
+    PARSE_ERR(word_parser(input, "in", NULL),
+              "a 'in' keyword must follow the 'for' identifier");
+
+    PARSE_ERR(space_parser(input, NULL, NULL),
+          "a space is expcted after for 'in' keyword");
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
+    PARSE_ERR(range_parser(input, NULL, NULL),
+              "a valid range is expected after 'for' 'in' keyword");
+    PARSE_ERR(space_parser(input, NULL, NULL),
+          "a space is expcted after 'for' range");
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
+
+    PARSE_ERR(word_parser(input, "do", NULL),
+              "a 'do' keyword must follow the 'for' range");
+    PARSE_ERR(end_of_line_parser(input, NULL, NULL),
+              "a new line is expected after the for 'do' keyword");
+
+    PARSE(instructions_parser(input, NULL, NULL));
+    SKIP_MANY(input, comment_or_empty_parser(input, NULL, NULL));
+
+    PARSE_ERR(word_parser(input, "endfor", NULL),
+              "a 'endfor' keyword is expected to close a 'for' block");
+    PARSE_ERR(end_of_line_parser(input, NULL, NULL),
+              "a new line must follow the 'endfor' keyword");
+    return PARSER_SUCCESS;
+}
+
 parser_status_t flowcontrol_parser(FILE* input, const void* args,
                                    void* output)
 {
@@ -185,6 +226,9 @@ parser_status_t instruction_parser(FILE* input, const void* args,
         return PARSER_SUCCESS;
     } else
     if (TRY(input, while_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
+        return PARSER_SUCCESS;
+    } else
+    if (TRY(input, for_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
         return PARSER_SUCCESS;
     }
 
