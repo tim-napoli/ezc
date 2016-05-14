@@ -186,6 +186,12 @@ parser_status_t flowcontrol_parser(FILE* input, const void* args,
     } else
     if (TRY(input, on_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
         return PARSER_SUCCESS;
+    } else
+    if (TRY(input, while_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
+        return PARSER_SUCCESS;
+    } else
+    if (TRY(input, for_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
+        return PARSER_SUCCESS;
     }
 
     return PARSER_FAILURE;
@@ -225,10 +231,7 @@ parser_status_t instruction_parser(FILE* input, const void* args,
     if (TRY(input, return_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
         return PARSER_SUCCESS;
     } else
-    if (TRY(input, while_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
-        return PARSER_SUCCESS;
-    } else
-    if (TRY(input, for_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
+    if (TRY(input, funccall_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
         return PARSER_SUCCESS;
     }
 
