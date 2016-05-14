@@ -8,8 +8,10 @@ parser_status_t header_parser(FILE* input,
     PARSE_ERR(word_parser(input, "program", NULL),
               "the program must begin with `program` keyword");
     SKIP_MANY(input, space_parser(input, NULL, NULL));
-    PARSE(identifier_parser(input, NULL, program_name));
-    PARSE(end_of_line_parser(input, NULL, NULL));
+    PARSE_ERR(identifier_parser(input, NULL, program_name),
+              "the program name must be a valid identifier");
+    PARSE_ERR(end_of_line_parser(input, NULL, NULL),
+              "a new line must follow the program name");
 
     return PARSER_SUCCESS;
 }

@@ -13,6 +13,21 @@ parser_status_t print_parser(FILE* input, const void* args,
     return PARSER_SUCCESS;
 }
 
+parser_status_t read_parser(FILE* input, const void* args,
+                            void* output)
+{
+    PARSE(word_parser(input, "read", NULL));
+    PARSE_ERR(space_parser(input, NULL, NULL),
+          "a space is expected after 'read' keyword");
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
+    PARSE_ERR(identifier_parser(input, NULL, NULL),
+              "a single identifier must follow the 'read' keyword");
+    PARSE_ERR(end_of_line_parser(input, NULL, NULL),
+              "a new line must follow the 'read' line");
+
+    return PARSER_SUCCESS;
+}
+
 parser_status_t return_parser(FILE* input, const void* args,
                               void* output)
 {
@@ -159,8 +174,6 @@ parser_status_t for_parser(FILE* input, const void* args,
     SKIP_MANY(input, space_parser(input, NULL, NULL));
     PARSE_ERR(range_parser(input, NULL, NULL),
               "a valid range is expected after 'for' 'in' keyword");
-    PARSE_ERR(space_parser(input, NULL, NULL),
-          "a space is expcted after 'for' range");
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
     PARSE_ERR(word_parser(input, "do", NULL),
@@ -252,6 +265,9 @@ parser_status_t instruction_parser(FILE* input, const void* args,
         return PARSER_SUCCESS;
     } else
     if (TRY(input, print_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
+        return PARSER_SUCCESS;
+    } else
+    if (TRY(input, read_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
         return PARSER_SUCCESS;
     } else
     if (TRY(input, return_parser(input, NULL, NULL)) == PARSER_SUCCESS) {

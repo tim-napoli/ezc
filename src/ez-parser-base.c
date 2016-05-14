@@ -123,12 +123,12 @@ parser_status_t variable_tail_parser(FILE* input, const void* args,
 parser_status_t range_parser(FILE* input, const void* args,
                              void* output)
 {
-    PARSE(integer_parser(input, NULL, NULL));
+    PARSE(expression_parser(input, NULL, NULL));
     SKIP_MANY(input, space_parser(input, NULL, NULL));
     PARSE(word_parser(input, "..", NULL));
     SKIP_MANY(input, space_parser(input, NULL, NULL));
-    PARSE_ERR(integer_parser(input, NULL, NULL),
-              "an integer is expected after range '..'");
+    PARSE_ERR(expression_parser(input, NULL, NULL),
+              "a valid expression is expected after range '..'");
 
     return PARSER_SUCCESS;
 }
