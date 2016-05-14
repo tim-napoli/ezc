@@ -85,6 +85,8 @@ void value_test() {
     char string_simple[] = "\"xyz lnoehfeh\"";
     char string_quoted[] = "\"cdzeuiz \\\" dedsfefz\"";
     char integer[] = "1245863";
+    char neg_integer[] = "-12456";
+    char real[] = "-12456.32000";
     char bool_true[] = "true";
     char bool_false[] = "false";
     char varref_simple[] = "xyz";
@@ -102,6 +104,14 @@ void value_test() {
     END_TEST;
 
     TEST_ON(integer);
+    assert(value_parser(f, NULL, NULL) == PARSER_SUCCESS);
+    END_TEST;
+
+    TEST_ON(neg_integer);
+    assert(value_parser(f, NULL, NULL) == PARSER_SUCCESS);
+    END_TEST;
+
+    TEST_ON(real);
     assert(value_parser(f, NULL, NULL) == PARSER_SUCCESS);
     END_TEST;
 

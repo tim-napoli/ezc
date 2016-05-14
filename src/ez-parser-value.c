@@ -20,13 +20,29 @@ parser_status_t string_parser(FILE* input, const void* args,
     return PARSER_SUCCESS;
 }
 
+parser_status_t natural_parser(FILE* input, const void* args,
+                               char** output)
+{
+    PARSE(chars_parser(input, "0123456789", output));
+    return PARSER_SUCCESS;
+}
+
 parser_status_t integer_parser(FILE* input, const void* args,
                                char** output)
 {
-    if (TRY(input, char_parser(input, "-", NULL)) == PARSER_SUCCESS) {
-        // TODO negative integer
+    if (TRY(input, char_parser(input, "-", output)) == PARSER_SUCCESS) {
     }
-    PARSE(chars_parser(input, "0123456789", output));
+    PARSE(natural_parser(input, args, output));
+    return PARSER_SUCCESS;
+}
+
+parser_status_t real_parser(FILE* input, const void* args,
+                            char** output)
+{
+    PARSE(integer_parser(input, args, output));
+    PARSE(char_parser(input, ".", output));
+    PARSE(chars_parser(input, "0123456789", NULL));
+
     return PARSER_SUCCESS;
 }
 
@@ -135,6 +151,9 @@ parser_status_t value_parser(FILE* input, const void* args,
                              void* output)
 {
     if (TRY(input, string_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
+        return PARSER_SUCCESS;
+    } else
+    if (TRY(input, real_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
         return PARSER_SUCCESS;
     } else
     if (TRY(input, integer_parser(input, NULL, NULL)) == PARSER_SUCCESS) {

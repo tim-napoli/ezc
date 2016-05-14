@@ -31,8 +31,14 @@ parser_status_t type_parser(FILE* input, const void* args,
 parser_status_t string_parser(FILE* input, const void* args,
                               char** output);
 
+parser_status_t natural_parser(FILE* input, const void* args,
+                               char** output);
+
 parser_status_t integer_parser(FILE* input, const void* args,
                                char** output);
+
+parser_status_t real_parser(FILE* input, const void* args,
+                            char** output);
 
 parser_status_t bool_parser(FILE* input, const void* args,
                             char** output);
