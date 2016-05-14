@@ -40,6 +40,9 @@ parser_status_t bool_parser(FILE* input, const void* args,
 parser_status_t varref_parser(FILE* input, const void* args,
                               void* output);
 
+parser_status_t valref_parser(FILE* input, const void* args,
+                              void* output);
+
 parser_status_t parameters_parser(FILE* input, const void* args,
                                   void* output);
 

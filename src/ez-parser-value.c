@@ -23,6 +23,9 @@ parser_status_t string_parser(FILE* input, const void* args,
 parser_status_t integer_parser(FILE* input, const void* args,
                                char** output)
 {
+    if (TRY(input, char_parser(input, "-", NULL)) == PARSER_SUCCESS) {
+        // TODO negative integer
+    }
     PARSE(chars_parser(input, "0123456789", output));
     return PARSER_SUCCESS;
 }
@@ -64,12 +67,41 @@ parser_status_t parameters_parser(FILE* input, const void* args,
     return PARSER_SUCCESS;
 }
 
+parser_status_t valref_parser(FILE* input, const void* args,
+                              void* output)
+{
+    PARSE(identifier_parser(input, NULL, NULL));
+
+    if (TRY(input, char_parser(input, ".", NULL)) == PARSER_SUCCESS) {
+        /* Continue with a valref */
+        PARSE_ERR(valref_parser(input, NULL, NULL),
+                  "expected identifier after '.'");
+    } else {
+        /* Check if this is a function call */
+        SKIP_MANY(input, space_parser(input, NULL, NULL));
+        if (TRY(input, char_parser(input, "(", NULL)) == PARSER_SUCCESS) {
+            SKIP_MANY(input, space_parser(input, NULL, NULL));
+            PARSE(parameters_parser(input, NULL, NULL));
+            SKIP_MANY(input, space_parser(input, NULL, NULL));
+            PARSE_ERR(char_parser(input, ")", NULL),
+                      "unclosed function call");
+            /* TODO check if 'identifier' is a function and not a procedure */
+            if (TRY(input, char_parser(input, ".", NULL)) == PARSER_SUCCESS) {
+                /* Continue with a valref */
+                PARSE_ERR(valref_parser(input, NULL, NULL),
+                          "expected identifier after '.'");
+            }
+        }
+    }
+
+    return PARSER_SUCCESS;
+}
+
 parser_status_t funccall_parser(FILE* input, const void* args,
                                 void* output)
 {
     PARSE(varref_parser(input, NULL, NULL));
     SKIP_MANY(input, space_parser(input, NULL, NULL));
-
 
     PARSE(char_parser(input, "(", NULL));
     SKIP_MANY(input, space_parser(input, NULL, NULL));
@@ -96,10 +128,7 @@ parser_status_t value_parser(FILE* input, const void* args,
     if (TRY(input, string_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
         return PARSER_SUCCESS;
     } else
-    if (TRY(input, funccall_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
-        return PARSER_SUCCESS;
-    } else
-    if (TRY(input, varref_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
+    if (TRY(input, valref_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
         return PARSER_SUCCESS;
     }
 

@@ -239,7 +239,7 @@ parser_status_t flowcontrol_parser(FILE* input, const void* args,
 parser_status_t affectation_parser(FILE* input, const void* args,
                                    void* output)
 {
-    PARSE(varref_parser(input, NULL,  NULL));
+    PARSE(valref_parser(input, NULL,  NULL));
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
     PARSE(char_parser(input, "=", NULL));
