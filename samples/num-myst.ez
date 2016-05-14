@@ -1,0 +1,28 @@
+program mysterious_number
+
+constant MAX_NUM is integer = 1000
+
+function main(in args is string) return integer
+    local user_number is integer
+    local mysterious_number is integer
+    local try_number is integer
+begin
+    user_number = 0
+    mysterious_number = rand() % MAX_NUM
+    try_number = 0
+
+    loop
+        print "enter a number: "
+        read user_number
+        if user_number < mysterious_number then
+            print "greater\n"
+        elsif user_number > mysterious_number then
+            print "lower\n"
+        endif
+        try_number = try_number + 1
+    until user_number != mysterious_number
+
+    print "won using ", try_number, " tries\n"
+
+    return 0
+end
