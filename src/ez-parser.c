@@ -193,6 +193,15 @@ parser_status_t constant_parser(FILE* input,
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
     PARSE(variable_tail_parser(input, NULL, NULL));
+
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
+    PARSE_ERR(char_parser(input, "=", NULL),
+              "a '=' is expected to intialize constant");
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
+
+    PARSE_ERR(expression_parser(input, NULL, NULL),
+              "a valid expression is expected to initialize a constant");
+
     PARSE_ERR(end_of_line_parser(input, NULL, NULL),
               "a new line is expected after a constant declaration");
 
