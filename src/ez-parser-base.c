@@ -75,6 +75,9 @@ parser_status_t type_parser(FILE* input, const void* args,
     if (TRY(input, word_parser(input, "natural", NULL)) == PARSER_SUCCESS) {
         return PARSER_SUCCESS;
     } else
+    if (TRY(input, word_parser(input, "boolean", NULL)) == PARSER_SUCCESS) {
+        return PARSER_SUCCESS;
+    } else
     if (TRY(input, word_parser(input, "real", NULL)) == PARSER_SUCCESS) {
         return PARSER_SUCCESS;
     } else
