@@ -5,8 +5,8 @@ constant MAX_PRIMES is integer = 20
 function is_prime(in x is integer) return boolean
 local i is integer
 begin
-  on n <= 1 do return false
-  on n <= 3 do return true
+  on x <= 1 do return false
+  on x <= 3 do return true
   for i in 2 .. x/2 do
     on (x % i) == 0 do return false
   endfor

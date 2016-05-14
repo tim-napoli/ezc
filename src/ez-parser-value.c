@@ -72,6 +72,7 @@ parser_status_t valref_parser(FILE* input, const void* args,
 {
     PARSE(identifier_parser(input, NULL, NULL));
 
+    /* XXX find a better way to do this function... */
     if (TRY(input, char_parser(input, ".", NULL)) == PARSER_SUCCESS) {
         /* Continue with a valref */
         PARSE_ERR(valref_parser(input, NULL, NULL),
@@ -91,6 +92,24 @@ parser_status_t valref_parser(FILE* input, const void* args,
                 PARSE_ERR(valref_parser(input, NULL, NULL),
                           "expected identifier after '.'");
             }
+        } else
+        if (TRY(input, char_parser(input, "[", NULL)) == PARSER_SUCCESS) {
+            /* Check is this is a array/vector/map indexing */
+            /* TODO check if 'identifier' is a array/vector value */
+            SKIP_MANY(input, space_parser(input, NULL, NULL));
+            PARSE_ERR(expression_parser(input, NULL, NULL),
+                      "a valid expression must follow '['");
+            SKIP_MANY(input, space_parser(input, NULL, NULL));
+            PARSE_ERR(char_parser(input, "]", NULL),
+                      "missing ']'");
+            SKIP_MANY(input, space_parser(input, NULL, NULL));
+            if (TRY(input, char_parser(input, ".", NULL)) == PARSER_SUCCESS) {
+                /* Continue with a valref */
+                PARSE_ERR(valref_parser(input, NULL, NULL),
+                          "expected identifier after '.'");
+            }
+
+            /* TODO handle multiples '[]' */
         }
     }
 

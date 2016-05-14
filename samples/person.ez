@@ -38,7 +38,7 @@ begin
   // compute maximum of ages (detailed version)
   max = 0
   for i in 1..v.size() do
-    on v.at(i).age > max do max = v.at(i).age
+    on v[i].age > max do max = v[i].age
   endfor
 
   // or use built-in function
