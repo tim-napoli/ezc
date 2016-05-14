@@ -178,6 +178,29 @@ parser_status_t for_parser(FILE* input, const void* args,
     return PARSER_SUCCESS;
 }
 
+parser_status_t loop_parser(FILE* input, const void* args,
+                            void* output)
+{
+    PARSE(word_parser(input, "loop", NULL));
+    PARSE_ERR(end_of_line_parser(input, NULL, NULL),
+              "a new line is expected after the 'loop' keyword");
+
+    PARSE(instructions_parser(input, NULL, NULL));
+    SKIP_MANY(input, comment_or_empty_parser(input, NULL, NULL));
+
+    PARSE_ERR(word_parser(input, "until", NULL),
+              "a 'until' keyword is expected to close a 'loop' block");
+    PARSE_ERR(space_parser(input, NULL, NULL),
+              "a space is expected after 'until' keyword");
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
+    PARSE_ERR(expression_parser(input, NULL, NULL),
+              "a valid expression is expected after the 'until' keyword");
+    PARSE_ERR(end_of_line_parser(input, NULL, NULL),
+              "a new line must follow the 'until' expression");
+
+    return PARSER_SUCCESS;
+}
+
 parser_status_t flowcontrol_parser(FILE* input, const void* args,
                                    void* output)
 {
@@ -191,6 +214,9 @@ parser_status_t flowcontrol_parser(FILE* input, const void* args,
         return PARSER_SUCCESS;
     } else
     if (TRY(input, for_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
+        return PARSER_SUCCESS;
+    } else
+    if (TRY(input, loop_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
         return PARSER_SUCCESS;
     }
 

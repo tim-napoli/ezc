@@ -257,12 +257,24 @@ void while_test() {
 void for_test() {
     FILE* f;
 
-    char simple_while[] = "for x in 1..32 do\n"
-                          "    print \"true\"\n"
-                          "endfor\n";
+    char simple_for[] = "for x in 1..32 do\n"
+                        "    print \"true\"\n"
+                        "endfor\n";
 
-    TEST_ON(simple_while);
+    TEST_ON(simple_for);
     assert(for_parser(f, NULL, NULL) == PARSER_SUCCESS);
+    END_TEST;
+}
+
+void loop_test() {
+    FILE* f;
+
+    char simple_loop[] = "loop\n"
+                         "    print \"true\"\n"
+                         "until true\n";
+
+    TEST_ON(simple_loop);
+    assert(loop_parser(f, NULL, NULL) == PARSER_SUCCESS);
     END_TEST;
 }
 
@@ -313,6 +325,7 @@ int main(int argc, char** argv) {
     affectation_test();
     while_test();
     for_test();
+    loop_test();
     structure_test();
 
     return 0;

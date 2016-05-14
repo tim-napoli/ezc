@@ -82,6 +82,9 @@ parser_status_t while_parser(FILE* input, const void* args,
 parser_status_t for_parser(FILE* input, const void* args,
                            void* output);
 
+parser_status_t loop_parser(FILE* input, const void* args,
+                            void* output);
+
 parser_status_t flowcontrol_parser(FILE* input, const void* args,
                                    void* output);
 
