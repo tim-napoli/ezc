@@ -13,7 +13,24 @@
 #define MAX_ARGS 8
 #define MAX_INSTRUCTIONS 150;
 
-typedef enum { BOOLEAN, INTEGER, REAL, CHAR, VECTOR } types;
+typedef enum { BOOLEAN, INTEGER, REAL, CHAR, STRING, VECTOR } types;
+
+typedef enum {
+  PLUS,
+  MINUS,
+  SLASH,
+  STAR,
+  AND,
+  OR,
+  PERIOD,
+  OPENING_BRACKET,
+  CLOSING_BRACKET,
+  LESS_THAN,
+  LESS_THAN_OR_EQUAL,
+  EQUAL,
+  MORE_THAN_OR_EQUAL,
+  MORE_THAN,
+} symbols;
 
 /**
  * DECLARATIONS
@@ -21,7 +38,8 @@ typedef enum { BOOLEAN, INTEGER, REAL, CHAR, VECTOR } types;
 
 struct program_t {
   uint8_t name[NAME_SIZE];
-  struct variable_t globals[MAX_GLOBALS]; // TODO : variable OR vector
+  struct variable_t global_variables[MAX_GLOBALS];
+  struct vector_t global_vectors[MAX_GLOBALS];
   struct constant_t constants[MAX_CONSTANTS];
   struct function_t function[MAX_FUNCTIONS];
   struct procedure_t procedures[MAX_PROCEDURES];
@@ -29,14 +47,14 @@ struct program_t {
 
 struct variable_t {
   uint8_t name[NAME_SIZE];
-  enum types;
+  enum types type;
 };
 
 struct constant_t {
   uint8_t name[NAME_SIZE];
-  enum types;
+  enum types type;
   union value {
-    bool b, uint32_t i, float r, char c
+    bool b, uint32_t i, float r, uint8_t c, uint8_t *s
   };
 }
 
@@ -47,7 +65,11 @@ struct structure_t {
 
 struct vector_t {
   uint8_t name[NAME_SIZE];
-  // TODO : type. Is enum types OR struct structure_t.
+
+  // NOTE : Noot sure if this is the right way to do it.
+  bool is_complex;
+  enum types simple_type;
+  struct structure_t complex_type;
 };
 
 struct function_t {
@@ -137,7 +159,7 @@ union value_t {
 }
 
 struct expression_node {
-  // TODO : TYPE. value or SYMBOL (+, -, *, /, =, <, > etc ... AND ., [])
+  enum symbols symbol;
   union value_t value;
   struct expression_node *left;
   struct expression_node *right;
