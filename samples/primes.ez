@@ -1,0 +1,29 @@
+program prime_numbers
+ 
+constant MAX_PRIMES is integer = 20
+ 
+function is_prime(in x is integer) return boolean
+local i is integer
+begin
+  on x <= 1 do return false
+  on x <= 3 do return true
+  for i in 2 .. x/2 do
+    on (x % i) == 0 do return false
+  endfor
+ 
+  return true
+end
+ 
+ 
+procedure prime_numbers()
+local v is vector of integer
+local n is integer
+begin
+  n = 1
+  while v.size() < MAX_PRIMES do
+    on is_prime(n) do v.insert(n)
+    n = n + 1
+  endwhile
+  print "the first ", MAX_PRIMES, " numbers are ", v
+  print "their average is ", v.average()
+end

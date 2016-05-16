@@ -1,0 +1,8 @@
+/* First EZ program : a hello world */
+program hello_world
+
+function hello_world(in args is vector of blectre) : integer
+begin
+    print("Hello, world")
+end
+

@@ -28,7 +28,7 @@
 
  Un fichier source .ez commence donc par une directive
  "program <identifier> <eol>".
- PH -> C program I $
+ PH -> program I <eol>
 
  Ensuite, viennent les définitions :
  - De variables ;
@@ -88,7 +88,7 @@
  FLOWCONTROL -> ON      // On devrait faire en sorte que cette instruction
                         // ne puisse se situer qu'au début d'un bloc.
 
- IF -> if BOOLEXPR then INSTRUCTIONS endif
+ IF -> if BOOLEXPR then INSTRUCTION INSTRUCTIONS endif
  FOR -> for FOREXPR do INSTRUCTIONS endfor
  FOREACH -> foreach <identifier> as <identifier> do INSTRUCTIONS endforeach
  WHILE -> while BOOLEXPR do INSTRUCTIONS endwhile
@@ -100,7 +100,16 @@
  VARREF -> . <identifier> VARREF
  VARREF -> *
 
- EXPR -> UNARY_OPERATOR VARREF EXPR2
+ BOOLEXPR -> ( BOOLEXPR ) BOOLEXPR_NEXT
+ BOOLEXPR -> not BOOLEXPR
+ BOOLEXPR -> <value> BOOLEXPR_CMP
+ BOOLEXPR_CMP -> COMPARISON_OPERATOR BOOLEXPR
+ BOOLEXPR_CMP -> BOOLEXPR_NEXT
+ BOOLEXPR_NEXT -> BOOLEAN_OPERATOR BOOLEXPR
+ BOOLEXPR_NEXT -> *
+ 
+
+ EXPR -> VALUE EXPR2
  EXPR -> ( EXPR ) EXPR2
  EXPR2 -> ARITHMETIC_OPERATOR VALUE
  EXPR2 -> BOOLEAN_OPERATOR VALUE

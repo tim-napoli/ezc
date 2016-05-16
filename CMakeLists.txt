@@ -11,5 +11,25 @@ include_directories("${PROJECT_SOURCE_DIR}/include")
 #target_link_libraries(
 #)
 
-add_library(rand-grey STATIC
-            src/cparser/parser.c)
+file(COPY samples DESTINATION .)
+
+add_library(parser STATIC
+            src/parser.c)
+
+add_library(ez-parser STATIC
+            src/parser.c
+            src/ez-parser.c
+            src/ez-parser-base.c
+            src/ez-parser-value.c
+            src/ez-parser-expr.c
+            src/ez-parser-instr.c)
+
+add_executable(ezc src/ezc.c)
+target_link_libraries(ezc ez-parser)
+
+# Tests
+add_executable(test-parser test/parser.c)
+target_link_libraries(test-parser parser)
+
+add_executable(test-ez-parser test/ez-parser.c)
+target_link_libraries(test-ez-parser ez-parser)
