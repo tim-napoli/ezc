@@ -13,7 +13,26 @@
 #define MAX_ARGS 8
 #define MAX_INSTRUCTIONS 150;
 
-typedef enum { BOOLEAN, INTEGER, REAL, CHAR, VECTOR } types;
+typedef enum { BOOLEAN, INTEGER, REAL, CHAR, STRING, VECTOR } types;
+
+typedef enum {
+  PLUS,
+  MINUS,
+  SLASH,
+  STAR,
+  AND,
+  OR,
+  PERIOD,
+  OPENING_BRACKET,
+  CLOSING_BRACKET,
+  LESS_THAN,
+  LESS_THAN_OR_EQUAL,
+  EQUAL,
+  MORE_THAN_OR_EQUAL,
+  MORE_THAN,
+} symbols;
+
+typedef enum { FUNCTION, PROCEDURE } function_types;
 
 /**
  * DECLARATIONS
@@ -21,47 +40,74 @@ typedef enum { BOOLEAN, INTEGER, REAL, CHAR, VECTOR } types;
 
 struct program_t {
   uint8_t name[NAME_SIZE];
-  struct variable_t globals[MAX_GLOBALS]; // TODO : variable OR vector
+  struct structure_t global_structures[MAX_GLOBALS];
+  struct variable_t global_variables[MAX_GLOBALS];
+  struct vector_t global_vectors[MAX_GLOBALS];
   struct constant_t constants[MAX_CONSTANTS];
   struct function_t function[MAX_FUNCTIONS];
   struct procedure_t procedures[MAX_PROCEDURES];
 };
-
-struct variable_t {
-  uint8_t name[NAME_SIZE];
-  enum types;
-};
-
-struct constant_t {
-  uint8_t name[NAME_SIZE];
-  enum types;
-  union value {
-    bool b, uint32_t i, float r, char c
-  };
-}
 
 struct structure_t {
   uint8_t name[NAME_SIZE];
   struct t_vars vars[STRUCT_SIZE];
 };
 
+struct variable_t {
+  uint8_t name[NAME_SIZE];
+  enum types type;
+};
+
 struct vector_t {
   uint8_t name[NAME_SIZE];
-  // TODO : type. Is enum types OR struct structure_t.
+
+  // NOTE : Not sure if this is the right way to do it.
+  bool is_complex;
+  enum types simple_type;
+  struct structure_t complex_type;
+};
+
+struct constant_t {
+  uint8_t name[NAME_SIZE];
+  enum types type;
+  union value {
+    bool b, uint32_t i, float r, uint8_t c, uint8_t *s
+  };
+};
+
+union argument_t {
+  struct variable_t variable;
+  struct structure_t structure;
+  struct vector_t vector;
 };
 
 struct function_t {
+  enum function_types type;
   uint8_t name[NAME_SIZE];
-  struct variable_t arguments[MAX_ARGS];
-  struct variable_t locals[MAX_LOCALS];
+  struct argument_t arguments[MAX_ARGS]; // TODO : WRONG !! can be structure or
+                                         // variable or vector
+  struct argument_t locals[MAX_LOCALS];  // TODO : WRONG !!
   struct instruction_t instructions[MAX_INSTRUCTIONS];
 };
 
-struct procedure_t {
-  uint8_t name[NAME_SIZE];
-  struct variable_t locals[MAX_LOCALS];
-  struct instruction_t instructions[MAX_INSTRUCTIONS];
+/**
+ * EXPRESSIONS
+ */
+
+union value_t {
+  struct constant_t constant;
+  struct variable_t variable;
+  struct structure_t structure;
+  struct vector_t vector;
+  struct function_call_t function_call;
 }
+
+struct expression_node {
+  enum symbols symbol;
+  union value_t value;
+  struct expression_node *left;
+  struct expression_node *right;
+};
 
 /**
  * INSTRUCTIONS
@@ -104,7 +150,7 @@ struct else_t {
 };
 
 struct affectation_t {
-  struct variable_t left;
+  struct expression_node left; // NOTE : simple expressions only.
   struct expression_node right;
 };
 
@@ -127,18 +173,95 @@ union instruction_t {
 };
 
 /**
- * EXPRESSIONS
+ * PROTOTYPES
  */
+struct program_t program_init();
 
-union value_t {
-  struct constant_t constant;
-  struct variable_t variable;
-  struct function_call_t function_call;
-}
+void program_set_name(struct program_t *p, uint8_t name[NAME_SIZE]);
 
-struct expression_node {
-  // TODO : TYPE. value or SYMBOL (+, -, *, /, =, <, > etc ... AND ., [])
-  union value_t value;
-  struct expression_node *left;
-  struct expression_node *right;
-};
+void program_add_global_variable(struct program_t *p, struct variable_t v);
+
+void program_add_global_vector(struct program_t *p, struct vector_t v);
+
+void programm_add_constant(struct program_t *p, struct constant_t c);
+
+void programm_add_function(struct program_t *p, struct function_t f);
+
+void programm_add_procedure(struct program_t *p, struct procedure_t f);
+
+struct variable_t variable_init(uint8_t name[NAME_SIZE], enum types type);
+
+struct constant_t constant_init_boolean(uint8_t name[NAME_SIZE], bool b);
+
+struct constant_t constant_init_integer(uint8_t name[NAME_SIZE], uint32_t i);
+
+struct constant_t constant_init_real(uint8_t name[NAME_SIZE], float f);
+
+struct constant_t constant_init_char(uint8_t name[NAME_SIZE], uint8_t c);
+
+struct constant_t constant_init_string(uint8_t name[NAME_SIZE], uint8_t *s);
+
+struct structure_t structure_init(uint8_t name[NAME_SIZE],
+                                  struct variable_t vars[STRUCT_SIZE]);
+
+void structure_add_var(struct structure_t *s, struct variable_t var);
+
+// TODO : vectors
+
+struct function_t function_init_empty(uint8_t name[NAME_SIZE]);
+
+struct function_t
+function_init(uint8_t name[NAME_SIZE], struct argument_t arguments[MAX_ARGS],
+              struct argument_t locals[MAX_LOCALS],
+              struct instruction_t instructions[MAX_INSTRUCTIONS]);
+
+void function_add_parameter(struct function_t *f, struct argument_t argument);
+
+void function_add_local(struct function_t *f, struct argument_t locale);
+
+void function_add_instructions(struct function_t *f,
+                               struct instruction_t instruction);
+
+struct function_t procedure_init_empty(uint8_t name[NAME_SIZE]);
+
+struct function_t
+procedure_init(uint8_t name[NAME_SIZE], struct argument_t arguments[MAX_ARGS],
+               struct argument_t locals[MAX_LOCALS],
+               struct instruction_t instructions[MAX_INSTRUCTIONS]);
+
+void procedure_add_parameter(struct function_t *p, struct argument_t argument);
+
+void procedure_add_local(struct function_t *p, struct argument_t locale);
+
+void procedure_add_instructions(struct function_t *p,
+                                struct instruction_t instruction);
+
+struct while_t while_init(expression_node condition,
+                          struct instruction_t instructions[MAX_INSTRUCTIONS]);
+
+struct repeat_t
+repeat_init(expression_node condition,
+            struct instruction_t instructions[MAX_INSTRUCTIONS]);
+
+struct for_t for_init(expression_node condition,
+                      struct instruction_t instructions[MAX_INSTRUCTIONS]);
+
+struct on_t on_init(expression_node condition,
+                    struct instruction_t instructions[MAX_INSTRUCTIONS]);
+
+struct if_t if_init(expression_node condition,
+                    struct instruction_t instructions[MAX_INSTRUCTIONS]);
+
+struct elsif_t elsif_init(expression_node condition,
+                          struct instruction_t instructions[MAX_INSTRUCTIONS]);
+
+struct else_t else_init(struct instruction_t instructions[MAX_INSTRUCTIONS]);
+
+struct affectation_t affectation_init(expression_node left,
+                                      expression_node right);
+
+struct function_call_t
+function_call_init(uint8_t name[NAME_SIZE],
+                   struct expression_node parameters[MAX_ARGS]);
+
+// TODO : expressions...
