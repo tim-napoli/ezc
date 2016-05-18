@@ -24,12 +24,15 @@ add_library(ez-parser STATIC
             src/ez-parser-expr.c
             src/ez-parser-instr.c)
 
+add_library(ez-lang STATIC
+            src/ez-lang-value.c)
+
 add_executable(ezc src/ezc.c)
-target_link_libraries(ezc ez-parser)
+target_link_libraries(ezc ez-parser ez-lang)
 
 # Tests
 add_executable(test-parser test/parser.c)
 target_link_libraries(test-parser parser)
 
 add_executable(test-ez-parser test/ez-parser.c)
-target_link_libraries(test-ez-parser ez-parser)
+target_link_libraries(test-ez-parser ez-parser ez-lang)

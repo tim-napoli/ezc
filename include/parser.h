@@ -51,6 +51,16 @@ void get_file_coordinates(FILE* f, int* line, int* column, char* c);
         return PARSER_FATAL; \
     }
 
+#define PARSER_LANG_ERR(_fmt, ...) \
+    { \
+        int _line, _column; \
+        char _c; \
+        get_file_coordinates(input, &_line, &_column, &_c); \
+        fprintf(stderr, "error (line %d column %d at '%c'): " _fmt "\n", \
+                _line, _column, _c, __VA_ARGS__); \
+        return PARSER_FATAL; \
+    }
+
 /* Try to parse using a parser func. If the function failed, reset the
  * offset of `input` stream to its original seek. Return the parser status.
  */

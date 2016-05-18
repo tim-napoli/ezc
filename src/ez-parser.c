@@ -2,13 +2,13 @@
 
 parser_status_t header_parser(FILE* input,
                               const void* unused_args,
-                              char** program_name)
+                              identifier_t* program_id)
 {
     SKIP_MANY(input, comment_or_empty_parser(input, NULL, NULL));
     PARSE_ERR(word_parser(input, "program", NULL),
               "the program must begin with `program` keyword");
     SKIP_MANY(input, space_parser(input, NULL, NULL));
-    PARSE_ERR(identifier_parser(input, NULL, program_name),
+    PARSE_ERR(identifier_parser(input, NULL, program_id),
               "the program name must be a valid identifier");
     PARSE_ERR(end_of_line_parser(input, NULL, NULL),
               "a new line must follow the program name");
@@ -295,13 +295,12 @@ parser_status_t program_parser(FILE* input,
                                const void* unused_args,
                                void* unused_output)
 {
-    char program_name[256];
-    char *output_ptr = program_name;
+    identifier_t program_id;
 
-    PARSE(header_parser(input, unused_args, &output_ptr));
+    PARSE(header_parser(input, unused_args, &program_id));
     SKIP_MANY(input, comment_or_empty_parser(input, NULL, NULL));
 
-    printf("Program name: %s\n", program_name);
+    printf("Program name: %s\n", program_id.value);
 
     while (entity_parser(input, NULL, NULL) == PARSER_SUCCESS) {
         

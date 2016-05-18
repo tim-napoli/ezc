@@ -1,3 +1,4 @@
+#include <string.h>
 #include "ez-parser.h"
 
 parser_status_t comment_parser(FILE* input, const void* unused_args,
@@ -52,7 +53,7 @@ parser_status_t end_of_line_parser(FILE* input, const void* args,
 }
 
 parser_status_t identifier_parser(FILE* input, const void* args,
-                                  char** output)
+                                  identifier_t* id)
 {
     const char id_charset_first[] = "azertyuiopqsdfghjklmwxcvbn"
                                     "AZERTYUIOPQSDFGHJKLMWXCVBN"
@@ -61,8 +62,18 @@ parser_status_t identifier_parser(FILE* input, const void* args,
                               "AZERTYUIOPQSDFGHJKLMWXCVBN"
                               "0123456789"
                               "_";
-    PARSE(char_parser(input, id_charset_first, output));
-    PARSE_MANY(input, char_parser(input, id_charset, output));
+    char value[1024];
+    char* value_ptr = value;
+
+    PARSE(char_parser(input, id_charset_first, &value_ptr));
+    PARSE_MANY(input, char_parser(input, id_charset, &value_ptr));
+
+    if (strlen(value) >= IDENTIFIER_SIZE) {
+        PARSER_LANG_ERR("identifier %s is too long (%d max chars)",
+                        value, IDENTIFIER_SIZE);
+    }
+    strcpy(id->value, value);
+
     return PARSER_SUCCESS;
 }
 

@@ -2,6 +2,7 @@
 #define _ez_parser_h_
 
 #include "parser.h"
+#include "ez-lang.h"
 
 parser_status_t comment_parser(FILE* input, const void* unused_args,
                                void* unused_output);
@@ -20,7 +21,7 @@ parser_status_t end_of_line_parser(FILE* input, const void* args,
                                    void* unused_output);
 
 parser_status_t identifier_parser(FILE* input, const void* args,
-                                  char** output);
+                                  identifier_t* output);
 
 parser_status_t range_parser(FILE* input, const void* args,
                              void* output);
@@ -32,31 +33,25 @@ parser_status_t string_parser(FILE* input, const void* args,
                               char** output);
 
 parser_status_t natural_parser(FILE* input, const void* args,
-                               char** output);
+                               unsigned int* output);
 
 parser_status_t integer_parser(FILE* input, const void* args,
-                               char** output);
+                               int* output);
 
 parser_status_t real_parser(FILE* input, const void* args,
-                            char** output);
+                            double* output);
 
 parser_status_t bool_parser(FILE* input, const void* args,
-                            char** output);
-
-parser_status_t varref_parser(FILE* input, const void* args,
-                              void* output);
+                            bool* output);
 
 parser_status_t valref_parser(FILE* input, const void* args,
-                              void* output);
+                              valref_t** output);
 
 parser_status_t parameters_parser(FILE* input, const void* args,
-                                  void* output);
-
-parser_status_t funccall_parser(FILE* input, const void* args,
-                                void* output);
+                                  parameters_t* output);
 
 parser_status_t value_parser(FILE* input, const void* args,
-                             void* output);
+                             value_t* output);
 
 parser_status_t cmp_op_parser(FILE* input, const void* args,
                               void* output);

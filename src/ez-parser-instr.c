@@ -273,7 +273,7 @@ parser_status_t instruction_parser(FILE* input, const void* args,
     if (TRY(input, return_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
         return PARSER_SUCCESS;
     } else
-    if (TRY(input, funccall_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
+    if (TRY(input, expression_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
         return PARSER_SUCCESS;
     }
 
