@@ -6,6 +6,7 @@
 #define IDENTIFIER_SIZE             32
 #define VALREF_ARRAY_INDEXING_MAX   16
 #define PARAMETERS_SIZE             32
+#define STRUCT_SIZE                 16
 
 typedef struct identifier {
     char value[IDENTIFIER_SIZE];
@@ -61,5 +62,52 @@ typedef struct value {
 
 void value_wipe(value_t* value);
 
-#endif
 
+typedef enum {
+    TYPE_TYPE_BOOLEAN,
+    TYPE_TYPE_INTEGER,
+    TYPE_TYPE_NATURAL,
+    TYPE_TYPE_REAL,
+    TYPE_TYPE_CHAR,
+    TYPE_TYPE_STRING,
+    TYPE_TYPE_VECTOR,
+    TYPE_TYPE_STRUCTURE
+} type_types;
+
+typedef struct symbol symbol_t;
+typedef struct structure structure_t;
+typedef struct type type_t;
+
+struct symbol {
+    identifier_t identifier;
+    type_t *is;
+};
+
+struct structure {
+    identifier_t identifier;
+    symbol_t members[STRUCT_SIZE];
+};
+
+struct type {
+    type_types type;
+    union {
+        structure_t *structure_type;
+        type_t *vector_type;
+    };
+};
+
+type_t *type_new(type_types type);
+void type_delete(type_t *type);
+
+type_t *type_boolean_new();
+type_t *type_integer_new();
+type_t *type_natural_new();
+type_t *type_real_new();
+type_t *type_char_new();
+type_t *type_string_new();
+type_t *type_vector_new(type_t *of);
+
+symbol_t *symbol_new(const identifier_t *identifier, type_t *is);
+void symbol_delete(symbol_t *symbol);
+
+#endif

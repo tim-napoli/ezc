@@ -33,8 +33,11 @@ void identifier_test() {
     char invalid_id1[] = "[]";
     char invalid_id2[] = "0fefze";
 
+    identifier_t id;
+
     TEST_ON(valid_id);
-    assert(identifier_parser(f, NULL, NULL) == PARSER_SUCCESS);
+    assert(identifier_parser(f, NULL, &id) == PARSER_SUCCESS);
+    assert(strcmp(id.value, "blectre01zzfafe") == 0);
     END_TEST;
 
     TEST_ON(invalid_id1);
@@ -56,28 +59,79 @@ void type_test() {
     char type_vector_simple[] = "vector of string";
     char type_vector_recursive[] = "vector of vector of string";
 
+    type_t *type;
+
     TEST_ON(invalid_type);
     assert(type_parser(f, NULL, NULL) == PARSER_FAILURE);
     END_TEST;
 
     TEST_ON(type_string);
-    assert(type_parser(f, NULL, NULL) == PARSER_SUCCESS);
+    assert(type_parser(f, NULL, &type) == PARSER_SUCCESS);
+    assert(type->type == TYPE_TYPE_STRING);
+    type_delete(type);
     END_TEST;
 
     TEST_ON(type_integer);
-    assert(type_parser(f, NULL, NULL) == PARSER_SUCCESS);
+    assert(type_parser(f, NULL, &type) == PARSER_SUCCESS);
+    assert(type->type == TYPE_TYPE_INTEGER);
+    type_delete(type);
     END_TEST;
 
     TEST_ON(type_real);
-    assert(type_parser(f, NULL, NULL) == PARSER_SUCCESS);
+    assert(type_parser(f, NULL, &type) == PARSER_SUCCESS);
+    assert(type->type == TYPE_TYPE_REAL);
+    type_delete(type);
     END_TEST;
 
     TEST_ON(type_vector_simple);
-    assert(type_parser(f, NULL, NULL) == PARSER_SUCCESS);
+    assert(type_parser(f, NULL, &type) == PARSER_SUCCESS);
+    assert(type->type == TYPE_TYPE_VECTOR);
+    assert(type->vector_type->type == TYPE_TYPE_STRING);
+    type_delete(type);
     END_TEST;
 
     TEST_ON(type_vector_recursive);
-    assert(type_parser(f, NULL, NULL) == PARSER_SUCCESS);
+    assert(type_parser(f, NULL, &type) == PARSER_SUCCESS);
+    assert(type->type == TYPE_TYPE_VECTOR);
+    assert(type->vector_type->type == TYPE_TYPE_VECTOR);
+    assert(type->vector_type->vector_type->type == TYPE_TYPE_STRING);
+    type_delete(type);
+    END_TEST;
+}
+
+void declaration_test() {
+    FILE *f;
+
+    char integer[] = "n is integer";
+    char vector_of_real[] = "toto is vector of real";
+    char vector_of_vector_of_boolean[] = "_ze23 is vector of vector of boolean";
+
+    // TODO : local or global ...
+
+    symbol_t *s;
+
+    TEST_ON(integer);
+    assert(variable_tail_parser(f, NULL, &s) == PARSER_SUCCESS);
+    assert(strcmp(s->identifier.value, "n") == 0);
+    assert(s->is->type == TYPE_TYPE_INTEGER);
+    symbol_delete(s);
+    END_TEST;
+
+    TEST_ON(vector_of_real);
+    assert(variable_tail_parser(f, NULL, &s) == PARSER_SUCCESS);
+    assert(strcmp(s->identifier.value, "toto") == 0);
+    assert(s->is->type == TYPE_TYPE_VECTOR);
+    assert(s->is->vector_type->type == TYPE_TYPE_REAL);
+    symbol_delete(s);
+    END_TEST;
+
+    TEST_ON(vector_of_vector_of_boolean);
+    assert(variable_tail_parser(f, NULL, &s) == PARSER_SUCCESS);
+    assert(strcmp(s->identifier.value, "_ze23") == 0);
+    assert(s->is->type == TYPE_TYPE_VECTOR);
+    assert(s->is->vector_type->type == TYPE_TYPE_VECTOR);
+    assert(s->is->vector_type->vector_type->type == TYPE_TYPE_BOOLEAN);
+    symbol_delete(s);
     END_TEST;
 }
 
@@ -364,8 +418,9 @@ void structure_test() {
 int main(int argc, char** argv) {
 
     //comment_test();
-    //identifier_test();
-    //type_test();
+    identifier_test();
+    type_test();
+    declaration_test();
     value_test();
     //expr_test();
     //print_test();
@@ -380,4 +435,3 @@ int main(int argc, char** argv) {
 
     return 0;
 }
-
