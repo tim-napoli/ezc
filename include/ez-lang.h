@@ -107,6 +107,7 @@ void expression_delete(expression_t* expr);
 
 int expression_predecence(const expression_t* expr);
 
+void expression_print(FILE* output, const expression_t* expr);
 
 typedef enum {
     TYPE_TYPE_BOOLEAN,

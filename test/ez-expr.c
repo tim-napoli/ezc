@@ -1,3 +1,5 @@
+#include <string.h>
+#include <stdlib.h>
 #include "ez-parser.h"
 #include "ez-lang.h"
 

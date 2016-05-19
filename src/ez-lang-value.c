@@ -5,7 +5,7 @@
 
 void parameters_print(FILE* output, const parameters_t* params) {
     for (int i = 0; i < params->nparameters; i++) {
-        /* TODO expression_print(output, params->parameters[i]); */
+        expression_print(output, params->parameters[i]);
         if (i + 1 < params->nparameters) {
             fprintf(output, ", ");
         }
@@ -38,7 +38,7 @@ void valref_print(FILE* output, const valref_t* value) {
     if (value->has_indexing) {
         for (int i = 0; i < value->nindexings; i++) {
             fprintf(output, "[");
-            /* TODO expression_print(output, value->indexings[i]); */
+            expression_print(output, value->indexings[i]);
             fprintf(output, "]");
         }
     }

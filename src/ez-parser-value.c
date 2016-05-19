@@ -93,9 +93,9 @@ parser_status_t bool_parser(FILE* input, const void* args,
 parser_status_t parameters_parser(FILE* input, const void* args,
                                   parameters_t* parameters)
 {
-    expression_t* expr = parameters->parameters[parameters->nparameters];
+    expression_t** expr = &parameters->parameters[parameters->nparameters];
 
-    if (TRY(input, expression_parser(input, NULL, &expr)) == PARSER_SUCCESS) {
+    if (TRY(input, expression_parser(input, NULL, expr)) == PARSER_SUCCESS) {
         parameters->nparameters++;
 
         SKIP_MANY(input, space_parser(input, NULL, NULL));
