@@ -26,7 +26,8 @@ add_library(ez-parser STATIC
 
 add_library(ez-lang STATIC
             src/ez-lang-value.c
-            src/ez-lang-expr.c)
+            src/ez-lang-expr.c
+            src/ez-lang-symbol.c)
 
 add_executable(ezc src/ezc.c)
 target_link_libraries(ezc ez-parser ez-lang)

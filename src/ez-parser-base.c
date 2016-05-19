@@ -1,5 +1,6 @@
 #include <string.h>
 #include "ez-parser.h"
+#include "ez-lang.h"
 
 parser_status_t comment_parser(FILE* input, const void* unused_args,
                                void* unused_output)
@@ -78,21 +79,26 @@ parser_status_t identifier_parser(FILE* input, const void* args,
 }
 
 parser_status_t type_parser(FILE* input, const void* args,
-                            void* output)
+                            type_t **output)
 {
     if (TRY(input, word_parser(input, "integer", NULL)) == PARSER_SUCCESS) {
+        *output = type_integer_new();
         return PARSER_SUCCESS;
     } else
     if (TRY(input, word_parser(input, "natural", NULL)) == PARSER_SUCCESS) {
+        *output = type_natural_new();
         return PARSER_SUCCESS;
     } else
     if (TRY(input, word_parser(input, "boolean", NULL)) == PARSER_SUCCESS) {
+        *output = type_boolean_new();
         return PARSER_SUCCESS;
     } else
     if (TRY(input, word_parser(input, "real", NULL)) == PARSER_SUCCESS) {
+        *output = type_real_new();
         return PARSER_SUCCESS;
     } else
     if (TRY(input, word_parser(input, "string", NULL)) == PARSER_SUCCESS) {
+        *output = type_string_new();
         return PARSER_SUCCESS;
     } else
     if (TRY(input, word_parser(input, "vector", NULL)) == PARSER_SUCCESS) {
@@ -107,7 +113,10 @@ parser_status_t type_parser(FILE* input, const void* args,
                   "expected spaces after 'of'");
         SKIP_MANY(input, space_parser(input, NULL, NULL));
 
-        PARSE(type_parser(input, NULL, NULL));
+        type_t *of;
+        PARSE(type_parser(input, NULL, &of));
+
+        *output = type_vector_new(of);
 
         return PARSER_SUCCESS;
     }
@@ -116,21 +125,31 @@ parser_status_t type_parser(FILE* input, const void* args,
 }
 
 parser_status_t variable_tail_parser(FILE* input, const void* args,
-                                     void* output)
+                                     symbol_t **output)
 {
-    PARSE(identifier_parser(input, NULL, NULL));
+    identifier_t id;
+    type_t *is;
+
+    PARSE(identifier_parser(input, NULL, &id));
+
     PARSE_ERR(space_parser(input, NULL, NULL),
               "a space must follow a variable identifier");
+
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
     PARSE_ERR(word_parser(input, "is", NULL),
               "a variable declaration must have a 'is' keyword");
+
     PARSE_ERR(space_parser(input, NULL, NULL),
               "a space must follow a variable 'is' keyword");
-    SKIP_MANY(input, space_parser(input, NULL, NULL));
 
-    PARSE_ERR(type_parser(input, NULL, NULL),
+    SKIP_MANY(input, space_parser(input, NULL, &is));
+
+    PARSE_ERR(type_parser(input, NULL, &is),
               "a variable must have a valid type");
+
+    *output = symbol_new(&id, is);
+
     return PARSER_SUCCESS;
 }
 
@@ -146,4 +165,3 @@ parser_status_t range_parser(FILE* input, const void* args,
 
     return PARSER_SUCCESS;
 }
-
