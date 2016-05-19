@@ -80,3 +80,30 @@ void symbol_delete(symbol_t *symbol) {
 
     free(symbol);
 }
+
+structure_t *structure_new(const identifier_t *identifier) {
+    structure_t *s = malloc(sizeof(structure_t));
+
+    if (!s) {
+        fprintf(stderr, "couldn't allocate symobl\n");
+        return NULL;
+    }
+
+    memset(s, 0, sizeof(structure_t));
+    memcpy(&s->identifier, identifier, sizeof(identifier_t));
+    s->number_of_members = 0;
+
+    return s;
+}
+
+void structure_add_member(structure_t *structure, symbol_t *member) {
+    structure->members[(structure->number_of_members)++] = member;
+}
+
+void structure_delete(structure_t *structure) {
+    for (uint8_t i = 0; i < structure->number_of_members; i++) {
+        symbol_delete(structure->members[i]);
+    }
+
+    free(structure);
+}

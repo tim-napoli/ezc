@@ -103,10 +103,22 @@ parser_status_t instructions_parser(FILE* input, const void* args,
 
 parser_status_t structure_parser(FILE* input,
                                  const void* unused_args,
-                                 void* unused_output);
+                                 structure_t **output);
+
+parser_status_t structure_member_parser(FILE* input,
+                                        const void* unused_args,
+                                        symbol_t** output);
 
 parser_status_t variable_tail_parser(FILE* input, const void* args,
-                                     symbol_t** output);
+                                     symbol_t **output);
+
+parser_status_t global_parser(FILE* input,
+                              const void* unused_args,
+                              symbol_t **output);
+
+parser_status_t local_parser(FILE* input,
+                       const void* unused_args,
+                       symbol_t **output);
 
 parser_status_t program_parser(FILE* input,
                                const void* unused_args,

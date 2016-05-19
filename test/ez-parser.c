@@ -99,26 +99,49 @@ void type_test() {
     END_TEST;
 }
 
+void structure_test() {
+    FILE *f;
+
+    char person[] ="structure Person is\n"
+                   "    name is string\n"
+                   "    age is integer\n"
+                   "end\n";
+
+    structure_t *s;
+
+    TEST_ON(person);
+    assert(structure_parser(f, NULL, &s) == PARSER_SUCCESS);
+
+    assert(strcmp(s->identifier.value, "Person") == 0);
+    assert(strcmp(s->members[0]->identifier.value, "name") == 0);
+    assert(s->members[0]->is->type == TYPE_TYPE_STRING);
+    assert(strcmp(s->members[1]->identifier.value, "age") == 0);
+    assert(s->members[1]->is->type == TYPE_TYPE_INTEGER);
+
+    structure_delete(s);
+    END_TEST;
+}
+
 void declaration_test() {
     FILE *f;
 
-    char integer[] = "n is integer";
-    char vector_of_real[] = "toto is vector of real";
-    char vector_of_vector_of_boolean[] = "_ze23 is vector of vector of boolean";
+    char integer[] = "global n is integer\n";
+    char vector_of_real[] = "local toto is vector of real\n";
+    char vector_of_vector_of_boolean[] = "global _ze23 is vector of vector of boolean\n";
 
     // TODO : local or global ...
 
     symbol_t *s;
 
     TEST_ON(integer);
-    assert(variable_tail_parser(f, NULL, &s) == PARSER_SUCCESS);
+    assert(global_parser(f, NULL, &s) == PARSER_SUCCESS);
     assert(strcmp(s->identifier.value, "n") == 0);
     assert(s->is->type == TYPE_TYPE_INTEGER);
     symbol_delete(s);
     END_TEST;
 
     TEST_ON(vector_of_real);
-    assert(variable_tail_parser(f, NULL, &s) == PARSER_SUCCESS);
+    assert(local_parser(f, NULL, &s) == PARSER_SUCCESS);
     assert(strcmp(s->identifier.value, "toto") == 0);
     assert(s->is->type == TYPE_TYPE_VECTOR);
     assert(s->is->vector_type->type == TYPE_TYPE_REAL);
@@ -126,7 +149,7 @@ void declaration_test() {
     END_TEST;
 
     TEST_ON(vector_of_vector_of_boolean);
-    assert(variable_tail_parser(f, NULL, &s) == PARSER_SUCCESS);
+    assert(global_parser(f, NULL, &s) == PARSER_SUCCESS);
     assert(strcmp(s->identifier.value, "_ze23") == 0);
     assert(s->is->type == TYPE_TYPE_VECTOR);
     assert(s->is->vector_type->type == TYPE_TYPE_VECTOR);
@@ -401,25 +424,12 @@ void affectation_test() {
 #endif
 }
 
-void structure_test() {
-    FILE* f;
-
-    char valid_1[] = "structure Vector2d is\n"
-                     "    x is real\n"
-                     "    \n"
-                     "    y is real\n"
-                     "   \n"
-                     "end\n";
-    TEST_ON(valid_1);
-    assert(structure_parser(f, NULL, NULL) == PARSER_SUCCESS);
-    END_TEST;
-}
-
 int main(int argc, char** argv) {
 
     //comment_test();
     identifier_test();
     type_test();
+    structure_test();
     declaration_test();
     value_test();
     //expr_test();
@@ -431,7 +441,6 @@ int main(int argc, char** argv) {
     //while_test();
     //for_test();
     //loop_test();
-    //structure_test();
 
     return 0;
 }

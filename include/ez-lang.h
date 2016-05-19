@@ -1,6 +1,7 @@
 #ifndef _ez_lang_h_
 #define _ez_lang_h_
 
+#include <stdint.h>
 #include <stdbool.h>
 
 #define IDENTIFIER_SIZE             32
@@ -85,7 +86,8 @@ struct symbol {
 
 struct structure {
     identifier_t identifier;
-    symbol_t members[STRUCT_SIZE];
+    symbol_t *members[STRUCT_SIZE];
+    uint8_t number_of_members;
 };
 
 struct type {
@@ -98,7 +100,6 @@ struct type {
 
 type_t *type_new(type_types type);
 void type_delete(type_t *type);
-
 type_t *type_boolean_new();
 type_t *type_integer_new();
 type_t *type_natural_new();
@@ -109,5 +110,9 @@ type_t *type_vector_new(type_t *of);
 
 symbol_t *symbol_new(const identifier_t *identifier, type_t *is);
 void symbol_delete(symbol_t *symbol);
+
+structure_t *structure_new(const identifier_t *identifier);
+void structure_add_member(structure_t *structure, symbol_t *member);
+void structure_delete(structure_t *structure);
 
 #endif
