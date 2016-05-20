@@ -84,3 +84,22 @@ void while_instr_delete(while_instr_t* while_instr) {
     /* TODO instruction_delete */
     vector_delete(&while_instr->instructions, NULL);
 }
+
+on_instr_t* on_instr_new(expression_t* coundition) {
+    on_instr_t* on_instr = malloc(sizeof(on_instr_t));
+    if (!on_instr) {
+        fprintf(stderr, "couldn't allocate on instruction\n");
+        return NULL;
+    }
+
+    on_instr->coundition = coundition;
+    on_instr->instruction = NULL;
+
+    return on_instr;
+}
+
+void on_instr_delete(on_instr_t* on_instr) {
+    expression_delete(on_instr->coundition);
+    /* TODO instruction_delete */
+}
+

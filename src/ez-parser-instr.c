@@ -143,9 +143,9 @@ parser_status_t if_parser(FILE* input, const void* args,
 }
 
 parser_status_t on_parser(FILE* input, const void* args,
-                          void* output)
+                          on_instr_t** output)
 {
-    expression_t* condition = NULL;
+    expression_t* coundition = NULL;
 
     PARSE(word_parser(input, "on", NULL));
 
@@ -153,7 +153,7 @@ parser_status_t on_parser(FILE* input, const void* args,
           "a space is expcted after 'on' keyword");
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
-    PARSE_ERR(expression_parser(input, NULL, &condition),
+    PARSE_ERR(expression_parser(input, NULL, &coundition),
               "an expression must follow a 'on' keyword");
 
     SKIP_MANY(input, space_parser(input, NULL, NULL));
@@ -163,7 +163,8 @@ parser_status_t on_parser(FILE* input, const void* args,
 
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
-    PARSE(instruction_parser(input, NULL, NULL));
+    *output = on_instr_new(coundition);
+    PARSE(instruction_parser(input, NULL, &(*output)->instruction));
 
     return PARSER_SUCCESS;
 }

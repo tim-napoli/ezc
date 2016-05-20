@@ -201,7 +201,16 @@ typedef struct while_instr {
 
 while_instr_t* while_instr_new(expression_t* coundition);
 
-void while_instr_delete(while_instr_t* loop);
+void while_instr_delete(while_instr_t* while_instr);
+
+typedef struct on_instr {
+    expression_t* coundition;
+    instruction_t* instruction;
+} on_instr_t;
+
+on_instr_t* on_instr_new(expression_t* coundition);
+
+void on_instr_delete(on_instr_t* on_instr);
 
 typedef enum {
     INSTRUCTION_TYPE_PRINT,
