@@ -40,10 +40,10 @@ add_executable(test-parser test/parser.c)
 target_link_libraries(test-parser parser)
 
 add_executable(test-ez-parser test/ez-parser.c)
-target_link_libraries(test-ez-parser ez-parser ez-lang)
+target_link_libraries(test-ez-parser ez-parser ez-lang vector)
 
 add_executable(test-ez-expr test/ez-expr.c)
-target_link_libraries(test-ez-expr ez-parser ez-lang)
+target_link_libraries(test-ez-expr ez-parser ez-lang vector)
 
 add_executable(test-vector test/vector.c)
 target_link_libraries(test-vector vector)

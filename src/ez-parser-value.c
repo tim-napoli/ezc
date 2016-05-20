@@ -93,10 +93,10 @@ parser_status_t bool_parser(FILE* input, const void* args,
 parser_status_t parameters_parser(FILE* input, const void* args,
                                   parameters_t* parameters)
 {
-    expression_t** expr = &parameters->parameters[parameters->nparameters];
+    expression_t* expr = NULL;
 
-    if (TRY(input, expression_parser(input, NULL, expr)) == PARSER_SUCCESS) {
-        parameters->nparameters++;
+    if (TRY(input, expression_parser(input, NULL, &expr)) == PARSER_SUCCESS) {
+        vector_push(&parameters->parameters, expr);
 
         SKIP_MANY(input, space_parser(input, NULL, NULL));
         if (TRY(input, char_parser(input, ",", NULL)) == PARSER_SUCCESS) {
@@ -139,16 +139,16 @@ parser_status_t valref_parser(FILE* input, const void* args,
                           "expected identifier after '.'");
             }
         }
-        (*output)->nindexings = 0;
         while (TRY(input, char_parser(input, "[", NULL)) == PARSER_SUCCESS) {
+            expression_t* expr = NULL;
+
             /* Check is this is a array/vector/map indexing */
             /* TODO check if 'identifier' is a array/vector value */
             SKIP_MANY(input, space_parser(input, NULL, NULL));
-            PARSE_ERR(expression_parser(input, NULL,
-                      &(*output)->indexings[(*output)->nindexings]),
+            PARSE_ERR(expression_parser(input, NULL, &expr),
                       "a valid expression must follow '['");
             (*output)->has_indexing = true;
-            (*output)->nindexings++;
+            vector_push(&(*output)->indexings, expr);
             SKIP_MANY(input, space_parser(input, NULL, NULL));
             PARSE_ERR(char_parser(input, "]", NULL),
                       "missing ']'");

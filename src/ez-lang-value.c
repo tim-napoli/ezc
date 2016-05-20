@@ -3,10 +3,18 @@
 #include <string.h>
 #include "ez-lang.h"
 
+void parameters_init(parameters_t* params) {
+    vector_init(&params->parameters, 0);
+}
+
+void parameters_wipe(parameters_t* params) {
+    vector_wipe(&params->parameters, (delete_func_t)&expression_delete);
+}
+
 void parameters_print(FILE* output, const parameters_t* params) {
-    for (int i = 0; i < params->nparameters; i++) {
-        expression_print(output, params->parameters[i]);
-        if (i + 1 < params->nparameters) {
+    for (int i = 0; i < params->parameters.size; i++) {
+        expression_print(output, params->parameters.elements[i]);
+        if (i + 1 < params->parameters.size) {
             fprintf(output, ", ");
         }
     }
@@ -22,13 +30,17 @@ valref_t* valref_new(const identifier_t* identifier) {
     memset(v, 0, sizeof(valref_t));
     memcpy(&v->identifier, identifier, sizeof(identifier_t));
 
+    parameters_init(&v->parameters);
+    vector_init(&v->indexings, 0);
+
     return v;
 }
 
 void valref_delete(valref_t* v) {
     if (v) {
         valref_delete(v->next);
-        /* TODO delete inner expressions */
+        parameters_wipe(&v->parameters);
+        vector_wipe(&v->indexings, (delete_func_t)&expression_delete);
         free(v);
     }
 }
@@ -36,9 +48,9 @@ void valref_delete(valref_t* v) {
 void valref_print(FILE* output, const valref_t* value) {
     fprintf(output, "%s", value->identifier.value);
     if (value->has_indexing) {
-        for (int i = 0; i < value->nindexings; i++) {
+        for (int i = 0; i < value->indexings.size; i++) {
             fprintf(output, "[");
-            expression_print(output, value->indexings[i]);
+            expression_print(output, value->indexings.elements[i]);
             fprintf(output, "]");
         }
     }

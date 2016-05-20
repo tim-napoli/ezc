@@ -3,11 +3,12 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "vector.h"
 
 #define IDENTIFIER_SIZE             32
-#define VALREF_ARRAY_INDEXING_MAX   16
-#define PARAMETERS_SIZE             32
 #define STRUCT_SIZE                 16
+#define INSTRUCTIONS_SIZE           128
+#define ELSIF_SIZE                  32
 
 typedef struct expression expression_t;
 
@@ -16,9 +17,12 @@ typedef struct identifier {
 } identifier_t;
 
 typedef struct parameters {
-    unsigned int  nparameters;
-    expression_t* parameters[PARAMETERS_SIZE];
+    vector_t      parameters;    /* of expression_t* */
 } parameters_t;
+
+void parameters_init(parameters_t* params);
+
+void parameters_wipe(parameters_t* params);
 
 void parameters_print(FILE* output, const parameters_t* params);
 
@@ -26,8 +30,7 @@ typedef struct valref {
     identifier_t  identifier;
 
     bool             has_indexing;
-    unsigned int     nindexings;
-    expression_t*    indexings[VALREF_ARRAY_INDEXING_MAX];
+    vector_t         indexings;     /* of expression_t* */
 
     bool         is_funccall;
     parameters_t parameters;
@@ -159,5 +162,35 @@ void symbol_delete(symbol_t *symbol);
 structure_t *structure_new(const identifier_t *identifier);
 void structure_add_member(structure_t *structure, symbol_t *member);
 void structure_delete(structure_t *structure);
+
+
+typedef struct instruction instruction_t;
+
+typedef struct elsif_instr {
+    expression_t*  coundition;
+
+    int            ninstructions;
+    instruction_t* instructions[INSTRUCTIONS_SIZE];
+} elsif_instr_t;
+
+typedef struct if_instr {
+    expression_t* coundition;
+    int            ninstructions;
+    instruction_t* instructions[INSTRUCTIONS_SIZE];
+
+    int nelsifs;
+    elsif_instr_t* elsifs[ELSIF_SIZE];
+
+    int nelseinstructions;
+    instruction_t* else_instructions[INSTRUCTIONS_SIZE];
+} if_instr_t;
+
+typedef enum {
+    INSTRUCTION_TYPE_PRINT,
+    INSTRUCTION_TYPE_READ,
+    INSTRUCTION_TYPE_RETURN,
+    INSTRUCTION_TYPE_FLOWCONTROL,
+    INSTRUCTION_TYPE_EXPRESSION,
+} instruction_type_t;
 
 #endif

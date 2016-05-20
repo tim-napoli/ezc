@@ -11,6 +11,8 @@ typedef struct vector {
 
 void vector_init(vector_t* vector, size_t reserved);
 
+typedef void (*delete_func_t)(void*);
+
 void vector_wipe(vector_t* vector, void (*free_element)(void*));
 
 vector_t* vector_new(size_t reserved);
