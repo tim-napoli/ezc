@@ -113,10 +113,12 @@ void structure_test() {
     assert(structure_parser(f, NULL, &s) == PARSER_SUCCESS);
 
     assert(strcmp(s->identifier.value, "Person") == 0);
-    assert(strcmp(s->members[0]->identifier.value, "name") == 0);
-    assert(s->members[0]->is->type == TYPE_TYPE_STRING);
-    assert(strcmp(s->members[1]->identifier.value, "age") == 0);
-    assert(s->members[1]->is->type == TYPE_TYPE_INTEGER);
+    symbol_t* member_0 = vector_get(&s->members, 0);
+    symbol_t* member_1 = vector_get(&s->members, 1);
+    assert(strcmp(member_0->identifier.value, "name") == 0);
+    assert(member_0->is->type == TYPE_TYPE_STRING);
+    assert(strcmp(member_1->identifier.value, "age") == 0);
+    assert(member_1->is->type == TYPE_TYPE_INTEGER);
 
     structure_delete(s);
     END_TEST;

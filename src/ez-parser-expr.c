@@ -154,6 +154,7 @@ static parser_status_t expression_in_parser(FILE* input, const void* args,
         stacks->leaves[stacks->nleaves++] = expr;
 
         PARSE(expression_next_parser(input, NULL, stacks));
+        /* TODO wipe expression on error */
 
         return PARSER_SUCCESS;
     }

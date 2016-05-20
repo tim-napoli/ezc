@@ -91,20 +91,18 @@ structure_t *structure_new(const identifier_t *identifier) {
 
     memset(s, 0, sizeof(structure_t));
     memcpy(&s->identifier, identifier, sizeof(identifier_t));
-    s->nmembers = 0;
+
+    vector_init(&s->members, 0);
 
     return s;
 }
 
 void structure_add_member(structure_t *structure, symbol_t *member) {
-    structure->members[(structure->nmembers)++] = member;
+    vector_push(&structure->members, member);
 }
 
 void structure_delete(structure_t *structure) {
-    for (uint8_t i = 0; i < structure->nmembers; i++) {
-        symbol_delete(structure->members[i]);
-    }
-
+    vector_wipe(&structure->members, (delete_func_t)&symbol_delete);
     free(structure);
 }
 

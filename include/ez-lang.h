@@ -134,8 +134,7 @@ struct symbol {
 
 struct structure {
     identifier_t identifier;
-    symbol_t *members[STRUCT_SIZE];
-    unsigned int nmembers;
+    vector_t members;   /* of symbol_t* */
 };
 
 struct type {
