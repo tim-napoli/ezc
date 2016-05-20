@@ -194,6 +194,15 @@ loop_instr_t* loop_instr_new(expression_t* coundition);
 
 void loop_instr_delete(loop_instr_t* loop);
 
+typedef struct while_instr {
+    expression_t* coundition;
+    vector_t      instructions;     /* of instruction_t* */
+} while_instr_t;
+
+while_instr_t* while_instr_new(expression_t* coundition);
+
+void while_instr_delete(while_instr_t* loop);
+
 typedef enum {
     INSTRUCTION_TYPE_PRINT,
     INSTRUCTION_TYPE_READ,

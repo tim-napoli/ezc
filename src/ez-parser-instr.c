@@ -135,14 +135,16 @@ parser_status_t on_parser(FILE* input, const void* args,
 }
 
 parser_status_t while_parser(FILE* input, const void* args,
-                             void* output)
+                             while_instr_t** output)
 {
+    expression_t* expr = NULL;
+
     PARSE(word_parser(input, "while", NULL));
     PARSE_ERR(space_parser(input, NULL, NULL),
           "a space is expcted after 'while' keyword");
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
-    PARSE_ERR(expression_parser(input, NULL, NULL),
+    PARSE_ERR(expression_parser(input, NULL, &expr),
               "a valid expression is expected after the 'while' keyword");
     SKIP_MANY(input, space_parser(input, NULL, NULL));
     PARSE_ERR(word_parser(input, "do", NULL),
@@ -151,7 +153,9 @@ parser_status_t while_parser(FILE* input, const void* args,
     PARSE_ERR(end_of_line_parser(input, NULL, NULL),
               "a new line is expected after the while 'do' keyword");
 
-    PARSE(instructions_parser(input, NULL, NULL));
+    *output = while_instr_new(expr);
+
+    PARSE(instructions_parser(input, NULL, &(*output)->instructions));
     SKIP_MANY(input, comment_or_empty_parser(input, NULL, NULL));
 
     PARSE_ERR(word_parser(input, "endwhile", NULL),

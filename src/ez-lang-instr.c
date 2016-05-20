@@ -66,3 +66,21 @@ void loop_instr_delete(loop_instr_t* loop) {
     vector_delete(&loop->instructions, NULL);
 }
 
+while_instr_t* while_instr_new(expression_t* coundition) {
+    while_instr_t* while_instr = malloc(sizeof(while_instr_t));
+    if (!while_instr) {
+        fprintf(stderr, "couldn't allocate while instruction\n");
+        return NULL;
+    }
+
+    while_instr->coundition = coundition;
+    vector_init(&while_instr->instructions, 0);
+
+    return while_instr;
+}
+
+void while_instr_delete(while_instr_t* while_instr) {
+    expression_delete(while_instr->coundition);
+    /* TODO instruction_delete */
+    vector_delete(&while_instr->instructions, NULL);
+}
