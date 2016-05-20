@@ -167,14 +167,14 @@ void value_test() {
     char string_quoted[] = "\"cdzeuiz \\\" dedsfefz\"";
     char integer[] = "1245863";
     char neg_integer[] = "-123456";
-    char real[] = "-12456.32000";
+    //char real[] = "-12456.32000";
     char bool_true[] = "true";
     char bool_false[] = "false";
     char varref_simple[] = "xyz";
     char varref_rec[] = "a.b.c";
     char funccall_simple[] = "x()";
     char funccall_rec[] = "v.at(3).at(5).z";
-    char array_rec[] = "x[0][1 + 2 * 3][5].z";
+    //char array_rec[] = "x[0][1 + 2 * 3][5].z";
 
     value_t v;
 
@@ -302,13 +302,15 @@ void print_test() {
     FILE* f;
     char valid_print[] = "print \"Hello mister \", person.name\n";
     char invalid_print[] = "print \"Hello mister \" person.name\n";
+    parameters_t params;
 
     TEST_ON(valid_print);
-    assert(print_parser(f, NULL, NULL) == PARSER_SUCCESS);
+    assert(print_parser(f, NULL, &params) == PARSER_SUCCESS);
+    parameters_wipe(&params);
     END_TEST;
 
     TEST_ON(invalid_print);
-    assert(print_parser(f, NULL, NULL) == PARSER_FAILURE);
+    assert(print_parser(f, NULL, &params) == PARSER_FAILURE);
     END_TEST;
 }
 
@@ -316,9 +318,11 @@ void return_test() {
     FILE* f;
     char valid_return[] = "return 32 * (2 / 5 + x.y.f(5 * 8))\n";
     char invalid_return[] = "return \n";
+    expression_t* expression = NULL;
 
     TEST_ON(valid_return);
-    assert(return_parser(f, NULL, NULL) == PARSER_SUCCESS);
+    assert(return_parser(f, NULL, &expression) == PARSER_SUCCESS);
+    expression_delete(expression);
     END_TEST;
 
     TEST_ON(invalid_return);
@@ -331,9 +335,11 @@ void on_test() {
     char valid_on[] = "on x + 1 == 2 do print \"x = \", x\n";
     char invalid_on_1[] = "on do print \"hello\"\n";
     char invalid_on_2[] = "on true print \"hello\"\n";
+    on_instr_t* instr = NULL;
 
     TEST_ON(valid_on);
-    assert(on_parser(f, NULL, NULL) == PARSER_SUCCESS);
+    assert(on_parser(f, NULL, &instr) == PARSER_SUCCESS);
+    on_instr_delete(instr);
     END_TEST;
 
     TEST_ON(invalid_on_1);
@@ -367,11 +373,16 @@ void if_test() {
                          "        print \"ok\"\n"
                          "    endif\n"
                          "endif\n";
+
+    if_instr_t* if_instr = NULL;
+
     TEST_ON(simple_if);
-    assert(if_parser(f, NULL, NULL) == PARSER_SUCCESS);
+    assert(if_parser(f, NULL, &if_instr) == PARSER_SUCCESS);
+    if_instr_delete(if_instr);
     END_TEST;
     TEST_ON(complexe_if);
-    assert(if_parser(f, NULL, NULL) == PARSER_SUCCESS);
+    assert(if_parser(f, NULL, &if_instr) == PARSER_SUCCESS);
+    if_instr_delete(if_instr);
     END_TEST;
 }
 
@@ -381,9 +392,11 @@ void while_test() {
     char simple_while[] = "while true do\n"
                           "    print \"true\"\n"
                           "endwhile\n";
+    while_instr_t* while_instr = NULL;
 
     TEST_ON(simple_while);
-    assert(while_parser(f, NULL, NULL) == PARSER_SUCCESS);
+    assert(while_parser(f, NULL, &while_instr) == PARSER_SUCCESS);
+    while_instr_delete(while_instr);
     END_TEST;
 }
 
@@ -393,9 +406,11 @@ void for_test() {
     char simple_for[] = "for x in 1..32 do\n"
                         "    print \"true\"\n"
                         "endfor\n";
+    for_instr_t* for_instr = NULL;
 
     TEST_ON(simple_for);
-    assert(for_parser(f, NULL, NULL) == PARSER_SUCCESS);
+    assert(for_parser(f, NULL, &for_instr) == PARSER_SUCCESS);
+    for_instr_delete(for_instr);
     END_TEST;
 }
 
@@ -405,9 +420,11 @@ void loop_test() {
     char simple_loop[] = "loop\n"
                          "    print \"true\"\n"
                          "until true\n";
+    loop_instr_t* loop_instr = NULL;
 
     TEST_ON(simple_loop);
-    assert(loop_parser(f, NULL, NULL) == PARSER_SUCCESS);
+    assert(loop_parser(f, NULL, &loop_instr) == PARSER_SUCCESS);
+    loop_instr_delete(loop_instr);
     END_TEST;
 }
 
@@ -415,14 +432,17 @@ void affectation_test() {
     FILE* f;
     char valid_1[] = "x = (32 + 6) / 2\n";
     char valid_2[] = "x.y.z = (32 + 6) / 2\n";
-    char invalid[] = "x.y.z() = (32 + 6) / 2\n";
+    //char invalid[] = "x.y.z() = (32 + 6) / 2\n";
+    affectation_instr_t affectation;
 
     TEST_ON(valid_1);
-    assert(affectation_parser(f, NULL, NULL) == PARSER_SUCCESS);
+    assert(affectation_parser(f, NULL, &affectation) == PARSER_SUCCESS);
+    affectation_instr_wipe(&affectation);
     END_TEST;
 
     TEST_ON(valid_2);
-    assert(affectation_parser(f, NULL, NULL) == PARSER_SUCCESS);
+    assert(affectation_parser(f, NULL, &affectation) == PARSER_SUCCESS);
+    affectation_instr_wipe(&affectation);
     END_TEST;
 
 #if 0
@@ -441,14 +461,14 @@ int main(int argc, char** argv) {
     declaration_test();
     value_test();
     expr_test();
-    //print_test();
-    //return_test();
-    //on_test();
-    //if_test();
-    //affectation_test();
-    //while_test();
-    //for_test();
-    //loop_test();
+    print_test();
+    return_test();
+    on_test();
+    if_test();
+    affectation_test();
+    while_test();
+    for_test();
+    loop_test();
 
     return 0;
 }

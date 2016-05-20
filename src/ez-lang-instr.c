@@ -65,7 +65,7 @@ loop_instr_t* loop_instr_new(expression_t* coundition) {
 void loop_instr_delete(loop_instr_t* loop) {
     expression_delete(loop->coundition);
     /* TODO instruction_delete */
-    vector_delete(&loop->instructions, NULL);
+    vector_wipe(&loop->instructions, NULL);
     free(loop);
 }
 
@@ -85,7 +85,7 @@ while_instr_t* while_instr_new(expression_t* coundition) {
 void while_instr_delete(while_instr_t* while_instr) {
     expression_delete(while_instr->coundition);
     /* TODO instruction_delete */
-    vector_delete(&while_instr->instructions, NULL);
+    vector_wipe(&while_instr->instructions, NULL);
     free(while_instr);
 }
 
@@ -152,5 +152,46 @@ void flowcontrol_wipe(flowcontrol_t* fc) {
         break;
 
     }
+}
+
+void affectation_instr_wipe(affectation_instr_t* affectation) {
+    valref_delete(affectation->lvalue);
+    expression_delete(affectation->expression);
+}
+
+instruction_t* instruction_new(instruction_type_t type) {
+    instruction_t* instr = malloc(sizeof(instruction_t));
+
+    memset(instr, 0, sizeof(instruction_t));
+    instr->type = type;
+
+    return instr;
+}
+
+void instruction_delete(instruction_t* instr) {
+    switch (instr->type) {
+      case INSTRUCTION_TYPE_PRINT:
+        parameters_wipe(&instr->parameters);
+        break;
+
+      case INSTRUCTION_TYPE_READ:
+        valref_delete(instr->valref);
+        break;
+
+      case INSTRUCTION_TYPE_RETURN:
+      case INSTRUCTION_TYPE_EXPRESSION:
+        expression_delete(instr->expression);
+        break;
+
+      case INSTRUCTION_TYPE_FLOWCONTROL:
+        flowcontrol_wipe(&instr->flowcontrol);
+        break;
+
+      case INSTRUCTION_TYPE_AFFECTATION:
+        affectation_instr_wipe(&instr->affectation);
+        break;
+    }
+
+    free(instr);
 }
 

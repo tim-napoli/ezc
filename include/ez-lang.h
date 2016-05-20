@@ -248,15 +248,36 @@ typedef struct flowcontrol {
 
 void flowcontrol_wipe(flowcontrol_t* fc);
 
+typedef struct affectation_instr {
+    valref_t*       lvalue;
+    expression_t*   expression;
+} affectation_instr_t;
+
+void affectation_instr_wipe(affectation_instr_t* affectation);
+
 typedef enum {
     INSTRUCTION_TYPE_PRINT,
     INSTRUCTION_TYPE_READ,
     INSTRUCTION_TYPE_RETURN,
     INSTRUCTION_TYPE_FLOWCONTROL,
     INSTRUCTION_TYPE_EXPRESSION,
+    INSTRUCTION_TYPE_AFFECTATION,
 } instruction_type_t;
 
+typedef struct instruction {
+    instruction_type_t type;
+    union {
+        parameters_t  parameters;
+        valref_t*     valref;
+        flowcontrol_t flowcontrol;
+        expression_t* expression;
+        affectation_instr_t affectation;
+    };
+} instruction_t;
 
+instruction_t* instruction_new(instruction_type_t type);
+
+void instruction_delete(instruction_t* instr);
 
 typedef struct context {
     identifier_t identifier;

@@ -18,6 +18,7 @@ int main(int argc, char** argv) {
     } else {
         expression_print(stdout, expr);
         printf("\n");
+        expression_delete(expr);
     }
     fclose(f);
 
