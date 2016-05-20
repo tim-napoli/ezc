@@ -41,6 +41,7 @@ parser_status_t comment_or_empty_parser(FILE* input,
     {
         return PARSER_SUCCESS;
     }
+
     PARSE(empty_parser(input, NULL, NULL));
     return PARSER_SUCCESS;
 }
@@ -67,13 +68,19 @@ parser_status_t identifier_parser(FILE* input, const void* args,
     char* value_ptr = value;
 
     PARSE(char_parser(input, id_charset_first, &value_ptr));
+
     PARSE_MANY(input, char_parser(input, id_charset, &value_ptr));
 
     if (strlen(value) >= IDENTIFIER_SIZE) {
         PARSER_LANG_ERR("identifier %s is too long (%d max chars)",
                         value, IDENTIFIER_SIZE);
     }
+
     strcpy(id->value, value);
+
+    if (identifier_is_reserved(id)) {
+        return PARSER_FAILURE;
+    }
 
     return PARSER_SUCCESS;
 }
@@ -128,7 +135,7 @@ parser_status_t variable_tail_parser(FILE* input, const void* args,
                                      symbol_t **output)
 {
     identifier_t id;
-    type_t *is;
+    type_t *is = NULL;
 
     PARSE(identifier_parser(input, NULL, &id));
 
@@ -156,11 +163,18 @@ parser_status_t variable_tail_parser(FILE* input, const void* args,
 parser_status_t range_parser(FILE* input, const void* args,
                              void* output)
 {
-    PARSE(expression_parser(input, NULL, NULL));
+    expression_t* begin = NULL;
+    expression_t* end = NULL;
+
+    PARSE(expression_parser(input, NULL, &begin));
+
     SKIP_MANY(input, space_parser(input, NULL, NULL));
+
     PARSE(word_parser(input, "..", NULL));
+
     SKIP_MANY(input, space_parser(input, NULL, NULL));
-    PARSE_ERR(expression_parser(input, NULL, NULL),
+
+    PARSE_ERR(expression_parser(input, NULL, &end),
               "a valid expression is expected after range '..'");
 
     return PARSER_SUCCESS;

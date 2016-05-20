@@ -1,12 +1,10 @@
 #ifndef _ez_lang_h_
 #define _ez_lang_h_
 
-#include <stdint.h>
 #include <stdbool.h>
 #include "vector.h"
 
 #define IDENTIFIER_SIZE             32
-#define STRUCT_SIZE                 16
 #define INSTRUCTIONS_SIZE           128
 #define ELSIF_SIZE                  32
 
@@ -15,6 +13,8 @@ typedef struct expression expression_t;
 typedef struct identifier {
     char value[IDENTIFIER_SIZE];
 } identifier_t;
+
+bool identifier_is_reserved(const identifier_t *id);
 
 typedef struct parameters {
     vector_t      parameters;    /* of expression_t* */
@@ -210,6 +210,49 @@ typedef enum {
     INSTRUCTION_TYPE_FLOWCONTROL,
     INSTRUCTION_TYPE_EXPRESSION,
 } instruction_type_t;
+
+
+
+typedef struct context {
+    identifier_t identifier;
+    // TODO : constants
+    vector_t globals; /* of symbol_t* */
+    vector_t locals; /* of symbol_t* */
+    vector_t structures; /* of_structure_t* */
+    // TODO : functions
+    // TODO : procedures
+    // TODO : args
+
+    struct context *parent_context;
+} context_t;
+
+context_t *context_new(identifier_t *identifier, context_t *parent_context);
+
+void context_delete(context_t* ctx);
+
+// TODO : add constant;
+void context_add_global(context_t *program, symbol_t *global);
+void context_add_structure(context_t *program, structure_t *structure);
+// TODO : add function
+// TODO : add procedure
+// TODO : add arg
+void context_add_local(context_t *function, symbol_t *local);
+
+bool context_structure_exists(identifier_t identifier);
+bool context_valref_exists(valref_t *valref);
+bool context_identifier_is_function(identifier_t identifier);
+bool context_identifier_is_procedure(identifier_t identifier);
+
+typedef enum {
+    MODIFIER_IN,
+    MODIFIER_OUT,
+    MODIFIER_INOUT
+} type_modifier_t;
+
+typedef struct argument {
+    type_modifier_t modifier;
+    symbol_t *symbol;
+} argument_t;
 
 #endif
 

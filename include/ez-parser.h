@@ -108,6 +108,10 @@ parser_status_t local_parser(FILE* input,
                        const void* unused_args,
                        symbol_t** output);
 
+parser_status_t entity_parser(FILE* input,
+                               const void* unused_args,
+                               context_t* output);
+
 parser_status_t program_parser(FILE* input,
                                const void* unused_args,
                                void* unused_output);
