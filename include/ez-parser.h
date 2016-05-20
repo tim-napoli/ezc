@@ -24,7 +24,7 @@ parser_status_t identifier_parser(FILE* input, const void* args,
                                   identifier_t* output);
 
 parser_status_t range_parser(FILE* input, const void* args,
-                             void* output);
+                             range_t* output);
 
 parser_status_t type_parser(FILE* input, const void* args,
                             type_t** output);
@@ -72,7 +72,7 @@ parser_status_t while_parser(FILE* input, const void* args,
                              while_instr_t** output);
 
 parser_status_t for_parser(FILE* input, const void* args,
-                           void* output);
+                           for_instr_t** output);
 
 parser_status_t loop_parser(FILE* input, const void* args,
                             loop_instr_t** output);

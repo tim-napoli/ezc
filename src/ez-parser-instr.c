@@ -205,7 +205,7 @@ parser_status_t while_parser(FILE* input, const void* args,
 }
 
 parser_status_t for_parser(FILE* input, const void* args,
-                           void* output)
+                           for_instr_t** output)
 {
     identifier_t id;
 
@@ -218,6 +218,8 @@ parser_status_t for_parser(FILE* input, const void* args,
     PARSE_ERR(identifier_parser(input, NULL, &id),
               "a valid identifier is expected after the 'for' keyword");
 
+    *output = for_instr_new(&id);
+
     PARSE_ERR(space_parser(input, NULL, NULL),
           "a space is expcted after for identifier");
     SKIP_MANY(input, space_parser(input, NULL, NULL));
@@ -229,7 +231,7 @@ parser_status_t for_parser(FILE* input, const void* args,
           "a space is expcted after for 'in' keyword");
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
-    PARSE_ERR(range_parser(input, NULL, NULL),
+    PARSE_ERR(range_parser(input, NULL, &(*output)->range),
               "a valid range is expected after 'for' 'in' keyword");
 
     SKIP_MANY(input, space_parser(input, NULL, NULL));
@@ -240,7 +242,7 @@ parser_status_t for_parser(FILE* input, const void* args,
     PARSE_ERR(end_of_line_parser(input, NULL, NULL),
               "a new line is expected after the for 'do' keyword");
 
-    PARSE(instructions_parser(input, NULL, NULL));
+    PARSE(instructions_parser(input, NULL, &(*output)->instructions));
 
     SKIP_MANY(input, comment_or_empty_parser(input, NULL, NULL));
 

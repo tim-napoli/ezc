@@ -212,6 +212,21 @@ on_instr_t* on_instr_new(expression_t* coundition);
 
 void on_instr_delete(on_instr_t* on_instr);
 
+typedef struct range {
+    expression_t* from;
+    expression_t* to;
+} range_t;
+
+typedef struct for_instr {
+    identifier_t subject;
+    range_t      range;
+    vector_t     instructions;  /* of instruction_t */
+} for_instr_t;
+
+for_instr_t* for_instr_new(const identifier_t* subject);
+
+void for_instr_delete(for_instr_t* for_instr);
+
 typedef enum {
     INSTRUCTION_TYPE_PRINT,
     INSTRUCTION_TYPE_READ,

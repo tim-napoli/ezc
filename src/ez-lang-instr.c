@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "ez-lang.h"
 
 elsif_instr_t* elsif_instr_new(expression_t* coundition) {
@@ -45,6 +46,7 @@ void if_instr_delete(if_instr_t* if_instr) {
     vector_wipe(&if_instr->elsifs, (delete_func_t)&elsif_instr_delete);
     /* TODO instruction_delete */
     vector_wipe(&if_instr->else_instrs, NULL);
+    free(if_instr);
 }
 
 loop_instr_t* loop_instr_new(expression_t* coundition) {
@@ -64,6 +66,7 @@ void loop_instr_delete(loop_instr_t* loop) {
     expression_delete(loop->coundition);
     /* TODO instruction_delete */
     vector_delete(&loop->instructions, NULL);
+    free(loop);
 }
 
 while_instr_t* while_instr_new(expression_t* coundition) {
@@ -83,6 +86,7 @@ void while_instr_delete(while_instr_t* while_instr) {
     expression_delete(while_instr->coundition);
     /* TODO instruction_delete */
     vector_delete(&while_instr->instructions, NULL);
+    free(while_instr);
 }
 
 on_instr_t* on_instr_new(expression_t* coundition) {
@@ -101,5 +105,27 @@ on_instr_t* on_instr_new(expression_t* coundition) {
 void on_instr_delete(on_instr_t* on_instr) {
     expression_delete(on_instr->coundition);
     /* TODO instruction_delete */
+    free(on_instr);
+}
+
+
+for_instr_t* for_instr_new(const identifier_t* subject) {
+    for_instr_t* instr = malloc(sizeof(for_instr_t));
+
+    memcpy(&instr->subject, subject, sizeof(identifier_t));
+    instr->range.from = NULL;
+    instr->range.to   = NULL;
+    vector_init(&instr->instructions, 0);
+
+    return instr;
+}
+
+void for_instr_delete(for_instr_t* for_instr) {
+    expression_delete(for_instr->range.from);
+    expression_delete(for_instr->range.to);
+
+    /* TODO instruction_delete */
+    vector_wipe(&for_instr->instructions, NULL);
+    free(for_instr);
 }
 
