@@ -78,7 +78,7 @@ parser_status_t loop_parser(FILE* input, const void* args,
                             loop_instr_t** output);
 
 parser_status_t flowcontrol_parser(FILE* input, const void* args,
-                                   void* output);
+                                   flowcontrol_t* output);
 
 parser_status_t affectation_parser(FILE* input, const void* args,
                                    void* output);

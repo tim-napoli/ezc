@@ -228,6 +228,27 @@ for_instr_t* for_instr_new(const identifier_t* subject);
 void for_instr_delete(for_instr_t* for_instr);
 
 typedef enum {
+    FLOWCONTROL_TYPE_IF,
+    FLOWCONTROL_TYPE_WHILE,
+    FLOWCONTROL_TYPE_LOOP,
+    FLOWCONTROL_TYPE_ON,
+    FLOWCONTROL_TYPE_FOR,
+} flowcontrol_type_t;
+
+typedef struct flowcontrol {
+    flowcontrol_type_t type;
+    union {
+        if_instr_t*     if_instr;
+        while_instr_t*  while_instr;
+        loop_instr_t*   loop_instr;
+        on_instr_t*     on_instr;
+        for_instr_t*    for_instr;
+    };
+} flowcontrol_t;
+
+void flowcontrol_wipe(flowcontrol_t* fc);
+
+typedef enum {
     INSTRUCTION_TYPE_PRINT,
     INSTRUCTION_TYPE_READ,
     INSTRUCTION_TYPE_RETURN,

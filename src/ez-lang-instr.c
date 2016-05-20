@@ -129,3 +129,28 @@ void for_instr_delete(for_instr_t* for_instr) {
     free(for_instr);
 }
 
+void flowcontrol_wipe(flowcontrol_t* fc) {
+    switch (fc->type) {
+      case FLOWCONTROL_TYPE_IF:
+        if_instr_delete(fc->if_instr);
+        break;
+
+      case FLOWCONTROL_TYPE_WHILE:
+        while_instr_delete(fc->while_instr);
+        break;
+
+      case FLOWCONTROL_TYPE_LOOP:
+        loop_instr_delete(fc->loop_instr);
+        break;
+
+      case FLOWCONTROL_TYPE_ON:
+        on_instr_delete(fc->on_instr);
+        break;
+
+      case FLOWCONTROL_TYPE_FOR:
+        for_instr_delete(fc->for_instr);
+        break;
+
+    }
+}
+

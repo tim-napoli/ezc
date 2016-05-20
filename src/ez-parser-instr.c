@@ -288,21 +288,36 @@ parser_status_t loop_parser(FILE* input, const void* args,
 }
 
 parser_status_t flowcontrol_parser(FILE* input, const void* args,
-                                   void* output)
+                                   flowcontrol_t* output)
 {
-    if (TRY(input, if_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
+    if (TRY(input, if_parser(input, NULL, &output->if_instr))
+        == PARSER_SUCCESS)
+    {
+        output->type = FLOWCONTROL_TYPE_IF;
         return PARSER_SUCCESS;
     } else
-    if (TRY(input, on_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
+    if (TRY(input, on_parser(input, NULL, &output->on_instr))
+        == PARSER_SUCCESS)
+    {
+        output->type = FLOWCONTROL_TYPE_ON;
         return PARSER_SUCCESS;
     } else
-    if (TRY(input, while_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
+    if (TRY(input, while_parser(input, NULL, &output->while_instr))
+        == PARSER_SUCCESS)
+    {
+        output->type = FLOWCONTROL_TYPE_WHILE;
         return PARSER_SUCCESS;
     } else
-    if (TRY(input, for_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
+    if (TRY(input, for_parser(input, NULL, &output->for_instr))
+        == PARSER_SUCCESS)
+    {
+        output->type = FLOWCONTROL_TYPE_FOR;
         return PARSER_SUCCESS;
     } else
-    if (TRY(input, loop_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
+    if (TRY(input, loop_parser(input, NULL, &output->loop_instr))
+        == PARSER_SUCCESS)
+    {
+        output->type = FLOWCONTROL_TYPE_LOOP;
         return PARSER_SUCCESS;
     }
 
