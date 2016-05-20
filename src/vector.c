@@ -14,7 +14,9 @@ void vector_wipe(vector_t* vector, void (*free_element)(void*)) {
             free_element(vector->elements[i]);
         }
     }
-    free(vector->elements);
+    if (vector->elements) {
+        free(vector->elements);
+    }
 }
 
 vector_t* vector_new(size_t reserved) {

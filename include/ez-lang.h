@@ -167,22 +167,23 @@ typedef struct instruction instruction_t;
 
 typedef struct elsif_instr {
     expression_t*  coundition;
-
-    int            ninstructions;
-    instruction_t* instructions[INSTRUCTIONS_SIZE];
+    vector_t instructions;  /* of instruction_t* */
 } elsif_instr_t;
+
+elsif_instr_t* elsif_instr_new(expression_t* coundition);
+
+void elsif_instr_delete(elsif_instr_t* elsif);
 
 typedef struct if_instr {
     expression_t* coundition;
-    int            ninstructions;
-    instruction_t* instructions[INSTRUCTIONS_SIZE];
-
-    int nelsifs;
-    elsif_instr_t* elsifs[ELSIF_SIZE];
-
-    int nelseinstructions;
-    instruction_t* else_instructions[INSTRUCTIONS_SIZE];
+    vector_t instructions;      /* of instruction_t* */
+    vector_t elsifs;            /* of elsif_instr_t* */
+    vector_t else_instrs;       /* of instruction_t* */
 } if_instr_t;
+
+if_instr_t* if_instr_new(expression_t* coundition);
+
+void if_instr_delete(if_instr_t* if_instr);
 
 typedef enum {
     INSTRUCTION_TYPE_PRINT,
@@ -193,3 +194,4 @@ typedef enum {
 } instruction_type_t;
 
 #endif
+

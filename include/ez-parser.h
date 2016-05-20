@@ -63,7 +63,7 @@ parser_status_t return_parser(FILE* input, const void* args,
                               void* output);
 
 parser_status_t if_parser(FILE* input, const void* args,
-                          void* output);
+                          if_instr_t** output);
 
 parser_status_t on_parser(FILE* input, const void* args,
                           void* output);

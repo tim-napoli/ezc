@@ -43,60 +43,69 @@ parser_status_t return_parser(FILE* input, const void* args,
 }
 
 parser_status_t elsif_parser(FILE* input, const void* args,
-                             void* output)
+                             elsif_instr_t** output)
 {
+    expression_t* coundition;
+
     PARSE(word_parser(input, "elsif", NULL));
     PARSE_ERR(space_parser(input, NULL, NULL),
           "a space is expcted after 'elsif' keyword");
     SKIP_MANY(input, space_parser(input, NULL, NULL));
-    PARSE(expression_parser(input, NULL, NULL));
+    PARSE(expression_parser(input, NULL, &coundition));
     SKIP_MANY(input, space_parser(input, NULL, NULL));
     PARSE(word_parser(input, "then", NULL));
     PARSE(end_of_line_parser(input, NULL, NULL));
 
-    SKIP_MANY(input, space_parser(input, NULL, NULL));
-    PARSE(instructions_parser(input, NULL, NULL));
-    SKIP_MANY(input, space_parser(input, NULL, NULL));
+    *output = elsif_instr_new(coundition);
 
-    TRY(input, elsif_parser(input, NULL, NULL));
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
+    PARSE(instructions_parser(input, NULL, &(*output)->instructions));
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
 
     return PARSER_SUCCESS;
 }
 
-parser_status_t else_parser(FILE* input, const void* args, void* output)
+parser_status_t else_parser(FILE* input, const void* args, vector_t* output)
 {
     PARSE(word_parser(input, "else", NULL));
     PARSE(end_of_line_parser(input, NULL, NULL));
 
     SKIP_MANY(input, space_parser(input, NULL, NULL));
-    PARSE(instructions_parser(input, NULL, NULL));
+    PARSE(instructions_parser(input, NULL, output));
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
     return PARSER_SUCCESS;
 }
 
 parser_status_t if_parser(FILE* input, const void* args,
-                          void* output)
+                          if_instr_t** output)
 {
+    expression_t* coundition = NULL;
+
     PARSE(word_parser(input, "if", NULL));
     PARSE_ERR(space_parser(input, NULL, NULL),
           "a space is expcted after 'if' keyword");
     SKIP_MANY(input, space_parser(input, NULL, NULL));
-    PARSE_ERR(expression_parser(input, NULL, NULL),
-          "'if' invalid expression");
+    PARSE_ERR(expression_parser(input, NULL, &coundition),
+              "'if' invalid expression");
     SKIP_MANY(input, space_parser(input, NULL, NULL));
     PARSE_ERR(word_parser(input, "then", NULL),
               "missing 'then' keyword after 'if' expression");
     PARSE_ERR(end_of_line_parser(input, NULL, NULL),
               "an end of line must follow the 'then' keyword");
 
-    SKIP_MANY(input, space_parser(input, NULL, NULL));
-    PARSE(instructions_parser(input, NULL, NULL));
+    *output = if_instr_new(coundition);
 
     SKIP_MANY(input, space_parser(input, NULL, NULL));
-    TRY(input, elsif_parser(input, NULL, NULL));
+    PARSE(instructions_parser(input, NULL, &(*output)->instructions));
+
     SKIP_MANY(input, space_parser(input, NULL, NULL));
-    TRY(input, else_parser(input, NULL, NULL));
+    elsif_instr_t* elsif = NULL;
+    while (TRY(input, elsif_parser(input, NULL, &elsif)) == PARSER_SUCCESS) {
+        vector_push(&(*output)->elsifs, elsif);
+    }
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
+    TRY(input, else_parser(input, NULL, &(*output)->else_instrs));
 
     SKIP_MANY(input, space_parser(input, NULL, NULL));
     PARSE_ERR(word_parser(input, "endif", NULL),

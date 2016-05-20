@@ -27,7 +27,8 @@ add_library(ez-parser STATIC
 add_library(ez-lang STATIC
             src/ez-lang-value.c
             src/ez-lang-expr.c
-            src/ez-lang-symbol.c)
+            src/ez-lang-symbol.c
+            src/ez-lang-instr.c)
 
 add_library(vector STATIC
             src/vector.c)
