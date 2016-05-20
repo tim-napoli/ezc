@@ -4,14 +4,13 @@
 #include "ez-lang.h"
 
 type_t* type_new(type_type_t type) {
-    type_t* t = malloc(sizeof(type_t));
+    type_t* t = calloc(1, sizeof(type_t));
 
     if (!t) {
         fprintf(stderr, "couldn't allocate type\n");
-        return NULL;
+        exit(EXIT_FAILURE);
     }
 
-    memset(t, 0, sizeof(type_t));
     t->type = type;
 
     return t;
@@ -20,7 +19,8 @@ type_t* type_new(type_type_t type) {
 void type_delete(type_t *t) {
     if (t->type == TYPE_TYPE_STRUCTURE) {
         structure_delete(t->structure_type);
-    } else
+    }
+
     if (t->type == TYPE_TYPE_VECTOR) {
         type_delete(t->vector_type);
     }
@@ -59,37 +59,35 @@ type_t *type_vector_new(type_t *of) {
 }
 
 symbol_t *symbol_new(const identifier_t *identifier, type_t *is) {
-    symbol_t *s = malloc(sizeof(symbol_t));
+    symbol_t *s = calloc(1, sizeof(symbol_t));
 
     if (!s) {
         fprintf(stderr, "couldn't allocate symbol\n");
-        return NULL;
+        exit(EXIT_FAILURE);
     }
 
-    memset(s, 0, sizeof(symbol_t));
     memcpy(&s->identifier, identifier, sizeof(identifier_t));
-
     s->is = is;
 
     return s;
 }
 
 void symbol_delete(symbol_t *symbol) {
-    if (symbol) {
+    if (symbol->is) {
         type_delete(symbol->is);
-        free(symbol);
     }
+
+    free(symbol);
 }
 
 structure_t *structure_new(const identifier_t *identifier) {
-    structure_t *s = malloc(sizeof(structure_t));
+    structure_t *s = calloc(1, sizeof(structure_t));
 
     if (!s) {
         fprintf(stderr, "couldn't allocate symobl\n");
-        return NULL;
+        exit(EXIT_FAILURE);
     }
 
-    memset(s, 0, sizeof(structure_t));
     memcpy(&s->identifier, identifier, sizeof(identifier_t));
     s->nmembers = 0;
 
@@ -101,10 +99,9 @@ void structure_add_member(structure_t *structure, symbol_t *member) {
 }
 
 void structure_delete(structure_t *structure) {
-    for (uint8_t i = 0; i < structure->nmembers; i++) {
+    for (unsigned int i = 0; i < structure->nmembers; i++) {
         symbol_delete(structure->members[i]);
     }
 
     free(structure);
 }
-

@@ -6,11 +6,15 @@ parser_status_t header_parser(FILE* input,
                               identifier_t* program_id)
 {
     SKIP_MANY(input, comment_or_empty_parser(input, NULL, NULL));
+
     PARSE_ERR(word_parser(input, "program", NULL),
               "the program must begin with `program` keyword");
+
     SKIP_MANY(input, space_parser(input, NULL, NULL));
+
     PARSE_ERR(identifier_parser(input, NULL, program_id),
               "the program name must be a valid identifier");
+
     PARSE_ERR(end_of_line_parser(input, NULL, NULL),
               "a new line must follow the program name");
 
@@ -40,29 +44,31 @@ parser_status_t function_args_parser(FILE* input, const void* args,
 {
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
+    identifier_t arg_id;
+    type_t *is = NULL;
+
     if (TRY(input, modifier_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
         PARSE_ERR(space_parser(input, NULL, NULL),
                   "expected spaces");
 
         SKIP_MANY(input, space_parser(input, NULL, NULL));
 
-        PARSE_ERR(identifier_parser(input, NULL, NULL),
+        PARSE_ERR(identifier_parser(input, NULL, &arg_id),
                   "a valid identifier must follow a modifier in function "
                   "arguments");
 
         PARSE(space_parser(input, NULL, NULL));
-
         SKIP_MANY(input, space_parser(input, NULL, NULL));
 
         PARSE_ERR(word_parser(input, "is", NULL),
                   "expected 'is'");
 
         PARSE(space_parser(input, NULL, NULL));
-
         SKIP_MANY(input, space_parser(input, NULL, NULL));
 
-        PARSE_ERR(type_parser(input, NULL, NULL),
+        PARSE_ERR(type_parser(input, NULL, &is),
                   "expected valid type");
+
         SKIP_MANY(input, space_parser(input, NULL, NULL));
 
         if (TRY(input, char_parser(input, ",", NULL)) == PARSER_SUCCESS) {
@@ -91,30 +97,45 @@ parser_status_t local_parser(FILE* input, const void* args,
 parser_status_t function_parser(FILE* input, const void* args,
                                 void* output)
 {
+    identifier_t function_id;
+    type_t *return_type = NULL;
+
     PARSE(word_parser(input, "function", NULL));
 
     SKIP_MANY(input, space_parser(input, NULL, NULL));
-    PARSE_ERR(identifier_parser(input, NULL, NULL),
+
+    PARSE_ERR(identifier_parser(input, NULL, &function_id),
               "a function must have a valid identifier");
 
     SKIP_MANY(input, space_parser(input, NULL, NULL));
+
     PARSE_ERR(char_parser(input, "(", NULL), "missing '('");
+
+    // TODO : loop here.
     PARSE(function_args_parser(input, NULL, NULL));
+
     SKIP_MANY(input, space_parser(input, NULL, NULL));
+
     PARSE_ERR(char_parser(input, ")", NULL), "missing ')'");
 
     SKIP_MANY(input, space_parser(input, NULL, NULL));
+
     PARSE_ERR(word_parser(input, "return", NULL), "missing 'return'");
+
     SKIP_MANY(input, space_parser(input, NULL, NULL));
-    PARSE_ERR(type_parser(input, NULL, NULL),
+
+    PARSE_ERR(type_parser(input, NULL, &return_type),
               "unknown return type");
+
     PARSE_ERR(end_of_line_parser(input, NULL, NULL),
               "a new line is expected after a function head");
 
     SKIP_MANY(input, comment_or_empty_parser(input, NULL, NULL));
 
     while (TRY(input, word_parser(input, "begin", NULL)) == PARSER_FAILURE) {
-        PARSE(local_parser(input, NULL, NULL));
+        symbol_t* local = NULL;
+
+        PARSE(local_parser(input, NULL, &local));
         SKIP_MANY(input, comment_or_empty_parser(input, NULL, NULL));
     }
 
@@ -131,23 +152,28 @@ parser_status_t function_parser(FILE* input, const void* args,
     PARSE_ERR(end_of_line_parser(input, NULL, NULL),
               "a newline is expected after the 'end' keyword");
 
+    printf("function parsed\n");
+
     return PARSER_SUCCESS;
 }
 
 parser_status_t procedure_parser(FILE* input, const void* args,
                                  void* output)
 {
+    identifier_t procedure_id;
+
     PARSE(word_parser(input, "procedure", NULL));
 
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
-    PARSE_ERR(identifier_parser(input, NULL, NULL),
+    PARSE_ERR(identifier_parser(input, NULL, &procedure_id),
               "a procedure must have a valid identifier");
 
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
     PARSE_ERR(char_parser(input, "(", NULL), "missing '('");
 
+    // TODO : loop here
     PARSE(function_args_parser(input, NULL, NULL));
 
     SKIP_MANY(input, space_parser(input, NULL, NULL));
@@ -160,13 +186,16 @@ parser_status_t procedure_parser(FILE* input, const void* args,
     SKIP_MANY(input, comment_or_empty_parser(input, NULL, NULL));
 
     while (TRY(input, word_parser(input, "begin", NULL)) == PARSER_FAILURE) {
-        PARSE(local_parser(input, NULL, NULL));
+        symbol_t* local;
+
+        PARSE(local_parser(input, NULL, &local));
         SKIP_MANY(input, comment_or_empty_parser(input, NULL, NULL));
     }
 
     PARSE_ERR(end_of_line_parser(input, NULL, NULL),
               "a newline is expected after the 'begin' keyword");
 
+    // TODO : Loop here ?
     PARSE(instructions_parser(input, NULL, NULL));
 
     SKIP_MANY(input, comment_or_empty_parser(input, NULL, NULL));
@@ -184,6 +213,9 @@ parser_status_t constant_parser(FILE* input,
                                 const void* unused_args,
                                 void* unused_output)
 {
+    expression_t* expression = NULL;
+    symbol_t* symbol = NULL;
+
     PARSE(word_parser(input, "constant", NULL));
 
     PARSE_ERR(space_parser(input, NULL, NULL),
@@ -191,7 +223,7 @@ parser_status_t constant_parser(FILE* input,
 
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
-    PARSE(variable_tail_parser(input, NULL, NULL));
+    PARSE(variable_tail_parser(input, NULL, &symbol));
 
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
@@ -200,7 +232,7 @@ parser_status_t constant_parser(FILE* input,
 
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
-    PARSE_ERR(expression_parser(input, NULL, NULL),
+    PARSE_ERR(expression_parser(input, NULL, &expression),
               "a valid expression is expected to initialize a constant");
 
     PARSE_ERR(end_of_line_parser(input, NULL, NULL),
@@ -217,7 +249,6 @@ parser_status_t global_parser(FILE* input,
 
     PARSE_ERR(space_parser(input, NULL, NULL),
               "a space must follow a 'global' keyword");
-
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
     PARSE(variable_tail_parser(input, NULL, output));
@@ -250,7 +281,6 @@ parser_status_t structure_parser(FILE* input,
 
     PARSE_ERR(space_parser(input, NULL, NULL),
               "a space must follow the 'structure' keyword");
-
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
     PARSE(identifier_parser(input, NULL, &id));
@@ -259,7 +289,6 @@ parser_status_t structure_parser(FILE* input,
 
     PARSE_ERR(space_parser(input, NULL, NULL),
               "a space must follow the structure identifier");
-
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
     PARSE_ERR(word_parser(input, "is", NULL),
@@ -287,21 +316,26 @@ parser_status_t structure_parser(FILE* input,
 }
 
 parser_status_t entity_parser(FILE* input, const void* unused_args,
-                              void* output)
+                              context_t* output)
 {
     SKIP_MANY(input, comment_or_empty_parser(input, NULL, NULL));
+
     if (TRY(input, constant_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
         return PARSER_SUCCESS;
-    } else
+    }
+
     if (TRY(input, global_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
         return PARSER_SUCCESS;
-    } else
+    }
+
     if (TRY(input, structure_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
         return PARSER_SUCCESS;
-    } else
+    }
+
     if (TRY(input, function_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
         return PARSER_SUCCESS;
-    } else
+    }
+
     if (TRY(input, procedure_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
         return PARSER_SUCCESS;
     }
@@ -314,12 +348,13 @@ parser_status_t program_parser(FILE* input,
                                void* unused_output)
 {
     identifier_t program_id;
-    context_t *context;
+    context_t *context = NULL;
 
     PARSE(header_parser(input, unused_args, &program_id));
+
     SKIP_MANY(input, comment_or_empty_parser(input, NULL, NULL));
 
-    context = context_new(program_id, NULL);
+    context = context_new(&program_id, NULL);
     printf("Program name: %s\n", program_id.value);
 
     while (entity_parser(input, NULL, context) == PARSER_SUCCESS) {

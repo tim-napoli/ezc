@@ -1,7 +1,6 @@
 #ifndef _ez_lang_h_
 #define _ez_lang_h_
 
-#include <stdint.h>
 #include <stdbool.h>
 
 #define IDENTIFIER_SIZE             32
@@ -17,6 +16,8 @@ typedef struct expression expression_t;
 typedef struct identifier {
     char value[IDENTIFIER_SIZE];
 } identifier_t;
+
+bool identifier_is_reserved(const identifier_t *id);
 
 typedef struct parameters {
     unsigned int  nparameters;
@@ -172,18 +173,18 @@ typedef struct context {
     // TODO : procedures
     // TODO : args
 
-    int nconstants;
-    int nglobals;
-    int nstructures;
-    int nfunctions;
-    int nprocedures;
-    int nargs;
-    int nlocals;
+    unsigned int nconstants;
+    unsigned int nglobals;
+    unsigned int nstructures;
+    unsigned int nfunctions;
+    unsigned int nprocedures;
+    unsigned int nargs;
+    unsigned int nlocals;
 
-    context_t *global_context;
-} program_context_t;
+    struct context *global_context;
+} context_t;
 
-context_t *context_new(identifier_t identifier, context_t *global_context);
+context_t *context_new(identifier_t *identifier, context_t *global_context);
 // TODO : add constant;
 void context_add_global(context_t *program, symbol_t *global);
 void context_add_structure(context_t *program, structure_t *structure);
@@ -196,5 +197,16 @@ bool context_structure_exists(identifier_t identifier);
 bool context_valref_exists(valref_t *valref);
 bool context_identifier_is_function(identifier_t identifier);
 bool context_identifier_is_procedure(identifier_t identifier);
+
+typedef enum {
+    MODIFIER_IN,
+    MODIFIER_OUT,
+    MODIFIER_INOUT
+} type_modifier_t;
+
+typedef struct argument {
+    type_modifier_t modifier;
+    symbol_t *symbol;
+} argument_t;
 
 #endif

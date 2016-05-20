@@ -59,7 +59,7 @@ void type_test() {
     char type_vector_simple[] = "vector of string";
     char type_vector_recursive[] = "vector of vector of string";
 
-    type_t *type;
+    type_t *type = NULL;
 
     TEST_ON(invalid_type);
     assert(type_parser(f, NULL, NULL) == PARSER_FAILURE);
@@ -107,7 +107,7 @@ void structure_test() {
                    "    age is integer\n"
                    "end\n";
 
-    structure_t *s;
+    structure_t *s = NULL;
 
     TEST_ON(person);
     assert(structure_parser(f, NULL, &s) == PARSER_SUCCESS);
@@ -131,7 +131,7 @@ void declaration_test() {
 
     // TODO : local or global ...
 
-    symbol_t *s;
+    symbol_t *s = NULL;
 
     TEST_ON(integer);
     assert(global_parser(f, NULL, &s) == PARSER_SUCCESS);
