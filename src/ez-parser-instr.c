@@ -1,17 +1,17 @@
+#include <string.h>
 #include "ez-parser.h"
 
 parser_status_t print_parser(FILE* input, const void* args,
-                             void* output)
+                             parameters_t* output)
 {
-    parameters_t parameters;
-
     PARSE(word_parser(input, "print", NULL));
 
     PARSE_ERR(space_parser(input, NULL, NULL),
           "a space is expected after 'print' keyword");
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
-    PARSE(parameters_parser(input, NULL, &parameters));
+    parameters_init(output);
+    PARSE(parameters_parser(input, NULL, output));
 
     PARSE(end_of_line_parser(input, NULL, NULL));
 
@@ -19,18 +19,16 @@ parser_status_t print_parser(FILE* input, const void* args,
 }
 
 parser_status_t read_parser(FILE* input, const void* args,
-                            void* output)
+                            valref_t** output)
 {
-    identifier_t id;
-
     PARSE(word_parser(input, "read", NULL));
 
     PARSE_ERR(space_parser(input, NULL, NULL),
           "a space is expected after 'read' keyword");
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
-    PARSE_ERR(identifier_parser(input, NULL, &id),
-              "a single identifier must follow the 'read' keyword");
+    PARSE_ERR(valref_parser(input, NULL, output),
+              "a single value reference must follow the 'read' keyword");
 
     PARSE_ERR(end_of_line_parser(input, NULL, NULL),
               "a new line must follow the 'read' line");
@@ -39,9 +37,8 @@ parser_status_t read_parser(FILE* input, const void* args,
 }
 
 parser_status_t return_parser(FILE* input, const void* args,
-                              void* output)
+                              expression_t** output)
 {
-    expression_t* expression = NULL;
     PARSE(word_parser(input, "return", NULL));
 
     PARSE_ERR(space_parser(input, NULL, NULL),
@@ -49,7 +46,7 @@ parser_status_t return_parser(FILE* input, const void* args,
 
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
-    PARSE_ERR(expression_parser(input, NULL, &expression),
+    PARSE_ERR(expression_parser(input, NULL, output),
               "bad return expression");
 
     PARSE(end_of_line_parser(input, NULL, NULL));
@@ -143,9 +140,9 @@ parser_status_t if_parser(FILE* input, const void* args,
 }
 
 parser_status_t on_parser(FILE* input, const void* args,
-                          void* output)
+                          on_instr_t** output)
 {
-    expression_t* condition = NULL;
+    expression_t* coundition = NULL;
 
     PARSE(word_parser(input, "on", NULL));
 
@@ -153,7 +150,7 @@ parser_status_t on_parser(FILE* input, const void* args,
           "a space is expcted after 'on' keyword");
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
-    PARSE_ERR(expression_parser(input, NULL, &condition),
+    PARSE_ERR(expression_parser(input, NULL, &coundition),
               "an expression must follow a 'on' keyword");
 
     SKIP_MANY(input, space_parser(input, NULL, NULL));
@@ -163,7 +160,8 @@ parser_status_t on_parser(FILE* input, const void* args,
 
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
-    PARSE(instruction_parser(input, NULL, NULL));
+    *output = on_instr_new(coundition);
+    PARSE(instruction_parser(input, NULL, &(*output)->instruction));
 
     return PARSER_SUCCESS;
 }
@@ -204,7 +202,7 @@ parser_status_t while_parser(FILE* input, const void* args,
 }
 
 parser_status_t for_parser(FILE* input, const void* args,
-                           void* output)
+                           for_instr_t** output)
 {
     identifier_t id;
 
@@ -217,6 +215,8 @@ parser_status_t for_parser(FILE* input, const void* args,
     PARSE_ERR(identifier_parser(input, NULL, &id),
               "a valid identifier is expected after the 'for' keyword");
 
+    *output = for_instr_new(&id);
+
     PARSE_ERR(space_parser(input, NULL, NULL),
           "a space is expcted after for identifier");
     SKIP_MANY(input, space_parser(input, NULL, NULL));
@@ -228,7 +228,7 @@ parser_status_t for_parser(FILE* input, const void* args,
           "a space is expcted after for 'in' keyword");
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
-    PARSE_ERR(range_parser(input, NULL, NULL),
+    PARSE_ERR(range_parser(input, NULL, &(*output)->range),
               "a valid range is expected after 'for' 'in' keyword");
 
     SKIP_MANY(input, space_parser(input, NULL, NULL));
@@ -239,7 +239,7 @@ parser_status_t for_parser(FILE* input, const void* args,
     PARSE_ERR(end_of_line_parser(input, NULL, NULL),
               "a new line is expected after the for 'do' keyword");
 
-    PARSE(instructions_parser(input, NULL, NULL));
+    PARSE(instructions_parser(input, NULL, &(*output)->instructions));
 
     SKIP_MANY(input, comment_or_empty_parser(input, NULL, NULL));
 
@@ -255,8 +255,6 @@ parser_status_t for_parser(FILE* input, const void* args,
 parser_status_t loop_parser(FILE* input, const void* args,
                             loop_instr_t** output)
 {
-    expression_t* coundition = NULL;
-
     PARSE(word_parser(input, "loop", NULL));
 
     PARSE_ERR(end_of_line_parser(input, NULL, NULL),
@@ -275,7 +273,7 @@ parser_status_t loop_parser(FILE* input, const void* args,
               "a space is expected after 'until' keyword");
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
-    PARSE_ERR(expression_parser(input, NULL, &coundition),
+    PARSE_ERR(expression_parser(input, NULL, &(*output)->coundition),
               "a valid expression is expected after the 'until' keyword");
 
     PARSE_ERR(end_of_line_parser(input, NULL, NULL),
@@ -285,21 +283,36 @@ parser_status_t loop_parser(FILE* input, const void* args,
 }
 
 parser_status_t flowcontrol_parser(FILE* input, const void* args,
-                                   void* output)
+                                   flowcontrol_t* output)
 {
-    if (TRY(input, if_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
+    if (TRY(input, if_parser(input, NULL, &output->if_instr))
+        == PARSER_SUCCESS)
+    {
+        output->type = FLOWCONTROL_TYPE_IF;
         return PARSER_SUCCESS;
     } else
-    if (TRY(input, on_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
+    if (TRY(input, on_parser(input, NULL, &output->on_instr))
+        == PARSER_SUCCESS)
+    {
+        output->type = FLOWCONTROL_TYPE_ON;
         return PARSER_SUCCESS;
     } else
-    if (TRY(input, while_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
+    if (TRY(input, while_parser(input, NULL, &output->while_instr))
+        == PARSER_SUCCESS)
+    {
+        output->type = FLOWCONTROL_TYPE_WHILE;
         return PARSER_SUCCESS;
     } else
-    if (TRY(input, for_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
+    if (TRY(input, for_parser(input, NULL, &output->for_instr))
+        == PARSER_SUCCESS)
+    {
+        output->type = FLOWCONTROL_TYPE_FOR;
         return PARSER_SUCCESS;
     } else
-    if (TRY(input, loop_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
+    if (TRY(input, loop_parser(input, NULL, &output->loop_instr))
+        == PARSER_SUCCESS)
+    {
+        output->type = FLOWCONTROL_TYPE_LOOP;
         return PARSER_SUCCESS;
     }
 
@@ -307,12 +320,9 @@ parser_status_t flowcontrol_parser(FILE* input, const void* args,
 }
 
 parser_status_t affectation_parser(FILE* input, const void* args,
-                                   void* output)
+                                   affectation_instr_t* output)
 {
-    valref_t* left = NULL;
-    expression_t *right = NULL;
-
-    PARSE(valref_parser(input, NULL, &left));
+    PARSE(valref_parser(input, NULL, &output->lvalue));
 
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
@@ -320,7 +330,7 @@ parser_status_t affectation_parser(FILE* input, const void* args,
 
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
-    PARSE_ERR(expression_parser(input, NULL, &right),
+    PARSE_ERR(expression_parser(input, NULL, &output->expression),
               "a valid expression must be provided after an affectation '='");
 
     PARSE_ERR(end_of_line_parser(input, NULL, NULL),
@@ -330,30 +340,48 @@ parser_status_t affectation_parser(FILE* input, const void* args,
 }
 
 parser_status_t instruction_parser(FILE* input, const void* args,
-                                   void* output)
+                                   instruction_t** output)
 {
+    valref_t* valref = NULL;
+    flowcontrol_t flowcontrol;
+    parameters_t parameters;
     expression_t* expression = NULL;
+    affectation_instr_t affectation;
 
     SKIP_MANY(input, comment_or_empty_parser(input, NULL, NULL));
 
-    if (TRY(input, flowcontrol_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
+    if (TRY(input, flowcontrol_parser(input, NULL, &flowcontrol))
+        == PARSER_SUCCESS)
+    {
+        *output = instruction_new(INSTRUCTION_TYPE_FLOWCONTROL);
+        memcpy(&(*output)->flowcontrol, &flowcontrol, sizeof(flowcontrol_t));
         return PARSER_SUCCESS;
     } else
-    if (TRY(input, affectation_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
+    if (TRY(input, affectation_parser(input, NULL, &affectation))
+        == PARSER_SUCCESS) {
+        *output = instruction_new(INSTRUCTION_TYPE_AFFECTATION);
+        memcpy(&(*output)->affectation, &affectation,
+               sizeof(affectation_instr_t));
         return PARSER_SUCCESS;
     } else
-    if (TRY(input, print_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
+    if (TRY(input, print_parser(input, NULL, &parameters)) == PARSER_SUCCESS) {
+        *output = instruction_new(INSTRUCTION_TYPE_PRINT);
+        memcpy(&(*output)->parameters, &parameters, sizeof(parameters_t));
         return PARSER_SUCCESS;
     } else
-    if (TRY(input, read_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
+    if (TRY(input, read_parser(input, NULL, &valref)) == PARSER_SUCCESS) {
+        *output = instruction_new(INSTRUCTION_TYPE_READ);
+        (*output)->valref = valref;
         return PARSER_SUCCESS;
     } else
-    if (TRY(input, return_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
+    if (TRY(input, return_parser(input, NULL, &expression)) == PARSER_SUCCESS) {
+        *output = instruction_new(INSTRUCTION_TYPE_RETURN);
+        (*output)->expression = expression;
         return PARSER_SUCCESS;
     } else
     if (TRY(input, expression_parser(input, NULL, &expression)) == PARSER_SUCCESS) {
-        expression_print(stdout, expression);
-        printf("\n");
+        *output = instruction_new(INSTRUCTION_TYPE_EXPRESSION);
+        (*output)->expression = expression;
         return PARSER_SUCCESS;
     }
 
@@ -361,11 +389,15 @@ parser_status_t instruction_parser(FILE* input, const void* args,
 }
 
 parser_status_t instructions_parser(FILE* input, const void* args,
-                                    void* output)
+                                    vector_t* output)
 {
-    while (TRY(input, instruction_parser(input, NULL, NULL)) == PARSER_SUCCESS)
+    instruction_t* instr = NULL;
+    while (TRY(input, instruction_parser(input, NULL, &instr))
+           == PARSER_SUCCESS)
     {
+        vector_push(output, instr);
     }
 
     return PARSER_SUCCESS;
 }
+

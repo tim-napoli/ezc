@@ -175,12 +175,9 @@ parser_status_t variable_tail_parser(FILE* input, const context_t* ctx,
 }
 
 parser_status_t range_parser(FILE* input, const void* args,
-                             void* output)
+                             range_t* output)
 {
-    expression_t* begin = NULL;
-    expression_t* end = NULL;
-
-    PARSE(expression_parser(input, NULL, &begin));
+    PARSE(expression_parser(input, NULL, &output->from));
 
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
@@ -188,7 +185,7 @@ parser_status_t range_parser(FILE* input, const void* args,
 
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
-    PARSE_ERR(expression_parser(input, NULL, &end),
+    PARSE_ERR(expression_parser(input, NULL, &output->to),
               "a valid expression is expected after range '..'");
 
     return PARSER_SUCCESS;

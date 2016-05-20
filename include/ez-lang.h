@@ -205,7 +205,59 @@ typedef struct while_instr {
 
 while_instr_t* while_instr_new(expression_t* coundition);
 
-void while_instr_delete(while_instr_t* loop);
+void while_instr_delete(while_instr_t* while_instr);
+
+typedef struct on_instr {
+    expression_t* coundition;
+    instruction_t* instruction;
+} on_instr_t;
+
+on_instr_t* on_instr_new(expression_t* coundition);
+
+void on_instr_delete(on_instr_t* on_instr);
+
+typedef struct range {
+    expression_t* from;
+    expression_t* to;
+} range_t;
+
+typedef struct for_instr {
+    identifier_t subject;
+    range_t      range;
+    vector_t     instructions;  /* of instruction_t */
+} for_instr_t;
+
+for_instr_t* for_instr_new(const identifier_t* subject);
+
+void for_instr_delete(for_instr_t* for_instr);
+
+typedef enum {
+    FLOWCONTROL_TYPE_IF,
+    FLOWCONTROL_TYPE_WHILE,
+    FLOWCONTROL_TYPE_LOOP,
+    FLOWCONTROL_TYPE_ON,
+    FLOWCONTROL_TYPE_FOR,
+} flowcontrol_type_t;
+
+typedef struct flowcontrol {
+    flowcontrol_type_t type;
+    union {
+        if_instr_t*     if_instr;
+        while_instr_t*  while_instr;
+        loop_instr_t*   loop_instr;
+        on_instr_t*     on_instr;
+        for_instr_t*    for_instr;
+    };
+} flowcontrol_t;
+
+void flowcontrol_wipe(flowcontrol_t* fc);
+
+typedef struct affectation_instr {
+    valref_t*       lvalue;
+    expression_t*   expression;
+} affectation_instr_t;
+
+void affectation_instr_wipe(affectation_instr_t* affectation);
 
 typedef enum {
     INSTRUCTION_TYPE_PRINT,
@@ -213,9 +265,23 @@ typedef enum {
     INSTRUCTION_TYPE_RETURN,
     INSTRUCTION_TYPE_FLOWCONTROL,
     INSTRUCTION_TYPE_EXPRESSION,
+    INSTRUCTION_TYPE_AFFECTATION,
 } instruction_type_t;
 
+typedef struct instruction {
+    instruction_type_t type;
+    union {
+        parameters_t  parameters;
+        valref_t*     valref;
+        flowcontrol_t flowcontrol;
+        expression_t* expression;
+        affectation_instr_t affectation;
+    };
+} instruction_t;
 
+instruction_t* instruction_new(instruction_type_t type);
+
+void instruction_delete(instruction_t* instr);
 
 typedef struct context {
     identifier_t identifier;
