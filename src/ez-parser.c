@@ -74,16 +74,16 @@ parser_status_t function_args_parser(FILE* input, const void* args,
 }
 
 parser_status_t local_parser(FILE* input, const void* args,
-                                       symbol_t **output)
+                             symbol_t **output)
 {
     PARSE(word_parser(input, "local", NULL));
     PARSE_ERR(space_parser(input, NULL, NULL),
-              "a space must follow a 'global' keyword");
+              "a space must follow a 'local' keyword");
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
     PARSE(variable_tail_parser(input, NULL, output));
     PARSE_ERR(end_of_line_parser(input, NULL, NULL),
-              "a new line is expected after a global declaration");
+              "a new line is expected after a local declaration");
 
     return PARSER_SUCCESS;
 }

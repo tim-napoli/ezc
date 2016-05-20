@@ -53,20 +53,8 @@ parser_status_t parameters_parser(FILE* input, const void* args,
 parser_status_t value_parser(FILE* input, const void* args,
                              value_t* output);
 
-parser_status_t cmp_op_parser(FILE* input, const void* args,
-                              void* output);
-
-parser_status_t bool_op_parser(FILE* input, const void* args,
-                               void* output);
-
-parser_status_t arithmetic_op_parser(FILE* input, const void* args,
-                                     void* output);
-
-parser_status_t expression_next_parser(FILE* input, const void* args,
-                                       void* output);
-
 parser_status_t expression_parser(FILE* input, const void* args,
-                                  void* output);
+                                  expression_t** output);
 
 parser_status_t print_parser(FILE* input, const void* args,
                              void* output);
@@ -103,22 +91,22 @@ parser_status_t instructions_parser(FILE* input, const void* args,
 
 parser_status_t structure_parser(FILE* input,
                                  const void* unused_args,
-                                 structure_t **output);
+                                 structure_t** output);
 
 parser_status_t structure_member_parser(FILE* input,
                                         const void* unused_args,
                                         symbol_t** output);
 
 parser_status_t variable_tail_parser(FILE* input, const void* args,
-                                     symbol_t **output);
+                                     symbol_t** output);
 
 parser_status_t global_parser(FILE* input,
                               const void* unused_args,
-                              symbol_t **output);
+                              symbol_t** output);
 
 parser_status_t local_parser(FILE* input,
                        const void* unused_args,
-                       symbol_t **output);
+                       symbol_t** output);
 
 parser_status_t entity_parser(FILE* input,
                                const void* unused_args,

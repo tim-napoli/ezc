@@ -3,8 +3,8 @@
 #include <string.h>
 #include "ez-lang.h"
 
-type_t *type_new(type_types type) {
-    type_t *t = malloc(sizeof(type_t));
+type_t* type_new(type_type_t type) {
+    type_t* t = malloc(sizeof(type_t));
 
     if (!t) {
         fprintf(stderr, "couldn't allocate type\n");
@@ -18,9 +18,10 @@ type_t *type_new(type_types type) {
 }
 
 void type_delete(type_t *t) {
-    if (t->type == TYPE_TYPE_STRUCTURE && t->structure_type) {
-        // TODO structure_delete();
-    } else if (t->type == TYPE_TYPE_VECTOR && t->vector_type) {
+    if (t->type == TYPE_TYPE_STRUCTURE) {
+        structure_delete(t->structure_type);
+    } else
+    if (t->type == TYPE_TYPE_VECTOR) {
         type_delete(t->vector_type);
     }
 
@@ -61,7 +62,7 @@ symbol_t *symbol_new(const identifier_t *identifier, type_t *is) {
     symbol_t *s = malloc(sizeof(symbol_t));
 
     if (!s) {
-        fprintf(stderr, "couldn't allocate symobl\n");
+        fprintf(stderr, "couldn't allocate symbol\n");
         return NULL;
     }
 
@@ -76,9 +77,8 @@ symbol_t *symbol_new(const identifier_t *identifier, type_t *is) {
 void symbol_delete(symbol_t *symbol) {
     if (symbol) {
         type_delete(symbol->is);
+        free(symbol);
     }
-
-    free(symbol);
 }
 
 structure_t *structure_new(const identifier_t *identifier) {
@@ -91,19 +91,20 @@ structure_t *structure_new(const identifier_t *identifier) {
 
     memset(s, 0, sizeof(structure_t));
     memcpy(&s->identifier, identifier, sizeof(identifier_t));
-    s->number_of_members = 0;
+    s->nmembers = 0;
 
     return s;
 }
 
 void structure_add_member(structure_t *structure, symbol_t *member) {
-    structure->members[(structure->number_of_members)++] = member;
+    structure->members[(structure->nmembers)++] = member;
 }
 
 void structure_delete(structure_t *structure) {
-    for (uint8_t i = 0; i < structure->number_of_members; i++) {
+    for (uint8_t i = 0; i < structure->nmembers; i++) {
         symbol_delete(structure->members[i]);
     }
 
     free(structure);
 }
+

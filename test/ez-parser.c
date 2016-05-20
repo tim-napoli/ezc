@@ -257,25 +257,31 @@ void value_test() {
 void expr_test() {
     FILE* f;
 
+    expression_t* expr = NULL;
+
     char simple_expr[] = "5";
     char enclosed_expr[] = "(5)";
     char operation_expr[] = "5 + 2";
     char complexe_expr[] = "1 / 2 + (f() * g()) + 3 / (1 + x.y.z)";
 
     TEST_ON(simple_expr);
-    assert(expression_parser(f, NULL, NULL) == PARSER_SUCCESS);
+    assert(expression_parser(f, NULL, &expr) == PARSER_SUCCESS);
+    expression_delete(expr);
     END_TEST;
 
     TEST_ON(enclosed_expr);
-    assert(expression_parser(f, NULL, NULL) == PARSER_SUCCESS);
+    assert(expression_parser(f, NULL, &expr) == PARSER_SUCCESS);
+    expression_delete(expr);
     END_TEST;
 
     TEST_ON(operation_expr);
-    assert(expression_parser(f, NULL, NULL) == PARSER_SUCCESS);
+    assert(expression_parser(f, NULL, &expr) == PARSER_SUCCESS);
+    expression_delete(expr);
     END_TEST;
 
     TEST_ON(complexe_expr);
-    assert(expression_parser(f, NULL, NULL) == PARSER_SUCCESS);
+    assert(expression_parser(f, NULL, &expr) == PARSER_SUCCESS);
+    expression_delete(expr);
     END_TEST;
 
     char unclosed_expr[] = "1 + 2 * (3 + 4";
@@ -432,7 +438,7 @@ int main(int argc, char** argv) {
     structure_test();
     declaration_test();
     value_test();
-    //expr_test();
+    expr_test();
     //print_test();
     //return_test();
     //on_test();
