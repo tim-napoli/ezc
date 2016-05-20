@@ -47,3 +47,22 @@ void if_instr_delete(if_instr_t* if_instr) {
     vector_wipe(&if_instr->else_instrs, NULL);
 }
 
+loop_instr_t* loop_instr_new(expression_t* coundition) {
+    loop_instr_t* loop = malloc(sizeof(loop_instr_t));
+    if (!loop) {
+        fprintf(stderr, "couldn't allocate loop instruction\n");
+        return NULL;
+    }
+
+    loop->coundition = coundition;
+    vector_init(&loop->instructions, 0);
+
+    return loop;
+}
+
+void loop_instr_delete(loop_instr_t* loop) {
+    expression_delete(loop->coundition);
+    /* TODO instruction_delete */
+    vector_delete(&loop->instructions, NULL);
+}
+

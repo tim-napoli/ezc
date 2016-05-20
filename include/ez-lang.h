@@ -185,6 +185,15 @@ if_instr_t* if_instr_new(expression_t* coundition);
 
 void if_instr_delete(if_instr_t* if_instr);
 
+typedef struct loop_instr {
+    expression_t* coundition;
+    vector_t      instructions;     /* of instruction_t* */
+} loop_instr_t;
+
+loop_instr_t* loop_instr_new(expression_t* coundition);
+
+void loop_instr_delete(loop_instr_t* loop);
+
 typedef enum {
     INSTRUCTION_TYPE_PRINT,
     INSTRUCTION_TYPE_READ,

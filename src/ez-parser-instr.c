@@ -201,13 +201,15 @@ parser_status_t for_parser(FILE* input, const void* args,
 }
 
 parser_status_t loop_parser(FILE* input, const void* args,
-                            void* output)
+                            loop_instr_t** output)
 {
     PARSE(word_parser(input, "loop", NULL));
     PARSE_ERR(end_of_line_parser(input, NULL, NULL),
               "a new line is expected after the 'loop' keyword");
 
-    PARSE(instructions_parser(input, NULL, NULL));
+    *output = loop_instr_new(NULL);
+
+    PARSE(instructions_parser(input, NULL, &(*output)->instructions));
     SKIP_MANY(input, comment_or_empty_parser(input, NULL, NULL));
 
     PARSE_ERR(word_parser(input, "until", NULL),
@@ -215,7 +217,7 @@ parser_status_t loop_parser(FILE* input, const void* args,
     PARSE_ERR(space_parser(input, NULL, NULL),
               "a space is expected after 'until' keyword");
     SKIP_MANY(input, space_parser(input, NULL, NULL));
-    PARSE_ERR(expression_parser(input, NULL, NULL),
+    PARSE_ERR(expression_parser(input, NULL, &(*output)->coundition),
               "a valid expression is expected after the 'until' keyword");
     PARSE_ERR(end_of_line_parser(input, NULL, NULL),
               "a new line must follow the 'until' expression");
