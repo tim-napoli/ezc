@@ -39,7 +39,7 @@ parser_status_t modifier_parser(FILE* input, const void* args,
     return PARSER_FAILURE;
 }
 
-parser_status_t function_args_parser(FILE* input, const void* args,
+parser_status_t function_args_parser(FILE* input, const context_t* ctx,
                                      void* output)
 {
     SKIP_MANY(input, space_parser(input, NULL, NULL));
@@ -66,21 +66,21 @@ parser_status_t function_args_parser(FILE* input, const void* args,
         PARSE(space_parser(input, NULL, NULL));
         SKIP_MANY(input, space_parser(input, NULL, NULL));
 
-        PARSE_ERR(type_parser(input, NULL, &is),
+        PARSE_ERR(type_parser(input, ctx, &is),
                   "expected valid type");
 
         SKIP_MANY(input, space_parser(input, NULL, NULL));
 
         if (TRY(input, char_parser(input, ",", NULL)) == PARSER_SUCCESS) {
-            PARSE(function_args_parser(input, args, output));
+            PARSE(function_args_parser(input, ctx, output));
         }
     }
 
     return PARSER_SUCCESS;
 }
 
-parser_status_t local_parser(FILE* input, const void* args,
-                             symbol_t **output)
+parser_status_t local_parser(FILE* input, context_t* ctx,
+                             symbol_t** output)
 {
     PARSE(word_parser(input, "local", NULL));
     PARSE_ERR(space_parser(input, NULL, NULL),
@@ -94,7 +94,7 @@ parser_status_t local_parser(FILE* input, const void* args,
     return PARSER_SUCCESS;
 }
 
-parser_status_t function_parser(FILE* input, const void* args,
+parser_status_t function_parser(FILE* input, const context_t *ctx,
                                 void* output)
 {
     identifier_t function_id;
@@ -112,7 +112,7 @@ parser_status_t function_parser(FILE* input, const void* args,
     PARSE_ERR(char_parser(input, "(", NULL), "missing '('");
 
     // TODO : loop here.
-    PARSE(function_args_parser(input, NULL, NULL));
+    PARSE(function_args_parser(input, ctx, NULL));
 
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
@@ -124,7 +124,7 @@ parser_status_t function_parser(FILE* input, const void* args,
 
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
-    PARSE_ERR(type_parser(input, NULL, &return_type),
+    PARSE_ERR(type_parser(input, ctx, &return_type),
               "unknown return type");
 
     PARSE_ERR(end_of_line_parser(input, NULL, NULL),
@@ -157,7 +157,7 @@ parser_status_t function_parser(FILE* input, const void* args,
     return PARSER_SUCCESS;
 }
 
-parser_status_t procedure_parser(FILE* input, const void* args,
+parser_status_t procedure_parser(FILE* input, const context_t* ctx,
                                  void* output)
 {
     identifier_t procedure_id;
@@ -174,7 +174,7 @@ parser_status_t procedure_parser(FILE* input, const void* args,
     PARSE_ERR(char_parser(input, "(", NULL), "missing '('");
 
     // TODO : loop here
-    PARSE(function_args_parser(input, NULL, NULL));
+    PARSE(function_args_parser(input, ctx, NULL));
 
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
@@ -242,8 +242,8 @@ parser_status_t constant_parser(FILE* input,
 }
 
 parser_status_t global_parser(FILE* input,
-                              const void* unused_args,
-                              symbol_t **output)
+                              const context_t* ctx,
+                              symbol_t** output)
 {
     PARSE(word_parser(input, "global", NULL));
 
@@ -251,7 +251,7 @@ parser_status_t global_parser(FILE* input,
               "a space must follow a 'global' keyword");
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
-    PARSE(variable_tail_parser(input, NULL, output));
+    PARSE(variable_tail_parser(input, ctx, output));
 
     PARSE_ERR(end_of_line_parser(input, NULL, NULL),
               "a new line is expected after a global declaration");
@@ -272,7 +272,7 @@ parser_status_t structure_member_parser(FILE* input,
 }
 
 parser_status_t structure_parser(FILE* input,
-                                 const void* unused_args,
+                                 context_t *ctx,
                                  structure_t **output)
 {
     identifier_t id;
@@ -316,27 +316,32 @@ parser_status_t structure_parser(FILE* input,
 }
 
 parser_status_t entity_parser(FILE* input, const void* unused_args,
-                              context_t* output)
+                              context_t* ctx)
 {
+    symbol_t *global =  NULL;
+    structure_t *structure = NULL;
+
     SKIP_MANY(input, comment_or_empty_parser(input, NULL, NULL));
 
-    if (TRY(input, constant_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
+    if (TRY(input, constant_parser(input, ctx, NULL)) == PARSER_SUCCESS) {
         return PARSER_SUCCESS;
     }
 
-    if (TRY(input, global_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
+    if (TRY(input, global_parser(input, ctx, &global)) == PARSER_SUCCESS) {
+        context_add_global(ctx, global);
         return PARSER_SUCCESS;
     }
 
-    if (TRY(input, structure_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
+    if (TRY(input, structure_parser(input, ctx, &structure)) == PARSER_SUCCESS) {
+        context_add_structure(ctx, structure);
         return PARSER_SUCCESS;
     }
 
-    if (TRY(input, function_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
+    if (TRY(input, function_parser(input, ctx, NULL)) == PARSER_SUCCESS) {
         return PARSER_SUCCESS;
     }
 
-    if (TRY(input, procedure_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
+    if (TRY(input, procedure_parser(input, ctx, NULL)) == PARSER_SUCCESS) {
         return PARSER_SUCCESS;
     }
 
@@ -348,18 +353,21 @@ parser_status_t program_parser(FILE* input,
                                void* unused_output)
 {
     identifier_t program_id;
-    context_t *context = NULL;
+    context_t *ctx = NULL;
 
     PARSE(header_parser(input, unused_args, &program_id));
 
     SKIP_MANY(input, comment_or_empty_parser(input, NULL, NULL));
 
-    context = context_new(&program_id, NULL);
+    ctx = context_new(&program_id, NULL);
     printf("Program name: %s\n", program_id.value);
 
-    while (entity_parser(input, NULL, context) == PARSER_SUCCESS) {
+    while (entity_parser(input, NULL, ctx) == PARSER_SUCCESS) {
 
     }
+
+    context_print(ctx);
+    context_delete(ctx);
 
     return PARSER_SUCCESS;
 }

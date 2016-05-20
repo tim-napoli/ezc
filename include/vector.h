@@ -27,7 +27,7 @@ void vector_remove(vector_t* vector, size_t index);
 
 void vector_pop(vector_t* vector);
 
-void* vector_get(vector_t* vector, size_t index);
+void* vector_get(const vector_t* vector, size_t index);
 
 void vector_set(vector_t* vector, void* element, size_t index);
 
@@ -40,4 +40,3 @@ void* vector_reduce(vector_t* vector, void* (*function)(void*, void*));
 #endif
 
 #endif
-

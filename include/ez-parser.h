@@ -26,7 +26,7 @@ parser_status_t identifier_parser(FILE* input, const void* args,
 parser_status_t range_parser(FILE* input, const void* args,
                              void* output);
 
-parser_status_t type_parser(FILE* input, const void* args,
+parser_status_t type_parser(FILE* input, const context_t *ctx,
                             type_t** output);
 
 parser_status_t string_parser(FILE* input, const void* args,
@@ -90,27 +90,33 @@ parser_status_t instructions_parser(FILE* input, const void* args,
                                     void* output);
 
 parser_status_t structure_parser(FILE* input,
-                                 const void* unused_args,
+                                 context_t* ctx,
                                  structure_t** output);
 
 parser_status_t structure_member_parser(FILE* input,
                                         const void* unused_args,
                                         symbol_t** output);
 
-parser_status_t variable_tail_parser(FILE* input, const void* args,
+parser_status_t variable_tail_parser(FILE* input, const context_t* ctx,
                                      symbol_t** output);
 
 parser_status_t global_parser(FILE* input,
-                              const void* unused_args,
+                              const context_t* ctx,
                               symbol_t** output);
 
 parser_status_t local_parser(FILE* input,
-                       const void* unused_args,
+                       context_t* ctx,
                        symbol_t** output);
 
 parser_status_t entity_parser(FILE* input,
                                const void* unused_args,
-                               context_t* output);
+                               context_t* ctx);
+
+parser_status_t function_parser(FILE* input, const context_t *ctx,
+                                void* output);
+
+parser_status_t procedure_parser(FILE* input, const context_t* ctx,
+                                 void* output);
 
 parser_status_t program_parser(FILE* input,
                                const void* unused_args,

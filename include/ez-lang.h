@@ -147,21 +147,25 @@ struct type {
 
 type_t *type_new(type_type_t type);
 void type_delete(type_t *type);
+void type_print(type_t* t);
+
 type_t *type_boolean_new();
 type_t *type_integer_new();
 type_t *type_natural_new();
 type_t *type_real_new();
 type_t *type_char_new();
 type_t *type_string_new();
-type_t *type_vector_new(type_t *of);
+type_t *type_vector_new(type_t* of);
+type_t *type_structure_new(structure_t* s);
 
 symbol_t *symbol_new(const identifier_t *identifier, type_t *is);
 void symbol_delete(symbol_t *symbol);
+void symbol_print(int i, void *s);
 
-structure_t *structure_new(const identifier_t *identifier);
-void structure_add_member(structure_t *structure, symbol_t *member);
-void structure_delete(structure_t *structure);
-
+structure_t *structure_new(const identifier_t* identifier);
+void structure_add_member(structure_t* structure, symbol_t* member);
+void structure_delete(structure_t* structure);
+void structure_print(int i, void* v);
 
 typedef struct instruction instruction_t;
 
@@ -227,8 +231,8 @@ typedef struct context {
 } context_t;
 
 context_t *context_new(identifier_t *identifier, context_t *parent_context);
-
 void context_delete(context_t* ctx);
+void context_print(context_t* ctx);
 
 // TODO : add constant;
 void context_add_global(context_t *program, symbol_t *global);
@@ -238,10 +242,8 @@ void context_add_structure(context_t *program, structure_t *structure);
 // TODO : add arg
 void context_add_local(context_t *function, symbol_t *local);
 
-bool context_structure_exists(identifier_t identifier);
-bool context_valref_exists(valref_t *valref);
-bool context_identifier_is_function(identifier_t identifier);
-bool context_identifier_is_procedure(identifier_t identifier);
+structure_t *context_find_structure(const context_t *ctx,
+                                    const identifier_t *identifier);
 
 typedef enum {
     MODIFIER_IN,
@@ -255,4 +257,3 @@ typedef struct argument {
 } argument_t;
 
 #endif
-

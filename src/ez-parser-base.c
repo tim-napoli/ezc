@@ -85,9 +85,11 @@ parser_status_t identifier_parser(FILE* input, const void* args,
     return PARSER_SUCCESS;
 }
 
-parser_status_t type_parser(FILE* input, const void* args,
+parser_status_t type_parser(FILE* input, const context_t *ctx,
                             type_t **output)
 {
+    identifier_t structure_id;
+
     if (TRY(input, word_parser(input, "integer", NULL)) == PARSER_SUCCESS) {
         *output = type_integer_new();
         return PARSER_SUCCESS;
@@ -121,9 +123,21 @@ parser_status_t type_parser(FILE* input, const void* args,
         SKIP_MANY(input, space_parser(input, NULL, NULL));
 
         type_t *of;
-        PARSE(type_parser(input, NULL, &of));
+        PARSE(type_parser(input, ctx, &of));
 
         *output = type_vector_new(of);
+
+        return PARSER_SUCCESS;
+    } else
+    if (TRY(input, identifier_parser(input, NULL, &structure_id)) == PARSER_SUCCESS) {
+        structure_t *structure = context_find_structure(ctx, &structure_id);
+
+        if (structure == NULL) {
+            fprintf(stderr, "error %s is not a structure\n", structure_id.value);
+            return PARSER_FAILURE;
+        }
+
+        *output = type_structure_new(structure);
 
         return PARSER_SUCCESS;
     }
@@ -131,7 +145,7 @@ parser_status_t type_parser(FILE* input, const void* args,
     return PARSER_FAILURE;
 }
 
-parser_status_t variable_tail_parser(FILE* input, const void* args,
+parser_status_t variable_tail_parser(FILE* input, const context_t* ctx,
                                      symbol_t **output)
 {
     identifier_t id;
@@ -152,7 +166,7 @@ parser_status_t variable_tail_parser(FILE* input, const void* args,
 
     SKIP_MANY(input, space_parser(input, NULL, &is));
 
-    PARSE_ERR(type_parser(input, NULL, &is),
+    PARSE_ERR(type_parser(input, ctx, &is),
               "a variable must have a valid type");
 
     *output = symbol_new(&id, is);

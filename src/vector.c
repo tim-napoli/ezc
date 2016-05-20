@@ -32,7 +32,7 @@ void vector_delete(vector_t* vector, void (*free_element)(void*)) {
 
 static void vector_resize(vector_t* vector) {
     if (vector->reserved == 0) {
-        vector->elements = calloc(1, sizeof(void*));
+        vector->elements = realloc(vector->elements, sizeof(void*));
         vector->reserved = 1;
     } else {
         vector->elements = realloc(vector->elements,
@@ -89,7 +89,7 @@ void vector_pop(vector_t* vector) {
     vector_remove(vector, vector->size - 1);
 }
 
-void* vector_get(vector_t* vector, size_t index) {
+void* vector_get(const vector_t* vector, size_t index) {
     return vector->elements[index];
 }
 
@@ -106,4 +106,3 @@ void vector_map(vector_t* vector, void (*function)(int, void*)) {
         function(i, vector->elements[i]);
     }
 }
-
