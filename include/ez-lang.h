@@ -5,6 +5,9 @@
 #include <stdbool.h>
 
 #define IDENTIFIER_SIZE             32
+#define MAX_GLOBALS                 16
+#define MAX_STRUCTURES              16
+#define MAX_LOCALS                  16
 #define VALREF_ARRAY_INDEXING_MAX   16
 #define PARAMETERS_SIZE             32
 #define STRUCT_SIZE                 16
@@ -114,5 +117,40 @@ void symbol_delete(symbol_t *symbol);
 structure_t *structure_new(const identifier_t *identifier);
 void structure_add_member(structure_t *structure, symbol_t *member);
 void structure_delete(structure_t *structure);
+
+typedef struct context {
+    identifier_t identifier;
+    // TODO : constants
+    symbol_t *globals[MAX_GLOBALS];
+    symbol_t *locals[MAX_LOCALS];
+    structure_t *structures[MAX_STRUCTURES];
+    // TODO : functions
+    // TODO : procedures
+    // TODO : args
+
+    int nconstants;
+    int nglobals;
+    int nstructures;
+    int nfunctions;
+    int nprocedures;
+    int nargs;
+    int nlocals;
+
+    context_t *global_context;
+} program_context_t;
+
+context_t *context_new(identifier_t identifier, context_t *global_context);
+// TODO : add constant;
+void context_add_global(context_t *program, symbol_t *global);
+void context_add_structure(context_t *program, structure_t *structure);
+// TODO : add function
+// TODO : add procedure
+// TODO : add arg
+void context_add_local(context_t *function, symbol_t *local);
+
+bool context_structure_exists(identifier_t identifier);
+bool context_valref_exists(valref_t *valref);
+bool context_identifier_is_function(identifier_t identifier);
+bool context_identifier_is_procedure(identifier_t identifier);
 
 #endif

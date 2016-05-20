@@ -314,13 +314,15 @@ parser_status_t program_parser(FILE* input,
                                void* unused_output)
 {
     identifier_t program_id;
+    context_t *context;
 
     PARSE(header_parser(input, unused_args, &program_id));
     SKIP_MANY(input, comment_or_empty_parser(input, NULL, NULL));
 
+    context = context_new(program_id, NULL);
     printf("Program name: %s\n", program_id.value);
 
-    while (entity_parser(input, NULL, NULL) == PARSER_SUCCESS) {
+    while (entity_parser(input, NULL, context) == PARSER_SUCCESS) {
 
     }
 
