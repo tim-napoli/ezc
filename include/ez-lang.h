@@ -11,11 +11,15 @@
 
 typedef struct expression expression_t;
 
+/* ----------------------------- bases ------------------------------------- */
+
 typedef struct identifier {
     char value[IDENTIFIER_SIZE];
 } identifier_t;
 
 bool identifier_is_reserved(const identifier_t* id);
+
+/* ---------------------------- values ------------------------------------- */
 
 typedef struct parameters {
     vector_t      parameters;    /* of expression_t* */
@@ -70,6 +74,8 @@ void value_wipe(value_t* value);
 
 void value_print(FILE* output, const value_t* value);
 
+/* ---------------------------- expressions --------------------------------- */
+
 typedef enum {
     EXPRESSION_TYPE_VALUE,
 
@@ -113,6 +119,8 @@ int expression_predecence(const expression_t* expr);
 
 void expression_print(FILE* output, const expression_t* expr);
 
+/* -------------------------- types & symbols ------------------------------ */
+
 typedef enum {
     TYPE_TYPE_BOOLEAN,
     TYPE_TYPE_INTEGER,
@@ -148,28 +156,24 @@ struct type {
     };
 };
 
-type_t* type_new(type_type_t type);
-void type_delete(type_t* type);
-void type_print(type_t* t);
+type_t *type_new(type_type_t type);
+void type_delete(type_t *type);
+type_t *type_boolean_new();
+type_t *type_integer_new();
+type_t *type_natural_new();
+type_t *type_real_new();
+type_t *type_char_new();
+type_t *type_string_new();
+type_t *type_vector_new(type_t *of);
 
-type_t* type_boolean_new();
-type_t* type_integer_new();
-type_t* type_natural_new();
-type_t* type_real_new();
-type_t* type_char_new();
-type_t* type_string_new();
-type_t* type_vector_new(type_t* of);
-type_t* type_structure_new(structure_t* structure);
+symbol_t *symbol_new(const identifier_t *identifier, type_t *is);
+void symbol_delete(symbol_t *symbol);
 
-symbol_t* symbol_new(const identifier_t* identifier, type_t* is);
-void symbol_delete(symbol_t* symbol);
-void symbol_print(int i, void* s);
-void symbol_set_constant(symbol_t* symbol, expression_t *constant);
+structure_t *structure_new(const identifier_t *identifier);
+void structure_add_member(structure_t *structure, symbol_t *member);
+void structure_delete(structure_t *structure);
 
-structure_t* structure_new(const identifier_t* identifier);
-void structure_add_member(structure_t* structure, symbol_t* member);
-void structure_delete(structure_t* structure);
-void structure_print(int i, void* v);
+/* ---------------------------- instructions ------------------------------- */
 
 typedef struct instruction instruction_t;
 
@@ -287,22 +291,45 @@ instruction_t* instruction_new(instruction_type_t type);
 
 void instruction_delete(instruction_t* instr);
 
+/* ------------------------------ functions -------------------------------- */
+
 typedef enum {
-    MODIFIER_IN,
-    MODIFIER_OUT,
-    MODIFIER_INOUT
-} type_modifier_t;
+    FUNCTION_ARG_MODIFIER_IN,
+    FUNCTION_ARG_MODIFIER_OUT,
+    FUNCTION_ARG_MODIFIER_INOUT,
+} function_arg_modifier_t;
 
-typedef struct argument {
-    type_modifier_t modifier;
-    symbol_t* symbol;
-} argument_t;
+typedef struct function_arg {
+    function_arg_modifier_t modifier;
+    symbol_t*               symbol;
+} function_arg_t;
 
-argument_t* argument_new(type_modifier_t modifier, symbol_t* symbol);
-argument_t* argument_in_new(symbol_t* symbol);
-argument_t* argument_out_new(symbol_t* symbol);
-argument_t* argument_inout_new(symbol_t* symbol);
+function_arg_t* function_arg_new(function_arg_modifier_t modifier,
+                                 symbol_t* symbol);
 
+void function_arg_delete(function_arg_t* func_arg);
+
+typedef struct function {
+    identifier_t identifier;
+
+    type_t* return_type;
+
+    vector_t args;          /* of function_arg_t* */
+    vector_t locals;        /* of symbol_t* */
+    vector_t instructions;  /* of instruction_t* */
+} function_t;
+
+function_t* function_new(const identifier_t* id);
+
+void function_delete(function_t* function);
+
+/* ------------------------------ contexts --------------------------------- */
+
+typedef struct context {
+    
+} context_t;
+
+#if 0
 
 typedef struct context {
     identifier_t identifier;
@@ -338,5 +365,7 @@ symbol_t* context_find_local(const context_t* ctx, const identifier_t* id);
 symbol_t* context_find_global(const context_t* ctx, const identifier_t* id);
 symbol_t* context_find_constant(const context_t* ctx, const identifier_t* id);
 symbol_t* context_find_argument(const context_t* ctx, const identifier_t* id);
+
+#endif
 
 #endif

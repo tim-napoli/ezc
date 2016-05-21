@@ -79,6 +79,10 @@ parser_status_t identifier_parser(FILE* input, const context_t* ctx,
 
     strcpy(id->value, value);
 
+    if (identifier_is_reserved(id)) {
+        return PARSER_FAILURE;
+    }
+
     return PARSER_SUCCESS;
 }
 
@@ -128,6 +132,7 @@ parser_status_t type_parser(FILE* input, const context_t* ctx,
     } else
     if (TRY(input, identifier_parser(input, NULL, &structure_id))
         == PARSER_SUCCESS) {
+        #if 0
         structure_t* structure = context_find_structure(ctx, &structure_id);
 
         if (structure == NULL) {
@@ -136,7 +141,9 @@ parser_status_t type_parser(FILE* input, const context_t* ctx,
             return PARSER_FAILURE;
         }
 
+        /* XXX so type carry a const structure, it doesn't own it. */
         *type = type_structure_new(structure);
+        #endif
 
         return PARSER_SUCCESS;
     }

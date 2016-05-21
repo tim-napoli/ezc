@@ -32,13 +32,10 @@ int main(int argc, char** argv) {
     output_path = argv[optind + 1];
 
     FILE* input = fopen(input_path, "r");
-    context_t* ctx = NULL;
 
-    if (program_parser(input, NULL, &ctx) == PARSER_FAILURE) {
+    if (program_parser(input, NULL, NULL) == PARSER_FAILURE) {
         fprintf(stderr, "parser failure\n");
     }
-
-    context_delete(ctx);
 
     fclose(input);
 

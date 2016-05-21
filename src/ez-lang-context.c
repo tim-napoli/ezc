@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#if 0
+
 context_t *context_new(identifier_t *identifier, context_t *parent_context) {
   context_t *c = calloc(1, sizeof(context_t));
 
@@ -141,3 +143,6 @@ symbol_t* context_find_global(const context_t* ctx, const identifier_t* id) {
 symbol_t* context_find_constant(const context_t* ctx, const identifier_t* id) {
     return _find_symbol(&ctx->constants, id);
 }
+
+#endif
+

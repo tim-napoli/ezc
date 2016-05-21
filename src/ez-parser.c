@@ -22,18 +22,21 @@ parser_status_t header_parser(FILE* input,
     return PARSER_SUCCESS;
 }
 
-parser_status_t modifier_parser(FILE* input, const context_t* ctx,
-                                void* output)
+parser_status_t modifier_parser(FILE* input, const void* args,
+                                function_arg_modifier_t* output)
 {
     if (TRY(input, word_parser(input, "in", NULL)) == PARSER_SUCCESS) {
+        *output = FUNCTION_ARG_MODIFIER_IN;
         return PARSER_SUCCESS;
     }
 
     if (TRY(input, word_parser(input, "out", NULL)) == PARSER_SUCCESS) {
+        *output = FUNCTION_ARG_MODIFIER_OUT;
         return PARSER_SUCCESS;
     }
 
     if (TRY(input, word_parser(input, "inout", NULL)) == PARSER_SUCCESS) {
+        *output = FUNCTION_ARG_MODIFIER_INOUT;
         return PARSER_SUCCESS;
     }
 
@@ -41,14 +44,18 @@ parser_status_t modifier_parser(FILE* input, const context_t* ctx,
 }
 
 parser_status_t function_args_parser(FILE* input, const context_t* ctx,
-                                     void* output)
+                                     vector_t* output)
 {
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
     identifier_t arg_id;
-    type_t* is = NULL;
+    type_t *is = NULL;
+    function_arg_modifier_t modifier;
+    symbol_t* symbol;
+    function_arg_t* arg = NULL;
 
-    if (TRY(input, modifier_parser(input, NULL, NULL)) == PARSER_SUCCESS) {
+    if (TRY(input, modifier_parser(input, NULL, &modifier)) == PARSER_SUCCESS)
+    {
         PARSE_ERR(space_parser(input, NULL, NULL),
                   "expected spaces");
 
@@ -69,6 +76,10 @@ parser_status_t function_args_parser(FILE* input, const context_t* ctx,
 
         PARSE_ERR(type_parser(input, ctx, &is),
                   "expected valid type");
+
+        symbol = symbol_new(&arg_id, is);
+        arg = function_arg_new(modifier, symbol);
+        vector_push(output, arg);
 
         SKIP_MANY(input, space_parser(input, NULL, NULL));
 
@@ -98,10 +109,9 @@ parser_status_t local_parser(FILE* input, const context_t* ctx,
 }
 
 parser_status_t function_parser(FILE* input, const context_t* ctx,
-                                void* output)
+                                function_t** output)
 {
     identifier_t function_id;
-    type_t* return_type = NULL;
 
     PARSE(word_parser(input, "function", NULL));
 
@@ -110,12 +120,13 @@ parser_status_t function_parser(FILE* input, const context_t* ctx,
     PARSE_ERR(identifier_parser(input, NULL, &function_id),
               "a function must have a valid identifier");
 
+    *output = function_new(&function_id);
+
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
     PARSE_ERR(char_parser(input, "(", NULL), "missing '('");
 
-    // TODO : vector of args.
-    PARSE(function_args_parser(input, ctx, NULL));
+    PARSE(function_args_parser(input, NULL, &(*output)->args));
 
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
@@ -127,7 +138,7 @@ parser_status_t function_parser(FILE* input, const context_t* ctx,
 
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
-    PARSE_ERR(type_parser(input, ctx, &return_type),
+    PARSE_ERR(type_parser(input, NULL, &(*output)->return_type),
               "unknown return type");
 
     PARSE_ERR(end_of_line_parser(input, NULL, NULL),
@@ -139,13 +150,14 @@ parser_status_t function_parser(FILE* input, const context_t* ctx,
         symbol_t* local = NULL;
 
         PARSE(local_parser(input, NULL, &local));
+        vector_push(&(*output)->locals, local);
         SKIP_MANY(input, comment_or_empty_parser(input, NULL, NULL));
     }
 
     PARSE_ERR(end_of_line_parser(input, NULL, NULL),
               "a newline is expected after the 'begin' keyword");
 
-    PARSE(instructions_parser(input, NULL, NULL));
+    PARSE(instructions_parser(input, NULL, &(*output)->instructions));
 
     SKIP_MANY(input, comment_or_empty_parser(input, NULL, NULL));
 
@@ -154,8 +166,6 @@ parser_status_t function_parser(FILE* input, const context_t* ctx,
 
     PARSE_ERR(end_of_line_parser(input, NULL, NULL),
               "a newline is expected after the 'end' keyword");
-
-    printf("function parsed\n");
 
     return PARSER_SUCCESS;
 }
@@ -235,8 +245,6 @@ parser_status_t constant_parser(FILE* input,
 
     PARSE_ERR(expression_parser(input, ctx, &expression),
               "a valid expression is expected to initialize a constant");
-
-    symbol_set_constant(*output, expression);
 
     PARSE_ERR(end_of_line_parser(input, NULL, NULL),
               "a new line is expected after a constant declaration");
@@ -327,6 +335,7 @@ parser_status_t entity_parser(FILE* input, const void* unused_args,
     SKIP_MANY(input, comment_or_empty_parser(input, NULL, NULL));
 
     if (TRY(input, constant_parser(input, ctx, &symbol)) == PARSER_SUCCESS) {
+        #if 0
         if (context_find_symbol(ctx, &symbol->identifier)) {
             error_symbol_exists(input, symbol);
             symbol_delete(symbol);
@@ -335,10 +344,12 @@ parser_status_t entity_parser(FILE* input, const void* unused_args,
         }
 
         context_add_constant(ctx, symbol);
+        #endif
 
         return PARSER_SUCCESS;
     } else
     if (TRY(input, global_parser(input, ctx, &symbol)) == PARSER_SUCCESS) {
+        #if 0
         if (context_find_symbol(ctx, &symbol->identifier)) {
             error_symbol_exists(input, symbol);
             symbol_delete(symbol);
@@ -347,10 +358,12 @@ parser_status_t entity_parser(FILE* input, const void* unused_args,
         }
 
         context_add_global(ctx, symbol);
+        #endif
 
         return PARSER_SUCCESS;
     } else
     if (TRY(input, structure_parser(input, ctx, &structure)) == PARSER_SUCCESS) {
+        #if 0
         if (context_find_structure(ctx, &structure->identifier)) {
             error_structure_exists(input, structure);
             structure_delete(structure);
@@ -359,6 +372,7 @@ parser_status_t entity_parser(FILE* input, const void* unused_args,
         }
 
         context_add_structure(ctx, structure);
+        #endif
 
         return PARSER_SUCCESS;
     } else
@@ -382,7 +396,9 @@ parser_status_t program_parser(FILE* input,
 
     SKIP_MANY(input, comment_or_empty_parser(input, NULL, NULL));
 
+#if 0
     *ctx = context_new(&program_id, NULL);
+#endif
 
     while (entity_parser(input, NULL, *ctx) == PARSER_SUCCESS) {
 

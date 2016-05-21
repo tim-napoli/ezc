@@ -113,10 +113,10 @@ parser_status_t entity_parser(FILE* input,
                                context_t* ctx);
 
 parser_status_t function_args_parser(FILE* input, const context_t* ctx,
-                                     void* output);
+                                     vector_t* output);
 
 parser_status_t function_parser(FILE* input, const context_t* ctx,
-                                void* output);
+                                function_t** output);
 
 parser_status_t procedure_parser(FILE* input, const context_t* ctx,
                                  void* output);
