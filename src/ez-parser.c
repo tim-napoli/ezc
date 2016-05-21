@@ -170,8 +170,8 @@ parser_status_t function_parser(FILE* input, const context_t* ctx,
     return PARSER_SUCCESS;
 }
 
-parser_status_t procedure_parser(FILE* input, const context_t* ctx,
-                                 void* output)
+parser_status_t procedure_parser(FILE* input, const context_t* args,
+                                 function_t** output)
 {
     identifier_t procedure_id;
 
@@ -182,12 +182,13 @@ parser_status_t procedure_parser(FILE* input, const context_t* ctx,
     PARSE_ERR(identifier_parser(input, NULL, &procedure_id),
               "a procedure must have a valid identifier");
 
+    *output = function_new(&procedure_id);
+
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
     PARSE_ERR(char_parser(input, "(", NULL), "missing '('");
 
-    // TODO : loop here
-    PARSE(function_args_parser(input, ctx, NULL));
+    PARSE(function_args_parser(input, NULL, &(*output)->args));
 
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
@@ -202,14 +203,14 @@ parser_status_t procedure_parser(FILE* input, const context_t* ctx,
         symbol_t* local;
 
         PARSE(local_parser(input, NULL, &local));
+        vector_push(&(*output)->locals, local);
         SKIP_MANY(input, comment_or_empty_parser(input, NULL, NULL));
     }
 
     PARSE_ERR(end_of_line_parser(input, NULL, NULL),
               "a newline is expected after the 'begin' keyword");
 
-    // TODO : vector of instructions.
-    PARSE(instructions_parser(input, NULL, NULL));
+    PARSE(instructions_parser(input, NULL, &(*output)->instructions));
 
     SKIP_MANY(input, comment_or_empty_parser(input, NULL, NULL));
 

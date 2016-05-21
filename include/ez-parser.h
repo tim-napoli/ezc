@@ -119,7 +119,7 @@ parser_status_t function_parser(FILE* input, const context_t* ctx,
                                 function_t** output);
 
 parser_status_t procedure_parser(FILE* input, const context_t* ctx,
-                                 void* output);
+                                 function_t** output);
 
 parser_status_t program_parser(FILE* input,
                                const void* unused_args,
