@@ -3,7 +3,7 @@
 #include <string.h>
 #include "ez-lang.h"
 
-bool identifier_is_reserved(const identifier_t *id) {
+bool identifier_is_reserved(const identifier_t* id) {
 
     static char* reserved_keywords[] = {
         "program",

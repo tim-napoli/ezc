@@ -54,7 +54,7 @@ parser_status_t end_of_line_parser(FILE* input, const void* args,
     return PARSER_SUCCESS;
 }
 
-parser_status_t identifier_parser(FILE* input, const void* args,
+parser_status_t identifier_parser(FILE* input, const context_t* ctx,
                                   identifier_t* id)
 {
     const char id_charset_first[] = "azertyuiopqsdfghjklmwxcvbn"
@@ -85,8 +85,8 @@ parser_status_t identifier_parser(FILE* input, const void* args,
     return PARSER_SUCCESS;
 }
 
-parser_status_t type_parser(FILE* input, const context_t *ctx,
-                            type_t **output)
+parser_status_t type_parser(FILE* input, const context_t* ctx,
+                            type_t* *output)
 {
     identifier_t structure_id;
 
@@ -122,7 +122,7 @@ parser_status_t type_parser(FILE* input, const context_t *ctx,
                   "expected spaces after 'of'");
         SKIP_MANY(input, space_parser(input, NULL, NULL));
 
-        type_t *of;
+        type_t* of;
         PARSE(type_parser(input, ctx, &of));
 
         *output = type_vector_new(of);
@@ -130,7 +130,7 @@ parser_status_t type_parser(FILE* input, const context_t *ctx,
         return PARSER_SUCCESS;
     } else
     if (TRY(input, identifier_parser(input, NULL, &structure_id)) == PARSER_SUCCESS) {
-        structure_t *structure = context_find_structure(ctx, &structure_id);
+        structure_t* structure = context_find_structure(ctx, &structure_id);
 
         if (structure == NULL) {
             fprintf(stderr, "error %s is not a structure\n", structure_id.value);
@@ -146,10 +146,10 @@ parser_status_t type_parser(FILE* input, const context_t *ctx,
 }
 
 parser_status_t variable_tail_parser(FILE* input, const context_t* ctx,
-                                     symbol_t **output)
+                                     symbol_t* *output)
 {
     identifier_t id;
-    type_t *is = NULL;
+    type_t* is = NULL;
 
     PARSE(identifier_parser(input, NULL, &id));
 

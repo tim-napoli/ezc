@@ -3,6 +3,10 @@
 #include <string.h>
 #include "ez-lang.h"
 
+/**
+ * Types
+ */
+
 type_t* type_new(type_type_t type) {
     type_t* t = calloc(1, sizeof(type_t));
 
@@ -12,6 +16,7 @@ type_t* type_new(type_type_t type) {
     }
 
     t->type = type;
+    t->constant = false;
 
     return t;
 }
@@ -20,6 +25,10 @@ void type_delete(type_t* t) {
     if (t) {
         if (t->type == TYPE_TYPE_VECTOR) {
             type_delete(t->vector_type);
+        }
+
+        if (t->constant) {
+            expression_delete(t->constant_expression);
         }
 
         free(t);
@@ -64,47 +73,56 @@ void type_print(type_t* t) {
         default:
             fprintf(stdout, "UNKNOWN");
     }
+
+    if (t->constant) {
+        fprintf(stdout, " : CONSTANT = ");
+        expression_print(stdout, t->constant_expression);
+    }
 }
 
-type_t *type_boolean_new() {
+type_t* type_boolean_new() {
     return type_new(TYPE_TYPE_BOOLEAN);
 }
 
-type_t *type_integer_new() {
+type_t* type_integer_new() {
     return type_new(TYPE_TYPE_INTEGER);
 }
 
-type_t *type_natural_new() {
+type_t* type_natural_new() {
     return type_new(TYPE_TYPE_NATURAL);
 }
 
-type_t *type_real_new() {
+type_t* type_real_new() {
     return type_new(TYPE_TYPE_REAL);
 }
-type_t *type_char_new() {
+type_t* type_char_new() {
     return type_new(TYPE_TYPE_CHAR);
 }
 
-type_t *type_string_new() {
+type_t* type_string_new() {
     return type_new(TYPE_TYPE_STRING);
 }
 
-type_t *type_vector_new(type_t *of) {
-    type_t *vector = type_new(TYPE_TYPE_VECTOR);
+type_t* type_vector_new(type_t* of) {
+    type_t* vector = type_new(TYPE_TYPE_VECTOR);
     vector->vector_type = of;
 
     return vector;
 }
 
-type_t *type_structure_new(structure_t *s) {
-    type_t *t = type_new(TYPE_TYPE_STRUCTURE);
+type_t* type_structure_new(structure_t* s) {
+    type_t* t = type_new(TYPE_TYPE_STRUCTURE);
     t->structure_type = s;
 
     return t;
 }
 
-symbol_t *symbol_new(const identifier_t *identifier, type_t *is) {
-    symbol_t *s = calloc(1, sizeof(symbol_t));
+/**
+ * Symbols
+ */
+
+symbol_t* symbol_new(const identifier_t* identifier, type_t* is) {
+    symbol_t* s = calloc(1, sizeof(symbol_t));
 
     if (!s) {
         fprintf(stderr, "couldn't allocate symbol\n");
@@ -117,7 +135,7 @@ symbol_t *symbol_new(const identifier_t *identifier, type_t *is) {
     return s;
 }
 
-void symbol_delete(symbol_t *symbol) {
+void symbol_delete(symbol_t* symbol) {
     if (symbol) {
         if (symbol->is) {
             type_delete(symbol->is);
@@ -128,14 +146,23 @@ void symbol_delete(symbol_t *symbol) {
 }
 
 void symbol_print(int i, void *s) {
-    symbol_t *smbl = s;
+    symbol_t* smbl = s;
     fprintf(stdout, "%s is ", smbl->identifier.value);
     type_print(smbl->is);
     fprintf(stdout, "\n");
 }
 
-structure_t *structure_new(const identifier_t *identifier) {
-    structure_t *s = calloc(1, sizeof(structure_t));
+
+void symbol_set_constant(symbol_t* symbol, expression_t *constant) {
+    symbol->is->constant = true;
+    symbol->is->constant_expression = constant;
+}
+/**
+ * Structures.
+ */
+
+structure_t* structure_new(const identifier_t* identifier) {
+    structure_t* s = calloc(1, sizeof(structure_t));
 
     if (!s) {
         fprintf(stderr, "couldn't allocate symobl\n");
@@ -148,19 +175,19 @@ structure_t *structure_new(const identifier_t *identifier) {
     return s;
 }
 
-void structure_delete(structure_t *structure) {
+void structure_delete(structure_t* structure) {
     if (structure) {
         vector_wipe(&structure->members, (delete_func_t)&symbol_delete);
         free(structure);
     }
 }
 
-void structure_add_member(structure_t *structure, symbol_t *member) {
+void structure_add_member(structure_t* structure, symbol_t* member) {
     vector_push(&structure->members, member);
 }
 
 void structure_print(int i, void *v) {
-    structure_t *s = v;
+    structure_t* s = v;
 
     fprintf(stdout, "Structure: %s\n", s->identifier.value);
     vector_map(&s->members, symbol_print);

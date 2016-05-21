@@ -13,4 +13,7 @@ global vvvv is vector of vector of vector of vector of real
 global p is Person
 global persons is vector of Person
 
-global toto is Toto
+constant PI         is real    = 3
+constant TOTO       is string  = "toto"
+constant MAX_PRIMES is integer = 20
+constant EXPR       is boolean = 4 * PI * 6 + 3 * 7 <= MAX_PRIMES * 2 + 1 * 5

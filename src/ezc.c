@@ -27,16 +27,20 @@ int main(int argc, char** argv) {
         help();
         return 1;
     }
+
     input_path = argv[optind];
     output_path = argv[optind + 1];
 
     FILE* input = fopen(input_path, "r");
-    if (program_parser(input, NULL, NULL) == PARSER_FAILURE) {
+    context_t* ctx = NULL;
+
+    if (program_parser(input, NULL, &ctx) == PARSER_FAILURE) {
         fprintf(stderr, "parser failure\n");
     }
+
+    context_delete(ctx);
 
     fclose(input);
 
     return 0;
 }
-

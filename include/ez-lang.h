@@ -14,7 +14,7 @@ typedef struct identifier {
     char value[IDENTIFIER_SIZE];
 } identifier_t;
 
-bool identifier_is_reserved(const identifier_t *id);
+bool identifier_is_reserved(const identifier_t* id);
 
 typedef struct parameters {
     vector_t      parameters;    /* of expression_t* */
@@ -120,7 +120,7 @@ typedef enum {
     TYPE_TYPE_CHAR,
     TYPE_TYPE_STRING,
     TYPE_TYPE_VECTOR,
-    TYPE_TYPE_STRUCTURE
+    TYPE_TYPE_STRUCTURE,
 } type_type_t;
 
 typedef struct symbol symbol_t;
@@ -129,7 +129,7 @@ typedef struct type type_t;
 
 struct symbol {
     identifier_t identifier;
-    type_t *is;
+    type_t* is;
 };
 
 struct structure {
@@ -139,30 +139,33 @@ struct structure {
 
 struct type {
     type_type_t type;
+    bool constant;
     union {
-        structure_t *structure_type;
-        type_t *vector_type;
+        expression_t* constant_expression;
+        structure_t* structure_type;
+        type_t* vector_type;
     };
 };
 
-type_t *type_new(type_type_t type);
-void type_delete(type_t *type);
+type_t* type_new(type_type_t type);
+void type_delete(type_t* type);
 void type_print(type_t* t);
 
-type_t *type_boolean_new();
-type_t *type_integer_new();
-type_t *type_natural_new();
-type_t *type_real_new();
-type_t *type_char_new();
-type_t *type_string_new();
-type_t *type_vector_new(type_t* of);
-type_t *type_structure_new(structure_t* s);
+type_t* type_boolean_new();
+type_t* type_integer_new();
+type_t* type_natural_new();
+type_t* type_real_new();
+type_t* type_char_new();
+type_t* type_string_new();
+type_t* type_vector_new(type_t* of);
+type_t* type_structure_new(structure_t* structure);
 
-symbol_t *symbol_new(const identifier_t *identifier, type_t *is);
-void symbol_delete(symbol_t *symbol);
-void symbol_print(int i, void *s);
+symbol_t* symbol_new(const identifier_t* identifier, type_t* is);
+void symbol_delete(symbol_t* symbol);
+void symbol_print(int i, void* s);
+void symbol_set_constant(symbol_t* symbol, expression_t *constant);
 
-structure_t *structure_new(const identifier_t* identifier);
+structure_t* structure_new(const identifier_t* identifier);
 void structure_add_member(structure_t* structure, symbol_t* member);
 void structure_delete(structure_t* structure);
 void structure_print(int i, void* v);
@@ -285,7 +288,7 @@ void instruction_delete(instruction_t* instr);
 
 typedef struct context {
     identifier_t identifier;
-    // TODO : constants
+    vector_t constants; /* of symbol_t* */
     vector_t globals; /* of symbol_t* */
     vector_t locals; /* of symbol_t* */
     vector_t structures; /* of_structure_t* */
@@ -293,23 +296,23 @@ typedef struct context {
     // TODO : procedures
     // TODO : args
 
-    struct context *parent_context;
+    struct context* parent_context;
 } context_t;
 
-context_t *context_new(identifier_t *identifier, context_t *parent_context);
+context_t* context_new(identifier_t* identifier, context_t* parent_context);
 void context_delete(context_t* ctx);
 void context_print(context_t* ctx);
 
-// TODO : add constant;
-void context_add_global(context_t *program, symbol_t *global);
-void context_add_structure(context_t *program, structure_t *structure);
+void context_add_constant(context_t* context, symbol_t* constant);
+void context_add_global(context_t* program, symbol_t* global);
+void context_add_structure(context_t* program, structure_t* structure);
 // TODO : add function
 // TODO : add procedure
 // TODO : add arg
-void context_add_local(context_t *function, symbol_t *local);
+void context_add_local(context_t* function, symbol_t* local);
 
-structure_t *context_find_structure(const context_t *ctx,
-                                    const identifier_t *identifier);
+structure_t* context_find_structure(const context_t* ctx,
+                                    const identifier_t* identifier);
 
 typedef enum {
     MODIFIER_IN,
@@ -319,7 +322,7 @@ typedef enum {
 
 typedef struct argument {
     type_modifier_t modifier;
-    symbol_t *symbol;
+    symbol_t* symbol;
 } argument_t;
 
 #endif

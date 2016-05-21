@@ -17,7 +17,7 @@ int main(void) {
     char skip_many[] = "    bob";
 
     char skip_until_char[] = "xyze bob";
-    char skip_until_word[] = "this is a comment */bob";
+    char skip_until_word[] = "this is a comment* /bob";
 
     f = fmemopen(char_ok, sizeof(char_ok), "r");
     *output = '\0';
