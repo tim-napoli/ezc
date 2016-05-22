@@ -152,7 +152,7 @@ parser_status_t type_parser(FILE* input, const context_t* ctx,
 }
 
 parser_status_t variable_tail_parser(FILE* input, const context_t* ctx,
-                                     symbol_t* *symbol)
+                                     symbol_t** symbol)
 {
     identifier_t id;
     type_t* is = NULL;

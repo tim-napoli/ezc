@@ -110,7 +110,7 @@ parser_status_t local_parser(FILE* input,
 
 parser_status_t entity_parser(FILE* input,
                                const void* unused_args,
-                               context_t* ctx);
+                               program_t* ctx);
 
 parser_status_t function_args_parser(FILE* input, const context_t* ctx,
                                      vector_t* output);
@@ -122,7 +122,7 @@ parser_status_t procedure_parser(FILE* input, const context_t* ctx,
                                  function_t** output);
 
 parser_status_t program_parser(FILE* input,
-                               const void* unused_args,
-                               context_t** ctx);
+                               void* ctx,
+                               program_t** output);
 
 #endif

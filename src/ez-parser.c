@@ -224,10 +224,11 @@ parser_status_t procedure_parser(FILE* input, const context_t* args,
 }
 
 parser_status_t constant_parser(FILE* input,
-                                const context_t* ctx,
-                                symbol_t** output)
+                                const void* unused_args,
+                                constant_t** output)
 {
     expression_t* expression = NULL;
+    symbol_t* symbol = NULL;
 
     PARSE(word_parser(input, "constant", NULL));
 
@@ -235,7 +236,7 @@ parser_status_t constant_parser(FILE* input,
               "a space must follow a 'constant' keyword");
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
-    PARSE(variable_tail_parser(input, ctx, output));
+    PARSE(variable_tail_parser(input, NULL, &symbol));
 
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
@@ -244,8 +245,10 @@ parser_status_t constant_parser(FILE* input,
 
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
-    PARSE_ERR(expression_parser(input, ctx, &expression),
+    PARSE_ERR(expression_parser(input, NULL, &expression),
               "a valid expression is expected to initialize a constant");
+
+    *output = constant_new(symbol, expression);
 
     PARSE_ERR(end_of_line_parser(input, NULL, NULL),
               "a new line is expected after a constant declaration");
@@ -328,14 +331,17 @@ parser_status_t structure_parser(FILE* input,
 }
 
 parser_status_t entity_parser(FILE* input, const void* unused_args,
-                              context_t* ctx)
+                              program_t* output)
 {
-    symbol_t* symbol =  NULL;
+    function_t* func = NULL;
     structure_t* structure = NULL;
+    constant_t* constant = NULL;
+    symbol_t* global = NULL;
 
     SKIP_MANY(input, comment_or_empty_parser(input, NULL, NULL));
 
-    if (TRY(input, constant_parser(input, ctx, &symbol)) == PARSER_SUCCESS) {
+    if (TRY(input, constant_parser(input, NULL, &constant)) == PARSER_SUCCESS)
+    {
         #if 0
         if (context_find_symbol(ctx, &symbol->identifier)) {
             error_symbol_exists(input, symbol);
@@ -346,10 +352,11 @@ parser_status_t entity_parser(FILE* input, const void* unused_args,
 
         context_add_constant(ctx, symbol);
         #endif
-
+        vector_push(&output->constants, constant);
         return PARSER_SUCCESS;
-    } else
-    if (TRY(input, global_parser(input, ctx, &symbol)) == PARSER_SUCCESS) {
+    }
+
+    if (TRY(input, global_parser(input, NULL, &global)) == PARSER_SUCCESS) {
         #if 0
         if (context_find_symbol(ctx, &symbol->identifier)) {
             error_symbol_exists(input, symbol);
@@ -360,10 +367,13 @@ parser_status_t entity_parser(FILE* input, const void* unused_args,
 
         context_add_global(ctx, symbol);
         #endif
-
+        vector_push(&output->globals, global);
         return PARSER_SUCCESS;
-    } else
-    if (TRY(input, structure_parser(input, ctx, &structure)) == PARSER_SUCCESS) {
+    }
+
+    if (TRY(input, structure_parser(input, NULL, &structure))
+        == PARSER_SUCCESS)
+    {
         #if 0
         if (context_find_structure(ctx, &structure->identifier)) {
             error_structure_exists(input, structure);
@@ -374,13 +384,15 @@ parser_status_t entity_parser(FILE* input, const void* unused_args,
 
         context_add_structure(ctx, structure);
         #endif
-
+        vector_push(&output->structures, structure);
         return PARSER_SUCCESS;
     } else
-    if (TRY(input, function_parser(input, ctx, NULL)) == PARSER_SUCCESS) {
+    if (TRY(input, function_parser(input, NULL, &func)) == PARSER_SUCCESS) {
+        vector_push(&output->functions, func);
         return PARSER_SUCCESS;
     } else
-    if (TRY(input, procedure_parser(input, ctx, NULL)) == PARSER_SUCCESS) {
+    if (TRY(input, procedure_parser(input, NULL, &func)) == PARSER_SUCCESS) {
+        vector_push(&output->procedures, func);
         return PARSER_SUCCESS;
     }
 
@@ -388,20 +400,22 @@ parser_status_t entity_parser(FILE* input, const void* unused_args,
 }
 
 parser_status_t program_parser(FILE* input,
-                               const void* unused_args,
-                               context_t** ctx)
+                               void* unused_args,
+                               program_t** output)
 {
     identifier_t program_id;
 
     PARSE(header_parser(input, unused_args, &program_id));
 
-    SKIP_MANY(input, comment_or_empty_parser(input, NULL, NULL));
+    *output = program_new(&program_id);
 
 #if 0
     *ctx = context_new(&program_id, NULL);
 #endif
 
-    while (entity_parser(input, NULL, *ctx) == PARSER_SUCCESS) {
+    SKIP_MANY(input, comment_or_empty_parser(input, NULL, NULL));
+
+    while (entity_parser(input, NULL, *output) == PARSER_SUCCESS) {
 
     }
 

@@ -323,6 +323,33 @@ function_t* function_new(const identifier_t* id);
 
 void function_delete(function_t* function);
 
+/* ------------------------------ constants -------------------------------- */
+
+typedef struct constant {
+    symbol_t*     symbol;
+    expression_t* value;
+} constant_t;
+
+constant_t* constant_new(symbol_t* symbol, expression_t* value);
+
+void constant_delete(constant_t* constant);
+
+/* ------------------------------ program ---------------------------------- */
+
+typedef struct program {
+    identifier_t    identifier;
+
+    vector_t    globals;    /* of symbol_t* */
+    vector_t    constants;  /* of constant_t* */
+    vector_t    structures; /* of structure_t* */
+    vector_t    functions;  /* of function_t* */
+    vector_t    procedures; /* of function_t* */
+} program_t;
+
+program_t* program_new(const identifier_t* id);
+
+void program_delete(program_t* prg);
+
 /* ------------------------------ contexts --------------------------------- */
 
 typedef struct context {

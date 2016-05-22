@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include "ez-parser.h"
+#include "ez-lang.h"
 
 static void help(void) {
     printf( "usage: ezc [options] source target\n"
@@ -31,11 +32,12 @@ int main(int argc, char** argv) {
     input_path = argv[optind];
     output_path = argv[optind + 1];
 
+    program_t* prg = NULL;
     FILE* input = fopen(input_path, "r");
-
-    if (program_parser(input, NULL, NULL) == PARSER_FAILURE) {
+    if (program_parser(input, NULL, &prg) == PARSER_FAILURE) {
         fprintf(stderr, "parser failure\n");
     }
+    program_delete(prg);
 
     fclose(input);
 

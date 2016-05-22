@@ -31,7 +31,7 @@ add_library(ez-lang STATIC
             src/ez-lang-symbol.c
             src/ez-lang-context.c
             src/ez-lang-instr.c
-            src/ez-lang-func.c
+            src/ez-lang.c
             src/errors.c)
 
 add_library(vector STATIC
