@@ -35,51 +35,6 @@ void type_delete(type_t* t) {
     }
 }
 
-void type_print(type_t* t) {
-    switch (t->type) {
-        case TYPE_TYPE_BOOLEAN:
-            fprintf(stdout, "BOOLEAN");
-            break;
-
-        case TYPE_TYPE_INTEGER:
-            fprintf(stdout, "INTEGER");
-            break;
-
-        case TYPE_TYPE_NATURAL:
-            fprintf(stdout, "NATURAL");
-            break;
-
-        case TYPE_TYPE_REAL:
-            fprintf(stdout, "REAL");
-            break;
-
-        case TYPE_TYPE_CHAR:
-            fprintf(stdout, "CHAR");
-            break;
-
-        case TYPE_TYPE_STRING:
-            fprintf(stdout, "STRING");
-            break;
-
-        case TYPE_TYPE_VECTOR:
-            fprintf(stdout, "VECTOR OF ");
-            type_print(t->vector_type);
-            break;
-
-        case TYPE_TYPE_STRUCTURE:
-            fprintf(stdout, "%s", t->structure_type->identifier.value);
-            break;
-
-        default:
-            fprintf(stdout, "UNKNOWN");
-    }
-
-    if (t->constant) {
-        fprintf(stdout, " : CONSTANT = ");
-        expression_print(stdout, t->constant_expression);
-    }
-}
-
 type_t* type_boolean_new() {
     return type_new(TYPE_TYPE_BOOLEAN);
 }
@@ -117,12 +72,46 @@ type_t* type_structure_new(structure_t* s) {
     return t;
 }
 
-/**
- * Symbols
- */
+void type_print(FILE* output, const type_t* type) {
+    switch (type->type) {
+      case TYPE_TYPE_BOOLEAN:
+        fprintf(output, "bool");
+        break;
 
-symbol_t* symbol_new(const identifier_t* identifier, type_t* is) {
-    symbol_t* s = calloc(1, sizeof(symbol_t));
+      case TYPE_TYPE_INTEGER:
+        fprintf(output, "int");
+        break;
+
+      case TYPE_TYPE_NATURAL:
+        fprintf(output, "unsigned int");
+        break;
+
+      case TYPE_TYPE_REAL:
+        fprintf(output, "double");
+        break;
+
+      case TYPE_TYPE_CHAR:
+        fprintf(output, "char");
+        break;
+
+      case TYPE_TYPE_STRING:
+        fprintf(output, "std::string");
+        break;
+
+      case TYPE_TYPE_VECTOR:
+        fprintf(output, "std::vector<");
+        type_print(output, type->vector_type);
+        fprintf(output, ">");
+        break;
+
+      case TYPE_TYPE_STRUCTURE:
+        fprintf(output, type->structure_type->identifier.value);
+        break;
+    }
+}
+
+symbol_t *symbol_new(const identifier_t *identifier, type_t *is) {
+    symbol_t *s = calloc(1, sizeof(symbol_t));
 
     if (!s) {
         fprintf(stderr, "couldn't allocate symbol\n");
@@ -145,18 +134,16 @@ void symbol_delete(symbol_t* symbol) {
     }
 }
 
-void symbol_print(int i, void *s) {
-    symbol_t* smbl = s;
-    fprintf(stdout, "%s is ", smbl->identifier.value);
-    type_print(smbl->is);
-    fprintf(stdout, "\n");
-}
-
-
 void symbol_set_constant(symbol_t* symbol, expression_t *constant) {
     symbol->is->constant = true;
     symbol->is->constant_expression = constant;
 }
+
+void symbol_print(FILE* output, const symbol_t* symbol) {
+    type_print(stderr, symbol->is);
+    fprintf(stderr, " %s ", symbol->identifier.value);
+}
+
 /**
  * Structures.
  */
@@ -186,10 +173,13 @@ void structure_add_member(structure_t* structure, symbol_t* member) {
     vector_push(&structure->members, member);
 }
 
-void structure_print(int i, void *v) {
-    structure_t* s = v;
-
-    fprintf(stdout, "Structure: %s\n", s->identifier.value);
-    vector_map(&s->members, symbol_print);
-    fprintf(stdout, "\n");
+void structure_print(FILE* output, const structure_t* structure) {
+    fprintf(stderr, "struct %s {\n", structure->identifier.value);
+    for (int i = 0; i < structure->members.size; i++) {
+        fprintf(output, "    ");
+        symbol_print(output, structure->members.elements[i]);
+        fprintf(output, ";\n");
+    }
+    fprintf(output, "};\n");
 }
+

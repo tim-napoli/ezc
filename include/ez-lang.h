@@ -166,12 +166,18 @@ type_t *type_char_new();
 type_t *type_string_new();
 type_t *type_vector_new(type_t *of);
 
+void type_print(FILE* output, const type_t* type);
+
 symbol_t *symbol_new(const identifier_t *identifier, type_t *is);
 void symbol_delete(symbol_t *symbol);
+
+void symbol_print(FILE* output, const symbol_t* symbol);
 
 structure_t *structure_new(const identifier_t *identifier);
 void structure_add_member(structure_t *structure, symbol_t *member);
 void structure_delete(structure_t *structure);
+
+void structure_print(FILE* output, const structure_t* structure);
 
 /* ---------------------------- instructions ------------------------------- */
 
@@ -186,6 +192,8 @@ elsif_instr_t* elsif_instr_new(expression_t* coundition);
 
 void elsif_instr_delete(elsif_instr_t* elsif);
 
+void elsif_instr_print(FILE* output, const elsif_instr_t* elsif);
+
 typedef struct if_instr {
     expression_t* coundition;
     vector_t instructions;      /* of instruction_t* */
@@ -197,6 +205,8 @@ if_instr_t* if_instr_new(expression_t* coundition);
 
 void if_instr_delete(if_instr_t* if_instr);
 
+void if_instr_print(FILE* output, const if_instr_t* if_instr);
+
 typedef struct loop_instr {
     expression_t* coundition;
     vector_t      instructions;     /* of instruction_t* */
@@ -205,6 +215,8 @@ typedef struct loop_instr {
 loop_instr_t* loop_instr_new(expression_t* coundition);
 
 void loop_instr_delete(loop_instr_t* loop);
+
+void loop_instr_print(FILE* output, const loop_instr_t* loop_instr);
 
 typedef struct while_instr {
     expression_t* coundition;
@@ -215,6 +227,8 @@ while_instr_t* while_instr_new(expression_t* coundition);
 
 void while_instr_delete(while_instr_t* while_instr);
 
+void while_instr_print(FILE* output, const while_instr_t* while_instr);
+
 typedef struct on_instr {
     expression_t* coundition;
     instruction_t* instruction;
@@ -223,6 +237,8 @@ typedef struct on_instr {
 on_instr_t* on_instr_new(expression_t* coundition);
 
 void on_instr_delete(on_instr_t* on_instr);
+
+void on_instr_print(FILE* output, const on_instr_t* on_instr);
 
 typedef struct range {
     expression_t* from;
@@ -238,6 +254,8 @@ typedef struct for_instr {
 for_instr_t* for_instr_new(const identifier_t* subject);
 
 void for_instr_delete(for_instr_t* for_instr);
+
+void for_instr_print(FILE* output, const for_instr_t* for_instr);
 
 typedef enum {
     FLOWCONTROL_TYPE_IF,
@@ -260,12 +278,16 @@ typedef struct flowcontrol {
 
 void flowcontrol_wipe(flowcontrol_t* fc);
 
+void flowcontrol_print(FILE* output, const flowcontrol_t* fc_instr);
+
 typedef struct affectation_instr {
     valref_t*       lvalue;
     expression_t*   expression;
 } affectation_instr_t;
 
 void affectation_instr_wipe(affectation_instr_t* affectation);
+
+void affectation_instr_print(FILE* output, const affectation_instr_t* aff);
 
 typedef enum {
     INSTRUCTION_TYPE_PRINT,
@@ -291,6 +313,10 @@ instruction_t* instruction_new(instruction_type_t type);
 
 void instruction_delete(instruction_t* instr);
 
+void instruction_print(FILE* output, const instruction_t* instr);
+
+void instructions_print(FILE* output, const vector_t* instrs);
+
 /* ------------------------------ functions -------------------------------- */
 
 typedef enum {
@@ -309,6 +335,8 @@ function_arg_t* function_arg_new(function_arg_modifier_t modifier,
 
 void function_arg_delete(function_arg_t* func_arg);
 
+void function_arg_print(FILE* output, const function_arg_t* arg);
+
 typedef struct function {
     identifier_t identifier;
 
@@ -323,6 +351,8 @@ function_t* function_new(const identifier_t* id);
 
 void function_delete(function_t* function);
 
+void function_print(FILE* output, const function_t* function);
+
 /* ------------------------------ constants -------------------------------- */
 
 typedef struct constant {
@@ -333,6 +363,8 @@ typedef struct constant {
 constant_t* constant_new(symbol_t* symbol, expression_t* value);
 
 void constant_delete(constant_t* constant);
+
+void constant_print(FILE* output, const constant_t* constant);
 
 /* ------------------------------ program ---------------------------------- */
 
@@ -349,6 +381,8 @@ typedef struct program {
 program_t* program_new(const identifier_t* id);
 
 void program_delete(program_t* prg);
+
+void program_print(FILE* output, const program_t* prg);
 
 /* ------------------------------ contexts --------------------------------- */
 

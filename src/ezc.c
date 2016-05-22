@@ -37,6 +37,7 @@ int main(int argc, char** argv) {
     if (program_parser(input, NULL, &prg) == PARSER_FAILURE) {
         fprintf(stderr, "parser failure\n");
     }
+    program_print(stdout, prg);
     program_delete(prg);
 
     fclose(input);

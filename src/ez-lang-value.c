@@ -85,7 +85,7 @@ void value_wipe(value_t* value) {
 void value_print(FILE* output, const value_t* value) {
     switch (value->type) {
       case VALUE_TYPE_STRING:
-        fprintf(output, "%s", value->string);
+        fprintf(output, "\"%s\"", value->string);
         break;
 
       case VALUE_TYPE_REAL:

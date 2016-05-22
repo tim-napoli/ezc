@@ -40,6 +40,17 @@ function_t* function_new(const identifier_t* id) {
     return f;
 }
 
+void function_arg_print(FILE* output, const function_arg_t* arg) {
+    type_print(output, arg->symbol->is);
+    if (arg->modifier == FUNCTION_ARG_MODIFIER_OUT
+    ||  arg->modifier == FUNCTION_ARG_MODIFIER_INOUT)
+    {
+        fprintf(output, "&");
+    }
+
+    fprintf(output, " %s", arg->symbol->identifier.value);
+}
+
 void function_delete(function_t* func) {
     if (func->return_type) {
         type_delete(func->return_type);
@@ -50,6 +61,34 @@ void function_delete(function_t* func) {
     vector_wipe(&func->instructions, (delete_func_t)&instruction_delete);
 
     free(func);
+}
+
+void function_print(FILE* output, const function_t* function) {
+    if (function->return_type) {
+        type_print(output, function->return_type);
+        fprintf(output, " ");
+    } else {
+        fprintf(output, "void ");
+    }
+
+    fprintf(output, "%s(", function->identifier.value);
+
+    for (int i = 0; i < function->args.size; i++) {
+        function_arg_print(output, function->args.elements[i]);
+        if (i + 1 < function->args.size) {
+            fprintf(output, ", ");
+        }
+    }
+
+    fprintf(output, ") {\n");
+
+    for (int i = 0; i < function->locals.size; i++) {
+        symbol_print(output, function->locals.elements[i]);
+        fprintf(output, ";\n");
+    }
+
+    instructions_print(output, &function->instructions);
+    fprintf(output, "}\n\n");
 }
 
 constant_t* constant_new(symbol_t* symbol, expression_t* value) {
@@ -68,6 +107,14 @@ constant_t* constant_new(symbol_t* symbol, expression_t* value) {
 void constant_delete(constant_t* constant) {
     symbol_delete(constant->symbol);
     expression_delete(constant->value);
+}
+
+void constant_print(FILE* output, const constant_t* constant) {
+    fprintf(output, "const ");
+    symbol_print(output, constant->symbol);
+    fprintf(output, " = ");
+    expression_print(output, constant->value);
+    fprintf(output, ";\n");
 }
 
 program_t* program_new(const identifier_t* id) {
@@ -94,5 +141,29 @@ void program_delete(program_t* prg) {
     vector_wipe(&prg->functions, (delete_func_t)&function_delete);
     vector_wipe(&prg->procedures, (delete_func_t)&function_delete);
     free(prg);
+}
+
+void program_print(FILE* output, const program_t* prg) {
+    fprintf(output, "#include <iostream>\n"
+                    "#include <vector>\n\n");
+
+    for (int i = 0; i < prg->structures.size; i++) {
+        structure_print(output, prg->structures.elements[i]);
+    }
+    for (int i = 0; i < prg->constants.size; i++) {
+        constant_print(output, prg->constants.elements[i]);
+    }
+    for (int i = 0; i < prg->globals.size; i++) {
+        symbol_print(output, prg->globals.elements[i]);
+    }
+
+    /* TODO print functions & procedures prototypes after structures
+     *      definitions */
+    for (int i = 0; i < prg->functions.size; i++) {
+        function_print(output, prg->functions.elements[i]);
+    }
+    for (int i = 0; i < prg->procedures.size; i++) {
+        function_print(output, prg->procedures.elements[i]);
+    }
 }
 
