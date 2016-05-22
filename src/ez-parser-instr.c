@@ -18,7 +18,7 @@ parser_status_t print_parser(FILE* input, const void* args,
     return PARSER_SUCCESS;
 }
 
-parser_status_t read_parser(FILE* input, const void* args,
+parser_status_t read_parser(FILE* input, const context_t* ctx,
                             valref_t** output)
 {
     PARSE(word_parser(input, "read", NULL));
@@ -27,7 +27,7 @@ parser_status_t read_parser(FILE* input, const void* args,
           "a space is expected after 'read' keyword");
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
-    PARSE_ERR(valref_parser(input, NULL, output),
+    PARSE_ERR(valref_parser(input, ctx, output),
               "a single value reference must follow the 'read' keyword");
 
     PARSE_ERR(end_of_line_parser(input, NULL, NULL),
@@ -319,10 +319,10 @@ parser_status_t flowcontrol_parser(FILE* input, const void* args,
     return PARSER_FAILURE;
 }
 
-parser_status_t affectation_parser(FILE* input, const void* args,
+parser_status_t affectation_parser(FILE* input, const context_t* ctx,
                                    affectation_instr_t* output)
 {
-    PARSE(valref_parser(input, NULL, &output->lvalue));
+    PARSE(valref_parser(input, ctx, &output->lvalue));
 
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
@@ -400,4 +400,3 @@ parser_status_t instructions_parser(FILE* input, const void* args,
 
     return PARSER_SUCCESS;
 }
-

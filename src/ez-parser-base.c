@@ -1,6 +1,7 @@
 #include <string.h>
 #include "ez-parser.h"
 #include "ez-lang.h"
+#include "ez-lang-errors.h"
 
 parser_status_t comment_parser(FILE* input, const void* unused_args,
                                void* unused_output)
@@ -78,36 +79,32 @@ parser_status_t identifier_parser(FILE* input, const context_t* ctx,
 
     strcpy(id->value, value);
 
-    if (identifier_is_reserved(id)) {
-        return PARSER_FAILURE;
-    }
-
     return PARSER_SUCCESS;
 }
 
 parser_status_t type_parser(FILE* input, const context_t* ctx,
-                            type_t* *output)
+                            type_t* *type)
 {
     identifier_t structure_id;
 
     if (TRY(input, word_parser(input, "integer", NULL)) == PARSER_SUCCESS) {
-        *output = type_integer_new();
+        *type = type_integer_new();
         return PARSER_SUCCESS;
     } else
     if (TRY(input, word_parser(input, "natural", NULL)) == PARSER_SUCCESS) {
-        *output = type_natural_new();
+        *type = type_natural_new();
         return PARSER_SUCCESS;
     } else
     if (TRY(input, word_parser(input, "boolean", NULL)) == PARSER_SUCCESS) {
-        *output = type_boolean_new();
+        *type = type_boolean_new();
         return PARSER_SUCCESS;
     } else
     if (TRY(input, word_parser(input, "real", NULL)) == PARSER_SUCCESS) {
-        *output = type_real_new();
+        *type = type_real_new();
         return PARSER_SUCCESS;
     } else
     if (TRY(input, word_parser(input, "string", NULL)) == PARSER_SUCCESS) {
-        *output = type_string_new();
+        *type = type_string_new();
         return PARSER_SUCCESS;
     } else
     if (TRY(input, word_parser(input, "vector", NULL)) == PARSER_SUCCESS) {
@@ -125,19 +122,21 @@ parser_status_t type_parser(FILE* input, const context_t* ctx,
         type_t* of;
         PARSE(type_parser(input, ctx, &of));
 
-        *output = type_vector_new(of);
+        *type = type_vector_new(of);
 
         return PARSER_SUCCESS;
     } else
-    if (TRY(input, identifier_parser(input, NULL, &structure_id)) == PARSER_SUCCESS) {
+    if (TRY(input, identifier_parser(input, NULL, &structure_id))
+        == PARSER_SUCCESS) {
         structure_t* structure = context_find_structure(ctx, &structure_id);
 
         if (structure == NULL) {
-            fprintf(stderr, "error %s is not a structure\n", structure_id.value);
+            error_structure_not_found(input, &structure_id);
+
             return PARSER_FAILURE;
         }
 
-        *output = type_structure_new(structure);
+        *type = type_structure_new(structure);
 
         return PARSER_SUCCESS;
     }
@@ -146,12 +145,18 @@ parser_status_t type_parser(FILE* input, const context_t* ctx,
 }
 
 parser_status_t variable_tail_parser(FILE* input, const context_t* ctx,
-                                     symbol_t* *output)
+                                     symbol_t* *symbol)
 {
     identifier_t id;
     type_t* is = NULL;
 
     PARSE(identifier_parser(input, NULL, &id));
+
+    if (identifier_is_reserved(&id)) {
+        error_identifier_is_keyword(input, &id);
+
+        return PARSER_FAILURE;
+    }
 
     PARSE_ERR(space_parser(input, NULL, NULL),
               "a space must follow a variable identifier");
@@ -169,15 +174,15 @@ parser_status_t variable_tail_parser(FILE* input, const context_t* ctx,
     PARSE_ERR(type_parser(input, ctx, &is),
               "a variable must have a valid type");
 
-    *output = symbol_new(&id, is);
+    *symbol = symbol_new(&id, is);
 
     return PARSER_SUCCESS;
 }
 
 parser_status_t range_parser(FILE* input, const void* args,
-                             range_t* output)
+                             range_t* range)
 {
-    PARSE(expression_parser(input, NULL, &output->from));
+    PARSE(expression_parser(input, NULL, &range->from));
 
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
@@ -185,7 +190,7 @@ parser_status_t range_parser(FILE* input, const void* args,
 
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
-    PARSE_ERR(expression_parser(input, NULL, &output->to),
+    PARSE_ERR(expression_parser(input, NULL, &range->to),
               "a valid expression is expected after range '..'");
 
     return PARSER_SUCCESS;

@@ -1,16 +1,18 @@
 program person
 
-structure Person is
-  name is string
-  age is integer
-end
 
-global n is integer
+global i is integer
 global p is string
 global v is vector of boolean
 global vv is vector of vector of natural
 global vvvv is vector of vector of vector of vector of real
-global p is Person
+
+structure Person is
+  p is string
+  age is integer
+end
+
+global person is Person
 global persons is vector of Person
 
 constant PI         is real    = 3

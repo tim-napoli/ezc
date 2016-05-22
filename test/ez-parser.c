@@ -60,38 +60,40 @@ void type_test() {
     char type_vector_recursive[] = "vector of vector of string";
 
     type_t* type = NULL;
+    identifier_t id = {.value = "test"};
+    context_t* ctx = context_new(&id, NULL);
 
     TEST_ON(invalid_type);
-    assert(type_parser(f, NULL, NULL) == PARSER_FAILURE);
+    assert(type_parser(f, ctx, NULL) == PARSER_FAILURE);
     END_TEST;
 
     TEST_ON(type_string);
-    assert(type_parser(f, NULL, &type) == PARSER_SUCCESS);
+    assert(type_parser(f, ctx, &type) == PARSER_SUCCESS);
     assert(type->type == TYPE_TYPE_STRING);
     type_delete(type);
     END_TEST;
 
     TEST_ON(type_integer);
-    assert(type_parser(f, NULL, &type) == PARSER_SUCCESS);
+    assert(type_parser(f, ctx, &type) == PARSER_SUCCESS);
     assert(type->type == TYPE_TYPE_INTEGER);
     type_delete(type);
     END_TEST;
 
     TEST_ON(type_real);
-    assert(type_parser(f, NULL, &type) == PARSER_SUCCESS);
+    assert(type_parser(f, ctx, &type) == PARSER_SUCCESS);
     assert(type->type == TYPE_TYPE_REAL);
     type_delete(type);
     END_TEST;
 
     TEST_ON(type_vector_simple);
-    assert(type_parser(f, NULL, &type) == PARSER_SUCCESS);
+    assert(type_parser(f, ctx, &type) == PARSER_SUCCESS);
     assert(type->type == TYPE_TYPE_VECTOR);
     assert(type->vector_type->type == TYPE_TYPE_STRING);
     type_delete(type);
     END_TEST;
 
     TEST_ON(type_vector_recursive);
-    assert(type_parser(f, NULL, &type) == PARSER_SUCCESS);
+    assert(type_parser(f, ctx, &type) == PARSER_SUCCESS);
     assert(type->type == TYPE_TYPE_VECTOR);
     assert(type->vector_type->type == TYPE_TYPE_VECTOR);
     assert(type->vector_type->vector_type->type == TYPE_TYPE_STRING);

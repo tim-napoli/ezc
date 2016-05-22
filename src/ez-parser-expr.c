@@ -86,10 +86,10 @@ static parser_status_t arithmetic_op_parser(FILE* input, const void* args,
     return PARSER_FAILURE;
 }
 
-static parser_status_t expression_in_parser(FILE* input, const void* args,
+static parser_status_t expression_in_parser(FILE* input, const context_t* ctx,
                                             expr_stacks_t* stacks);
 
-static parser_status_t expression_next_parser(FILE* input, const void* args,
+static parser_status_t expression_next_parser(FILE* input, const context_t* ctx,
                                               expr_stacks_t* stacks)
 {
     expression_type_t expr_type;
@@ -100,27 +100,27 @@ static parser_status_t expression_next_parser(FILE* input, const void* args,
         stacks->operators[stacks->noperators++] = expr_type;
 
         SKIP_MANY(input, space_parser(input, NULL, NULL));
-        PARSE(expression_in_parser(input, NULL, stacks));
+        PARSE(expression_in_parser(input, ctx, stacks));
     } else
     if (TRY(input, bool_op_parser(input, NULL, &expr_type)) == PARSER_SUCCESS)
     {
         stacks->operators[stacks->noperators++] = expr_type;
 
         SKIP_MANY(input, space_parser(input, NULL, NULL));
-        PARSE(expression_in_parser(input, NULL, stacks));
+        PARSE(expression_in_parser(input, ctx, stacks));
     } else
     if (TRY(input, cmp_op_parser(input, NULL, &expr_type)) == PARSER_SUCCESS)
     {
         stacks->operators[stacks->noperators++] = expr_type;
 
         SKIP_MANY(input, space_parser(input, NULL, NULL));
-        PARSE(expression_in_parser(input, NULL, stacks));
+        PARSE(expression_in_parser(input, ctx, stacks));
     }
 
     return PARSER_SUCCESS;
 }
 
-static parser_status_t expression_in_parser(FILE* input, const void* args,
+static parser_status_t expression_in_parser(FILE* input, const context_t* ctx,
                                             expr_stacks_t* stacks)
 {
     value_t value;
@@ -136,24 +136,24 @@ static parser_status_t expression_in_parser(FILE* input, const void* args,
         stacks->leaves[stacks->nleaves++] = subexpr;
 
         SKIP_MANY(input, space_parser(input, NULL, NULL));
-        PARSE(expression_next_parser(input, NULL, stacks));
+        PARSE(expression_next_parser(input, ctx, stacks));
 
         return PARSER_SUCCESS;
     } else
     if (TRY(input, word_parser(input, "not ", NULL)) == PARSER_SUCCESS) {
         stacks->operators[stacks->noperators++] = EXPRESSION_TYPE_BOOL_OP_NOT;
         SKIP_MANY(input, space_parser(input, NULL, NULL));
-        PARSE(expression_in_parser(input, NULL, stacks));
+        PARSE(expression_in_parser(input, ctx, stacks));
         return PARSER_SUCCESS;
     } else
-    if (TRY(input, value_parser(input, NULL, &value)) == PARSER_SUCCESS) {
+    if (TRY(input, value_parser(input, ctx, &value)) == PARSER_SUCCESS) {
         SKIP_MANY(input, space_parser(input, NULL, NULL));
 
         expression_t* expr = expression_new(EXPRESSION_TYPE_VALUE);
         memcpy(&expr->value, &value, sizeof(value_t));
         stacks->leaves[stacks->nleaves++] = expr;
 
-        PARSE(expression_next_parser(input, NULL, stacks));
+        PARSE(expression_next_parser(input, ctx, stacks));
         /* TODO wipe expression on error */
 
         return PARSER_SUCCESS;
@@ -221,7 +221,7 @@ static expression_t* expression_from_stack(expr_stacks_t* stacks)
 }
 
 
-parser_status_t expression_parser(FILE* input, const void* args,
+parser_status_t expression_parser(FILE* input, const context_t* ctx,
                                   expression_t** output)
 {
     expr_stacks_t stacks = {
@@ -229,9 +229,8 @@ parser_status_t expression_parser(FILE* input, const void* args,
         .noperators = 0
     };
 
-    PARSE(expression_in_parser(input, args, &stacks));
+    PARSE(expression_in_parser(input, ctx, &stacks));
     *output = expression_from_stack(&stacks);
 
     return PARSER_SUCCESS;
 }
-

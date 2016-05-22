@@ -1,5 +1,6 @@
 #include "ez-parser.h"
 #include "ez-lang.h"
+#include "ez-lang-errors.h"
 
 parser_status_t header_parser(FILE* input,
                               const void* unused_args,
@@ -21,7 +22,7 @@ parser_status_t header_parser(FILE* input,
     return PARSER_SUCCESS;
 }
 
-parser_status_t modifier_parser(FILE* input, const void* args,
+parser_status_t modifier_parser(FILE* input, const context_t* ctx,
                                 void* output)
 {
     if (TRY(input, word_parser(input, "in", NULL)) == PARSER_SUCCESS) {
@@ -113,7 +114,7 @@ parser_status_t function_parser(FILE* input, const context_t* ctx,
 
     PARSE_ERR(char_parser(input, "(", NULL), "missing '('");
 
-    // TODO : loop here.
+    // TODO : vector of args.
     PARSE(function_args_parser(input, ctx, NULL));
 
     SKIP_MANY(input, space_parser(input, NULL, NULL));
@@ -197,7 +198,7 @@ parser_status_t procedure_parser(FILE* input, const context_t* ctx,
     PARSE_ERR(end_of_line_parser(input, NULL, NULL),
               "a newline is expected after the 'begin' keyword");
 
-    // TODO : Loop here ?
+    // TODO : vector of instructions.
     PARSE(instructions_parser(input, NULL, NULL));
 
     SKIP_MANY(input, comment_or_empty_parser(input, NULL, NULL));
@@ -221,10 +222,9 @@ parser_status_t constant_parser(FILE* input,
 
     PARSE_ERR(space_parser(input, NULL, NULL),
               "a space must follow a 'constant' keyword");
-
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
-    PARSE(variable_tail_parser(input, NULL, output));
+    PARSE(variable_tail_parser(input, ctx, output));
 
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
@@ -233,7 +233,7 @@ parser_status_t constant_parser(FILE* input,
 
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
-    PARSE_ERR(expression_parser(input, NULL, &expression),
+    PARSE_ERR(expression_parser(input, ctx, &expression),
               "a valid expression is expected to initialize a constant");
 
     symbol_set_constant(*output, expression);
@@ -327,24 +327,44 @@ parser_status_t entity_parser(FILE* input, const void* unused_args,
     SKIP_MANY(input, comment_or_empty_parser(input, NULL, NULL));
 
     if (TRY(input, constant_parser(input, ctx, &symbol)) == PARSER_SUCCESS) {
+        if (context_find_symbol(ctx, &symbol->identifier)) {
+            error_symbol_exists(input, symbol);
+            symbol_delete(symbol);
+
+            return PARSER_FAILURE;
+        }
+
         context_add_constant(ctx, symbol);
-        return PARSER_SUCCESS;
-    }
 
+        return PARSER_SUCCESS;
+    } else
     if (TRY(input, global_parser(input, ctx, &symbol)) == PARSER_SUCCESS) {
+        if (context_find_symbol(ctx, &symbol->identifier)) {
+            error_symbol_exists(input, symbol);
+            symbol_delete(symbol);
+
+            return PARSER_FAILURE;
+        }
+
         context_add_global(ctx, symbol);
-        return PARSER_SUCCESS;
-    }
 
+        return PARSER_SUCCESS;
+    } else
     if (TRY(input, structure_parser(input, ctx, &structure)) == PARSER_SUCCESS) {
-        context_add_structure(ctx, structure);
-        return PARSER_SUCCESS;
-    }
+        if (context_find_structure(ctx, &structure->identifier)) {
+            error_structure_exists(input, structure);
+            structure_delete(structure);
 
+            return PARSER_FAILURE;
+        }
+
+        context_add_structure(ctx, structure);
+
+        return PARSER_SUCCESS;
+    } else
     if (TRY(input, function_parser(input, ctx, NULL)) == PARSER_SUCCESS) {
         return PARSER_SUCCESS;
-    }
-
+    } else
     if (TRY(input, procedure_parser(input, ctx, NULL)) == PARSER_SUCCESS) {
         return PARSER_SUCCESS;
     }

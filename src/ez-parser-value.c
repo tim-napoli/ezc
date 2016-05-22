@@ -1,6 +1,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include "ez-parser.h"
+#include "ez-lang-errors.h"
 
 parser_status_t string_parser(FILE* input, const void* args,
                               char** output)
@@ -109,18 +110,24 @@ parser_status_t parameters_parser(FILE* input, const void* args,
     return PARSER_SUCCESS;
 }
 
-parser_status_t valref_parser(FILE* input, const void* args,
+parser_status_t valref_parser(FILE* input, const context_t* ctx,
                               valref_t** output)
 {
     identifier_t id;
 
     PARSE(identifier_parser(input, NULL, &id));
+
+    if (!context_find_symbol(ctx, &id)) {
+        error_symbol_not_found(input, &id);
+        return PARSER_FAILURE;
+    }
+
     *output = valref_new(&id);
 
     /* XXX find a better way to do this function... */
     if (TRY(input, char_parser(input, ".", NULL)) == PARSER_SUCCESS) {
         /* Continue with a valref */
-        PARSE_ERR(valref_parser(input, NULL, &(*output)->next),
+        PARSE_ERR(valref_parser(input, ctx, &(*output)->next),
                   "expected identifier after '.'");
     } else {
         /* Check if this is a function call */
@@ -135,7 +142,7 @@ parser_status_t valref_parser(FILE* input, const void* args,
             /* TODO check if 'identifier' is a function and not a procedure */
             if (TRY(input, char_parser(input, ".", NULL)) == PARSER_SUCCESS) {
                 /* Continue with a valref */
-                PARSE_ERR(valref_parser(input, NULL, &(*output)->next),
+                PARSE_ERR(valref_parser(input, ctx, &(*output)->next),
                           "expected identifier after '.'");
             }
         }
@@ -155,7 +162,7 @@ parser_status_t valref_parser(FILE* input, const void* args,
             SKIP_MANY(input, space_parser(input, NULL, NULL));
             if (TRY(input, char_parser(input, ".", NULL)) == PARSER_SUCCESS) {
                 /* Continue with a valref */
-                PARSE_ERR(valref_parser(input, NULL, &(*output)->next),
+                PARSE_ERR(valref_parser(input, ctx, &(*output)->next),
                           "expected identifier after '.'");
             }
             SKIP_MANY(input, space_parser(input, NULL, NULL));
@@ -165,7 +172,7 @@ parser_status_t valref_parser(FILE* input, const void* args,
     return PARSER_SUCCESS;
 }
 
-parser_status_t value_parser(FILE* input, const void* args,
+parser_status_t value_parser(FILE* input, const context_t* ctx,
                              value_t* value)
 {
     if (TRY(input, string_parser(input, NULL, &value->string))
@@ -192,7 +199,7 @@ parser_status_t value_parser(FILE* input, const void* args,
         value->type = VALUE_TYPE_BOOLEAN;
         return PARSER_SUCCESS;
     } else
-    if (TRY(input, valref_parser(input, NULL, &value->valref))
+    if (TRY(input, valref_parser(input, ctx, &value->valref))
         == PARSER_SUCCESS)
     {
         value->type = VALUE_TYPE_VALREF;
@@ -201,4 +208,3 @@ parser_status_t value_parser(FILE* input, const void* args,
 
     return PARSER_FAILURE;
 }
-

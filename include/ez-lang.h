@@ -1,6 +1,7 @@
 #ifndef _ez_lang_h_
 #define _ez_lang_h_
 
+#include <stdio.h>
 #include <stdbool.h>
 #include "vector.h"
 
@@ -286,34 +287,6 @@ instruction_t* instruction_new(instruction_type_t type);
 
 void instruction_delete(instruction_t* instr);
 
-typedef struct context {
-    identifier_t identifier;
-    vector_t constants; /* of symbol_t* */
-    vector_t globals; /* of symbol_t* */
-    vector_t locals; /* of symbol_t* */
-    vector_t structures; /* of_structure_t* */
-    // TODO : functions
-    // TODO : procedures
-    // TODO : args
-
-    struct context* parent_context;
-} context_t;
-
-context_t* context_new(identifier_t* identifier, context_t* parent_context);
-void context_delete(context_t* ctx);
-void context_print(context_t* ctx);
-
-void context_add_constant(context_t* context, symbol_t* constant);
-void context_add_global(context_t* program, symbol_t* global);
-void context_add_structure(context_t* program, structure_t* structure);
-// TODO : add function
-// TODO : add procedure
-// TODO : add arg
-void context_add_local(context_t* function, symbol_t* local);
-
-structure_t* context_find_structure(const context_t* ctx,
-                                    const identifier_t* identifier);
-
 typedef enum {
     MODIFIER_IN,
     MODIFIER_OUT,
@@ -324,5 +297,46 @@ typedef struct argument {
     type_modifier_t modifier;
     symbol_t* symbol;
 } argument_t;
+
+argument_t* argument_new(type_modifier_t modifier, symbol_t* symbol);
+argument_t* argument_in_new(symbol_t* symbol);
+argument_t* argument_out_new(symbol_t* symbol);
+argument_t* argument_inout_new(symbol_t* symbol);
+
+
+typedef struct context {
+    identifier_t identifier;
+    vector_t constants; /* of symbol_t* */
+    vector_t globals; /* of symbol_t* */
+    vector_t locals; /* of symbol_t* */
+    vector_t structures; /* of_structure_t* */
+    // TODO : functions
+    // TODO : procedures
+    vector_t arguments; /* of argument_t* */
+
+    struct context* parent_context;
+} context_t;
+
+context_t* context_new(identifier_t* identifier, context_t* parent_context);
+void context_delete(context_t* ctx);
+void context_print(context_t* ctx);
+
+void context_add_constant(context_t* ctx, symbol_t* constant);
+void context_add_global(context_t* ctx, symbol_t* global);
+void context_add_structure(context_t* ctx, structure_t* structure);
+// TODO : add function
+// TODO : add procedure
+void context_add_arg(context_t* ctx, argument_t* arg);
+void context_add_local(context_t* ctx, symbol_t* local);
+
+structure_t* context_find_structure(const context_t* ctx,
+                                    const identifier_t* id);
+symbol_t* context_find_symbol(const context_t* ctx, const identifier_t* id);
+
+symbol_t* vector_find_symbol(const vector_t* vector, const identifier_t* id);
+symbol_t* context_find_local(const context_t* ctx, const identifier_t* id);
+symbol_t* context_find_global(const context_t* ctx, const identifier_t* id);
+symbol_t* context_find_constant(const context_t* ctx, const identifier_t* id);
+symbol_t* context_find_argument(const context_t* ctx, const identifier_t* id);
 
 #endif
