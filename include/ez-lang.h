@@ -174,9 +174,13 @@ void symbol_print(FILE* output, const symbol_t* symbol);
 
 bool symbol_is(const symbol_t* sym, const identifier_t* id);
 
-structure_t *structure_new(const identifier_t *identifier);
-void structure_add_member(structure_t *structure, symbol_t *member);
+structure_t* structure_new(const identifier_t *identifier);
 void structure_delete(structure_t *structure);
+
+void structure_add_member(structure_t *structure, symbol_t *member);
+bool structure_has_member(const structure_t* structure, const identifier_t* id);
+symbol_t* structure_find_member(const structure_t* structure,
+                                const identifier_t* id);
 
 void structure_print(FILE* output, const structure_t* structure);
 
@@ -357,8 +361,11 @@ void function_delete(function_t* function);
 void function_print(FILE* output, const function_t* function);
 
 bool function_has_arg(const function_t* func, const identifier_t* arg);
+function_arg_t* function_find_arg(const function_t* func,
+                                  const identifier_t* arg);
 
 bool function_has_local(const function_t* func, const identifier_t* arg);
+symbol_t* function_find_local(const function_t* func, const identifier_t* arg);
 
 bool function_is(const function_t* func, const identifier_t* id);
 
@@ -396,10 +403,20 @@ void program_delete(program_t* prg);
 void program_print(FILE* output, const program_t* prg);
 
 bool program_has_global(const program_t* prg, const identifier_t* id);
+symbol_t* program_find_global(const program_t* prg, const identifier_t* id);
+
 bool program_has_constant(const program_t* prg, const identifier_t* id);
+constant_t* program_find_constant(const program_t* prg, const identifier_t* id);
+
 bool program_has_structure(const program_t* prg, const identifier_t* id);
+structure_t* program_find_structure(const program_t* prg,
+                                    const identifier_t* id);
+
 bool program_has_function(const program_t* prg, const identifier_t* id);
+function_t* program_find_function(const program_t* prg, const identifier_t* id);
+
 bool program_has_procedure(const program_t* prg, const identifier_t* id);
+function_t* program_find_procedure(const program_t* prg, const identifier_t* id);
 
 bool program_main_function_is_valid(const program_t* prg);
 
@@ -411,5 +428,8 @@ typedef struct context {
 } context_t;
 
 bool context_has_identifier(const context_t* ctx, const identifier_t* id);
+
+bool context_valref_is_valid(const context_t* ctx, const valref_t* valref);
+bool valref_is_valid(const valref_t* valref, const symbol_t* symbol);
 
 #endif

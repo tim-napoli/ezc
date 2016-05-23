@@ -11,6 +11,8 @@ void error_identifier_exists(FILE* input, const identifier_t* id);
 
 void error_identifier_not_found(FILE* input, const identifier_t* id);
 
+void error_valref_not_found(FILE* input, const valref_t* valref);
+
 void error_no_main_function(const identifier_t* id);
 
 void error_invalid_main_function(const identifier_t* id);

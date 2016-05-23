@@ -109,4 +109,3 @@ void value_print(FILE* output, const value_t* value) {
         break;
     }
 }
-

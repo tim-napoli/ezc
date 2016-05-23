@@ -180,3 +180,12 @@ void structure_print(FILE* output, const structure_t* structure) {
 bool structure_is(const structure_t* structure, const identifier_t* id) {
     return strcmp(structure->identifier.value, id->value) == 0;
 }
+
+bool structure_has_member(const structure_t* structure, const identifier_t* id) {
+    return vector_contains(&structure->members, id, (cmp_func_t)&symbol_is);
+}
+
+symbol_t* structure_find_member(const structure_t* structure,
+                                const identifier_t* id) {
+    return vector_find(&structure->members, id, (cmp_func_t)&symbol_is);
+}

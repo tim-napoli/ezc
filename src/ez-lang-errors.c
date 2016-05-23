@@ -25,6 +25,13 @@ void error_identifier_not_found(FILE* input, const identifier_t* id) {
     fprintf(stderr, "identifier %s not found in this context\n", id->value);
 }
 
+void error_valref_not_found(FILE* input, const valref_t* valref) {
+    error_print(input);
+    fprintf(stderr, "valref ");
+    valref_print(stderr, valref);
+    fprintf(stderr, " not found in this context\n");
+}
+
 void error_no_main_function(const identifier_t* id) {
     fprintf(stderr, "missing main function "
                     "'function %s(in args is vector of string) : integer'\n",
@@ -36,4 +43,3 @@ void error_invalid_main_function(const identifier_t* id) {
                     "'function %s(in args is vector of string) : integer'\n",
             id->value);
 }
-
