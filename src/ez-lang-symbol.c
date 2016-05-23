@@ -144,6 +144,10 @@ void symbol_print(FILE* output, const symbol_t* symbol) {
     fprintf(stderr, " %s ", symbol->identifier.value);
 }
 
+bool symbol_is(const symbol_t* symbol, const identifier_t* id) {
+    return strcmp(symbol->identifier.value, id->value) == 0;
+}
+
 /**
  * Structures.
  */
@@ -183,3 +187,6 @@ void structure_print(FILE* output, const structure_t* structure) {
     fprintf(output, "};\n");
 }
 
+bool structure_is(const structure_t* structure, const identifier_t* id) {
+    return strcmp(structure->identifier.value, id->value) == 0;
+}

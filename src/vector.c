@@ -106,3 +106,15 @@ void vector_map(vector_t* vector, void (*function)(int, void*)) {
         function(i, vector->elements[i]);
     }
 }
+
+bool vector_contains(const vector_t* vector, const void* element,
+                     cmp_func_t cmp_func)
+{
+    for (int i = 0; i < vector->size; i++) {
+        if (cmp_func(vector->elements[i], element)) {
+            return true;
+        }
+    }
+    return false;
+}
+

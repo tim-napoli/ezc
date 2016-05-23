@@ -23,6 +23,10 @@ void function_arg_delete(function_arg_t* arg) {
     free(arg);
 }
 
+bool function_arg_is(const function_arg_t* arg, const identifier_t* id) {
+    return strcmp(arg->symbol->identifier.value, id->value) == 0;
+}
+
 function_t* function_new(const identifier_t* id) {
     function_t* f = malloc(sizeof(function_t));
     if (!f) {
@@ -91,6 +95,18 @@ void function_print(FILE* output, const function_t* function) {
     fprintf(output, "}\n\n");
 }
 
+bool function_has_arg(const function_t* func, const identifier_t* arg) {
+    return vector_contains(&func->args, arg, (cmp_func_t)&function_arg_is);
+}
+
+bool function_has_local(const function_t* func, const identifier_t* arg) {
+    return vector_contains(&func->locals, arg, (cmp_func_t)&symbol_is);
+}
+
+bool function_is(const function_t* func, const identifier_t* id) {
+    return strcmp(func->identifier.value, id->value) == 0;
+}
+
 constant_t* constant_new(symbol_t* symbol, expression_t* value) {
     constant_t* constant = malloc(sizeof(constant_t));
     if (!constant) {
@@ -115,6 +131,10 @@ void constant_print(FILE* output, const constant_t* constant) {
     fprintf(output, " = ");
     expression_print(output, constant->value);
     fprintf(output, ";\n");
+}
+
+bool constant_is(const constant_t* constant, const identifier_t* id) {
+    return symbol_is(constant->symbol, id);
 }
 
 program_t* program_new(const identifier_t* id) {
@@ -167,3 +187,22 @@ void program_print(FILE* output, const program_t* prg) {
     }
 }
 
+bool program_has_global(const program_t* prg, const identifier_t* id) {
+    return vector_contains(&prg->globals, id, (cmp_func_t)&symbol_is);
+}
+
+bool program_has_constant(const program_t* prg, const identifier_t* id) {
+    return vector_contains(&prg->constants, id, (cmp_func_t)&constant_is);
+}
+
+bool program_has_structure(const program_t* prg, const identifier_t* id) {
+    return vector_contains(&prg->structures, id, (cmp_func_t)&structure_is);
+}
+
+bool program_has_function(const program_t* prg, const identifier_t* id) {
+    return vector_contains(&prg->functions, id, (cmp_func_t)&function_is);
+}
+
+bool program_has_procedure(const program_t* prg, const identifier_t* id) {
+    return vector_contains(&prg->procedures, id, (cmp_func_t)&function_is);
+}

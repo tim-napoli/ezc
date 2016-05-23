@@ -173,11 +173,15 @@ void symbol_delete(symbol_t *symbol);
 
 void symbol_print(FILE* output, const symbol_t* symbol);
 
+bool symbol_is(const symbol_t* sym, const identifier_t* id);
+
 structure_t *structure_new(const identifier_t *identifier);
 void structure_add_member(structure_t *structure, symbol_t *member);
 void structure_delete(structure_t *structure);
 
 void structure_print(FILE* output, const structure_t* structure);
+
+bool structure_is(const structure_t* structure, const identifier_t* id);
 
 /* ---------------------------- instructions ------------------------------- */
 
@@ -353,6 +357,12 @@ void function_delete(function_t* function);
 
 void function_print(FILE* output, const function_t* function);
 
+bool function_has_arg(const function_t* func, const identifier_t* arg);
+
+bool function_has_local(const function_t* func, const identifier_t* arg);
+
+bool function_is(const function_t* func, const identifier_t* id);
+
 /* ------------------------------ constants -------------------------------- */
 
 typedef struct constant {
@@ -365,6 +375,8 @@ constant_t* constant_new(symbol_t* symbol, expression_t* value);
 void constant_delete(constant_t* constant);
 
 void constant_print(FILE* output, const constant_t* constant);
+
+bool constant_is(const constant_t* constant, const identifier_t* id);
 
 /* ------------------------------ program ---------------------------------- */
 
@@ -384,10 +396,17 @@ void program_delete(program_t* prg);
 
 void program_print(FILE* output, const program_t* prg);
 
+bool program_has_global(const program_t* prg, const identifier_t* id);
+bool program_has_constant(const program_t* prg, const identifier_t* id);
+bool program_has_structure(const program_t* prg, const identifier_t* id);
+bool program_has_function(const program_t* prg, const identifier_t* id);
+bool program_has_procedure(const program_t* prg, const identifier_t* id);
+
 /* ------------------------------ contexts --------------------------------- */
 
 typedef struct context {
-    
+    const program_t* program;
+    const function_t* function;
 } context_t;
 
 #if 0

@@ -2,6 +2,7 @@
 #define _vector_h_
 
 #include <stdlib.h>
+#include <stdbool.h>
 
 typedef struct vector {
     size_t  reserved;
@@ -32,6 +33,11 @@ void* vector_get(const vector_t* vector, size_t index);
 void vector_set(vector_t* vector, void* element, size_t index);
 
 void vector_map(vector_t* vector, void (*function)(int, void*));
+
+typedef bool (*cmp_func_t)(const void*, const void*);
+
+bool vector_contains(const vector_t* vector, const void* element,
+                     cmp_func_t cmp_func);
 
 #if 0
 void vector_filter(vector_t* vector, bool (*function)(void*));
