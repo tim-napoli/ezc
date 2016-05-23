@@ -119,7 +119,7 @@ parser_status_t valref_parser(FILE* input, const context_t* ctx,
 
     if (!context_has_identifier(ctx, &id)) {
         error_identifier_not_found(input, &id);
-        return PARSER_FAILURE;
+        // TODO : ctx error
     }
 
     *output = valref_new(&id);

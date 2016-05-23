@@ -11,11 +11,15 @@ structure Person is
    p is string
    age is integer
 end
-//
-// global person is Person
-// global persons is vector of Person
 
-// constant PI         is real    = 3
-// constant TOTO       is string  = "toto"
-// constant MAX_PRIMES is integer = 20
+global persons is vector of Person
+
+constant PI         is real    = 3
+constant TOTO       is string  = "toto"
+constant MAX_PRIMES is integer = 20
 constant EXPR       is boolean = 4 * PIZEFZE * 6 + 3 * 7 <= MAX_PRIMES * 2 + 1 * 5
+
+function person(in args is vector of string) return integer
+begin
+    print "Hello, world"
+end

@@ -163,6 +163,7 @@ type_t *type_real_new();
 type_t *type_char_new();
 type_t *type_string_new();
 type_t *type_vector_new(type_t *of);
+type_t* type_structure_new(structure_t* s);
 
 void type_print(FILE* output, const type_t* type);
 

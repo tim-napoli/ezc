@@ -132,18 +132,16 @@ parser_status_t type_parser(FILE* input, const context_t* ctx,
     } else
     if (TRY(input, identifier_parser(input, NULL, &structure_id))
         == PARSER_SUCCESS) {
-        #if 0
-        structure_t* structure = context_find_structure(ctx, &structure_id);
+        structure_t* structure = vector_find(&ctx->program->structures, &structure_id, (cmp_func_t)&structure_is);
 
         if (structure == NULL) {
-            error_structure_not_found(input, &structure_id);
+            error_identifier_not_found(input, &structure_id);
 
             return PARSER_FAILURE;
         }
 
         /* XXX so type carry a const structure, it doesn't own it. */
         *type = type_structure_new(structure);
-        #endif
 
         return PARSER_SUCCESS;
     }
