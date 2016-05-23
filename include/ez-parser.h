@@ -23,7 +23,7 @@ parser_status_t end_of_line_parser(FILE* input, const void* args,
 parser_status_t identifier_parser(FILE* input, const context_t* ctx,
                                   identifier_t* identifier);
 
-parser_status_t range_parser(FILE* input, const void* args,
+parser_status_t range_parser(FILE* input, const context_t* ctx,
                              range_t* output);
 
 parser_status_t type_parser(FILE* input, const context_t* ctx,
@@ -47,7 +47,7 @@ parser_status_t bool_parser(FILE* input, const void* args,
 parser_status_t valref_parser(FILE* input, const context_t* ctx,
                               valref_t** output);
 
-parser_status_t parameters_parser(FILE* input, const void* args,
+parser_status_t parameters_parser(FILE* input, const context_t* ctx,
                                   parameters_t* output);
 
 parser_status_t value_parser(FILE* input, const context_t* ctx,
@@ -56,41 +56,41 @@ parser_status_t value_parser(FILE* input, const context_t* ctx,
 parser_status_t expression_parser(FILE* input, const context_t* ctx,
                                   expression_t** output);
 
-parser_status_t print_parser(FILE* input, const void* args,
+parser_status_t print_parser(FILE* input, const context_t* ctx,
                              parameters_t* output);
 
 parser_status_t return_parser(FILE* input, const void* args,
                               expression_t** output);
 
-parser_status_t if_parser(FILE* input, const void* args,
+parser_status_t if_parser(FILE* input, const context_t* ctx,
                           if_instr_t** output);
 
-parser_status_t on_parser(FILE* input, const void* args,
+parser_status_t on_parser(FILE* input, const context_t* ctx,
                           on_instr_t** output);
 
-parser_status_t while_parser(FILE* input, const void* args,
+parser_status_t while_parser(FILE* input, const context_t* ctx,
                              while_instr_t** output);
 
-parser_status_t for_parser(FILE* input, const void* args,
+parser_status_t for_parser(FILE* input, const context_t* ctx,
                            for_instr_t** output);
 
-parser_status_t loop_parser(FILE* input, const void* args,
+parser_status_t loop_parser(FILE* input, const context_t* ctx,
                             loop_instr_t** output);
 
-parser_status_t flowcontrol_parser(FILE* input, const void* args,
+parser_status_t flowcontrol_parser(FILE* input, const context_t* ctx,
                                    flowcontrol_t* output);
 
 parser_status_t affectation_parser(FILE* input, const context_t* ctx,
                                    affectation_instr_t* output);
 
-parser_status_t instruction_parser(FILE* input, const void* args,
+parser_status_t instruction_parser(FILE* input, const context_t* ctx,
                                    instruction_t** output);
 
-parser_status_t instructions_parser(FILE* input, const void* args,
+parser_status_t instructions_parser(FILE* input, const context_t* ctx,
                                     vector_t* output);
 
 parser_status_t structure_parser(FILE* input,
-                                 context_t* ctx,
+                                 const context_t* ctx,
                                  structure_t** structure);
 
 parser_status_t structure_member_parser(FILE* input,

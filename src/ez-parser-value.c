@@ -91,18 +91,18 @@ parser_status_t bool_parser(FILE* input, const void* args,
     return PARSER_SUCCESS;
 }
 
-parser_status_t parameters_parser(FILE* input, const void* args,
+parser_status_t parameters_parser(FILE* input, const context_t* ctx,
                                   parameters_t* parameters)
 {
     expression_t* expr = NULL;
 
-    if (TRY(input, expression_parser(input, NULL, &expr)) == PARSER_SUCCESS) {
+    if (TRY(input, expression_parser(input, ctx, &expr)) == PARSER_SUCCESS) {
         vector_push(&parameters->parameters, expr);
 
         SKIP_MANY(input, space_parser(input, NULL, NULL));
         if (TRY(input, char_parser(input, ",", NULL)) == PARSER_SUCCESS) {
             SKIP_MANY(input, space_parser(input, NULL, NULL));
-            PARSE_ERR(parameters_parser(input, NULL, parameters),
+            PARSE_ERR(parameters_parser(input, ctx, parameters),
                       "invalid parameter");
         }
     }
