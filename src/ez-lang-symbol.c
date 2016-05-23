@@ -130,8 +130,8 @@ void symbol_delete(symbol_t* symbol) {
 }
 
 void symbol_print(FILE* output, const symbol_t* symbol) {
-    type_print(stderr, symbol->is);
-    fprintf(stderr, " %s ", symbol->identifier.value);
+    type_print(output, symbol->is);
+    fprintf(output, " %s ", symbol->identifier.value);
 }
 
 bool symbol_is(const symbol_t* symbol, const identifier_t* id) {
@@ -168,7 +168,7 @@ void structure_add_member(structure_t* structure, symbol_t* member) {
 }
 
 void structure_print(FILE* output, const structure_t* structure) {
-    fprintf(stderr, "struct %s {\n", structure->identifier.value);
+    fprintf(output, "struct %s {\n", structure->identifier.value);
     for (int i = 0; i < structure->members.size; i++) {
         fprintf(output, "    ");
         symbol_print(output, structure->members.elements[i]);
