@@ -16,7 +16,6 @@ type_t* type_new(type_type_t type) {
     }
 
     t->type = type;
-    t->constant = false;
 
     return t;
 }
@@ -25,10 +24,6 @@ void type_delete(type_t* t) {
     if (t) {
         if (t->type == TYPE_TYPE_VECTOR) {
             type_delete(t->vector_type);
-        }
-
-        if (t->constant) {
-            expression_delete(t->constant_expression);
         }
 
         free(t);
@@ -132,11 +127,6 @@ void symbol_delete(symbol_t* symbol) {
 
         free(symbol);
     }
-}
-
-void symbol_set_constant(symbol_t* symbol, expression_t *constant) {
-    symbol->is->constant = true;
-    symbol->is->constant_expression = constant;
 }
 
 void symbol_print(FILE* output, const symbol_t* symbol) {

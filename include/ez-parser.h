@@ -104,6 +104,11 @@ parser_status_t global_parser(FILE* input,
                               const context_t* ctx,
                               symbol_t** symbol);
 
+
+parser_status_t constant_parser(FILE* input,
+                                const context_t* ctx,
+                                constant_t** output);
+
 parser_status_t local_parser(FILE* input,
                        const context_t* ctx,
                        symbol_t** symbol);

@@ -8,14 +8,14 @@ global vv is vector of vector of natural
 global vvvv is vector of vector of vector of vector of real
 
 structure Person is
-  p is string
-  age is integer
+   p is string
+   age is integer
 end
+//
+// global person is Person
+// global persons is vector of Person
 
-global person is Person
-global persons is vector of Person
-
-constant PI         is real    = 3
-constant TOTO       is string  = "toto"
-constant MAX_PRIMES is integer = 20
-constant EXPR       is boolean = 4 * PI * 6 + 3 * 7 <= MAX_PRIMES * 2 + 1 * 5
+// constant PI         is real    = 3
+// constant TOTO       is string  = "toto"
+// constant MAX_PRIMES is integer = 20
+constant EXPR       is boolean = 4 * PIZEFZE * 6 + 3 * 7 <= MAX_PRIMES * 2 + 1 * 5

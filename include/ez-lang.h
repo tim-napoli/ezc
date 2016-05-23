@@ -148,9 +148,7 @@ struct structure {
 
 struct type {
     type_type_t type;
-    bool constant;
     union {
-        expression_t* constant_expression;
         structure_t* structure_type;
         type_t* vector_type;
     };
@@ -410,43 +408,5 @@ typedef struct context {
 } context_t;
 
 bool context_has_identifier(const context_t* ctx, const identifier_t* id);
-
-#if 0
-
-typedef struct context {
-    identifier_t identifier;
-    vector_t constants; /* of symbol_t* */
-    vector_t globals; /* of symbol_t* */
-    vector_t locals; /* of symbol_t* */
-    vector_t structures; /* of_structure_t* */
-    // TODO : functions
-    // TODO : procedures
-    vector_t arguments; /* of argument_t* */
-
-    struct context* parent_context;
-} context_t;
-
-context_t* context_new(identifier_t* identifier, context_t* parent_context);
-void context_delete(context_t* ctx);
-void context_print(context_t* ctx);
-
-void context_add_constant(context_t* ctx, symbol_t* constant);
-void context_add_global(context_t* ctx, symbol_t* global);
-void context_add_structure(context_t* ctx, structure_t* structure);
-// TODO : add function
-// TODO : add procedure
-void context_add_arg(context_t* ctx, argument_t* arg);
-void context_add_local(context_t* ctx, symbol_t* local);
-
-structure_t* context_find_structure(const context_t* ctx,
-                                    const identifier_t* id);
-
-symbol_t* vector_find_symbol(const vector_t* vector, const identifier_t* id);
-symbol_t* context_find_local(const context_t* ctx, const identifier_t* id);
-symbol_t* context_find_global(const context_t* ctx, const identifier_t* id);
-symbol_t* context_find_constant(const context_t* ctx, const identifier_t* id);
-symbol_t* context_find_argument(const context_t* ctx, const identifier_t* id);
-
-#endif
 
 #endif
