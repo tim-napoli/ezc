@@ -206,3 +206,4 @@ bool program_has_function(const program_t* prg, const identifier_t* id) {
 bool program_has_procedure(const program_t* prg, const identifier_t* id) {
     return vector_contains(&prg->procedures, id, (cmp_func_t)&function_is);
 }
+

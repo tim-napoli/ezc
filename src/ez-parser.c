@@ -330,7 +330,7 @@ parser_status_t structure_parser(FILE* input,
     return PARSER_SUCCESS;
 }
 
-parser_status_t entity_parser(FILE* input, const void* unused_args,
+parser_status_t entity_parser(FILE* input, context_t* ctx,
                               program_t* output)
 {
     function_t* func = NULL;
@@ -342,31 +342,23 @@ parser_status_t entity_parser(FILE* input, const void* unused_args,
 
     if (TRY(input, constant_parser(input, NULL, &constant)) == PARSER_SUCCESS)
     {
-        #if 0
-        if (context_find_symbol(ctx, &symbol->identifier)) {
-            error_symbol_exists(input, symbol);
-            symbol_delete(symbol);
-
-            return PARSER_FAILURE;
+        if (context_has_identifier(ctx, &constant->symbol->identifier)) {
+            error_identifier_exists(input, &constant->symbol->identifier);
+            constant_delete(constant);
+            return PARSER_FATAL;
         }
 
-        context_add_constant(ctx, symbol);
-        #endif
         vector_push(&output->constants, constant);
         return PARSER_SUCCESS;
     }
 
     if (TRY(input, global_parser(input, NULL, &global)) == PARSER_SUCCESS) {
-        #if 0
-        if (context_find_symbol(ctx, &symbol->identifier)) {
-            error_symbol_exists(input, symbol);
-            symbol_delete(symbol);
-
-            return PARSER_FAILURE;
+        if (context_has_identifier(ctx, &global->identifier)) {
+            error_identifier_exists(input, &global->identifier);
+            symbol_delete(global);
+            return PARSER_FATAL;
         }
 
-        context_add_global(ctx, symbol);
-        #endif
         vector_push(&output->globals, global);
         return PARSER_SUCCESS;
     }
@@ -374,24 +366,32 @@ parser_status_t entity_parser(FILE* input, const void* unused_args,
     if (TRY(input, structure_parser(input, NULL, &structure))
         == PARSER_SUCCESS)
     {
-        #if 0
-        if (context_find_structure(ctx, &structure->identifier)) {
-            error_structure_exists(input, structure);
+        if (context_has_identifier(ctx, &structure->identifier)) {
+            error_identifier_exists(input, &structure->identifier);
             structure_delete(structure);
-
-            return PARSER_FAILURE;
+            return PARSER_FATAL;
         }
 
-        context_add_structure(ctx, structure);
-        #endif
         vector_push(&output->structures, structure);
         return PARSER_SUCCESS;
     } else
     if (TRY(input, function_parser(input, NULL, &func)) == PARSER_SUCCESS) {
+        if (context_has_identifier(ctx, &func->identifier)) {
+            error_identifier_exists(input, &func->identifier);
+            function_delete(func);
+            return PARSER_FATAL;
+        }
+
         vector_push(&output->functions, func);
         return PARSER_SUCCESS;
     } else
     if (TRY(input, procedure_parser(input, NULL, &func)) == PARSER_SUCCESS) {
+        if (context_has_identifier(ctx, &func->identifier)) {
+            error_identifier_exists(input, &func->identifier);
+            function_delete(func);
+            return PARSER_FATAL;
+        }
+
         vector_push(&output->procedures, func);
         return PARSER_SUCCESS;
     }
@@ -400,24 +400,25 @@ parser_status_t entity_parser(FILE* input, const void* unused_args,
 }
 
 parser_status_t program_parser(FILE* input,
-                               void* unused_args,
+                               context_t* ctx,
                                program_t** output)
 {
     identifier_t program_id;
 
-    PARSE(header_parser(input, unused_args, &program_id));
+    ctx->program = NULL;
+    ctx->function = NULL;
+
+    PARSE(header_parser(input, NULL, &program_id));
 
     *output = program_new(&program_id);
-
-#if 0
-    *ctx = context_new(&program_id, NULL);
-#endif
+    ctx->program = *output;
 
     SKIP_MANY(input, comment_or_empty_parser(input, NULL, NULL));
 
-    while (entity_parser(input, NULL, *output) == PARSER_SUCCESS) {
+    while (entity_parser(input, ctx, *output) == PARSER_SUCCESS) {
 
     }
 
     return PARSER_SUCCESS;
 }
+

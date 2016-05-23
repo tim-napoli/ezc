@@ -26,6 +26,11 @@ void error_symbol_not_found(FILE* input, const identifier_t* id) {
     fprintf(stderr, "symbol %s not found in current context\n", id->value);
 }
 
+void error_identifier_exists(FILE* input, const identifier_t* id) {
+    error_print(input);
+    fprintf(stderr, "identifier %s already exists\n", id->value);
+}
+
 void error_structure_exists(FILE* input, const structure_t* s) {
   error_print(input);
   fprintf(stderr, "structure %s already defined in current context\n",

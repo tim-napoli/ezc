@@ -15,6 +15,7 @@ int main(int argc, char** argv) {
     int opt = 0;
     char* input_path = NULL;
     char* output_path = NULL;
+    context_t ctx;
 
     while ((opt = getopt(argc, argv, "h")) >= 0) {
         switch (opt) {
@@ -34,7 +35,7 @@ int main(int argc, char** argv) {
 
     program_t* prg = NULL;
     FILE* input = fopen(input_path, "r");
-    if (program_parser(input, NULL, &prg) == PARSER_FAILURE) {
+    if (program_parser(input, &ctx, &prg) == PARSER_FAILURE) {
         fprintf(stderr, "parser failure\n");
     }
     program_print(stdout, prg);

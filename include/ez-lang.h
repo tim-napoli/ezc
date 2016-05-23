@@ -409,6 +409,8 @@ typedef struct context {
     const function_t* function;
 } context_t;
 
+bool context_has_identifier(const context_t* ctx, const identifier_t* id);
+
 #if 0
 
 typedef struct context {
@@ -438,7 +440,6 @@ void context_add_local(context_t* ctx, symbol_t* local);
 
 structure_t* context_find_structure(const context_t* ctx,
                                     const identifier_t* id);
-symbol_t* context_find_symbol(const context_t* ctx, const identifier_t* id);
 
 symbol_t* vector_find_symbol(const vector_t* vector, const identifier_t* id);
 symbol_t* context_find_local(const context_t* ctx, const identifier_t* id);
