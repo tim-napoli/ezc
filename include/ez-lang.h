@@ -402,6 +402,8 @@ bool program_has_structure(const program_t* prg, const identifier_t* id);
 bool program_has_function(const program_t* prg, const identifier_t* id);
 bool program_has_procedure(const program_t* prg, const identifier_t* id);
 
+bool program_main_function_is_valid(const program_t* prg);
+
 /* ------------------------------ contexts --------------------------------- */
 
 typedef struct context {

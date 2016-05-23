@@ -1,4 +1,4 @@
-program fibonacci
+program fibonacci_suit
 
 function fibonacci(in n is integer) return integer
 begin
@@ -6,7 +6,7 @@ begin
     return fibonacci(n - 2) + fibonacci(n - 1)
 end
 
-function main(in args is vector of string) return integer
+function fibonacci_suit(in args is vector of string) return integer
     local n is integer
     local result is integer
 begin

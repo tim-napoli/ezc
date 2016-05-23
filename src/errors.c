@@ -41,3 +41,16 @@ void error_structure_not_found(FILE* input, const identifier_t* id) {
   error_print(input);
   fprintf(stderr, "structure %s not found in current context\n", id->value);
 }
+
+void error_no_main_function(const identifier_t* id) {
+    fprintf(stderr, "missing main function "
+                    "'function %s(in args is vector of string) : integer'\n",
+            id->value);
+}
+
+void error_invalid_main_function(const identifier_t* id) {
+    fprintf(stderr, "main function signature must be "
+                    "'function %s(in args is vector of string) : integer'\n",
+            id->value);
+}
+

@@ -35,11 +35,12 @@ int main(int argc, char** argv) {
 
     program_t* prg = NULL;
     FILE* input = fopen(input_path, "r");
-    if (program_parser(input, &ctx, &prg) == PARSER_FAILURE) {
+    if (program_parser(input, &ctx, &prg) != PARSER_SUCCESS) {
         fprintf(stderr, "parser failure\n");
+    } else {
+        program_print(stdout, prg);
+        program_delete(prg);
     }
-    program_print(stdout, prg);
-    program_delete(prg);
 
     fclose(input);
 

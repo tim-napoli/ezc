@@ -39,6 +39,9 @@ typedef bool (*cmp_func_t)(const void*, const void*);
 bool vector_contains(const vector_t* vector, const void* element,
                      cmp_func_t cmp_func);
 
+void* vector_find(const vector_t* vector, const void* element,
+                  cmp_func_t cmp_func);
+
 #if 0
 void vector_filter(vector_t* vector, bool (*function)(void*));
 
