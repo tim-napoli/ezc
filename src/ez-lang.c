@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <assert.h>
 #include "ez-lang.h"
 
 function_arg_t* function_arg_new(function_arg_modifier_t modifier,
@@ -45,12 +46,11 @@ function_t* function_new(const identifier_t* id) {
 }
 
 void function_arg_print(FILE* output, const function_arg_t* arg) {
-    type_print(output, arg->symbol->is);
-    if (arg->modifier == FUNCTION_ARG_MODIFIER_OUT
-    ||  arg->modifier == FUNCTION_ARG_MODIFIER_INOUT)
-    {
-        fprintf(output, "&");
+    if (arg->modifier == FUNCTION_ARG_MODIFIER_IN) {
+        fprintf(output, "const ");
     }
+    type_print(output, arg->symbol->is);
+    fprintf(output, "&");
 
     fprintf(output, " %s", arg->symbol->identifier.value);
 }
@@ -165,6 +165,7 @@ void program_delete(program_t* prg) {
 
 void program_print(FILE* output, const program_t* prg) {
     fprintf(output, "#include <iostream>\n"
+                    "#include <string>\n"
                     "#include <vector>\n\n");
 
     for (int i = 0; i < prg->structures.size; i++) {
@@ -185,6 +186,15 @@ void program_print(FILE* output, const program_t* prg) {
     for (int i = 0; i < prg->procedures.size; i++) {
         function_print(output, prg->procedures.elements[i]);
     }
+
+    fprintf(output, "int main(int argc, char** argv) {\n"
+                    "    std::vector<std::string> args;\n"
+                    "    for (int i = 0; i < argc; i++) {\n"
+                    "        args.push_back(std::string(argv[i]));\n"
+                    "    }\n"
+                    "    return %s(args);\n"
+                    "}\n",
+            prg->identifier.value);
 }
 
 bool program_has_global(const program_t* prg, const identifier_t* id) {
@@ -205,5 +215,32 @@ bool program_has_function(const program_t* prg, const identifier_t* id) {
 
 bool program_has_procedure(const program_t* prg, const identifier_t* id) {
     return vector_contains(&prg->procedures, id, (cmp_func_t)&function_is);
+}
+
+bool program_main_function_is_valid(const program_t* prg) {
+    const function_t* func = vector_find(&prg->functions, &prg->identifier,
+                                         (cmp_func_t)&function_is);
+    assert (func);
+
+    if (func->return_type->type != TYPE_TYPE_INTEGER) {
+        return false;
+    }
+
+    if (func->args.size != 1) {
+        return false;
+    }
+
+    const function_arg_t* arg = func->args.elements[0];
+    if (arg->modifier != FUNCTION_ARG_MODIFIER_IN) {
+        return false;
+    }
+    if (arg->symbol->is->type != TYPE_TYPE_VECTOR) {
+        return false;
+    }
+    if (arg->symbol->is->vector_type->type != TYPE_TYPE_STRING) {
+        return false;
+    }
+
+    return true;
 }
 

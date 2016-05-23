@@ -419,5 +419,14 @@ parser_status_t program_parser(FILE* input,
 
     }
 
+    if (!program_has_function(ctx->program, &ctx->program->identifier)) {
+        error_no_main_function(&ctx->program->identifier);
+        return PARSER_FATAL;
+    }
+    if (!program_main_function_is_valid(ctx->program)) {
+        error_invalid_main_function(&ctx->program->identifier);
+        return PARSER_FATAL;
+    }
+
     return PARSER_SUCCESS;
 }
