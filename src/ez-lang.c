@@ -166,7 +166,11 @@ void program_delete(program_t* prg) {
 void program_print(FILE* output, const program_t* prg) {
     fprintf(output, "#include <iostream>\n"
                     "#include <string>\n"
-                    "#include <vector>\n\n");
+                    "#include <ctime>\n"
+                    "#include <cstdlib>\n"
+                    "#include <vector>\n"
+                    "\n"
+    );
 
     for (int i = 0; i < prg->structures.size; i++) {
         structure_print(output, prg->structures.elements[i]);
@@ -176,6 +180,7 @@ void program_print(FILE* output, const program_t* prg) {
     }
     for (int i = 0; i < prg->globals.size; i++) {
         symbol_print(output, prg->globals.elements[i]);
+        fprintf(output, ";\n");
     }
 
     /* TODO print functions & procedures prototypes after structures

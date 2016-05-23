@@ -2,7 +2,7 @@ program mysterious_number
 
 constant MAX_NUM is integer = 1000
 
-function main(in args is string) return integer
+function mysterious_number(in args is vector of string) return integer
     local user_number is integer
     local mysterious_number is integer
     local try_number is integer
