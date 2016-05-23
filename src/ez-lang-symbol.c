@@ -99,9 +99,9 @@ void type_print(FILE* output, const type_t* type) {
         break;
 
       case TYPE_TYPE_VECTOR:
-        fprintf(output, "std::vector<");
+        fprintf(output, "std::vector< ");
         type_print(output, type->vector_type);
-        fprintf(output, ">");
+        fprintf(output, " >");
         break;
 
       case TYPE_TYPE_STRUCTURE:
