@@ -132,18 +132,16 @@ parser_status_t type_parser(FILE* input, const context_t* ctx,
     } else
     if (TRY(input, identifier_parser(input, NULL, &structure_id))
         == PARSER_SUCCESS) {
-        #if 0
-        structure_t* structure = context_find_structure(ctx, &structure_id);
+        structure_t* structure = vector_find(&ctx->program->structures, &structure_id, (cmp_func_t)&structure_is);
 
         if (structure == NULL) {
-            error_structure_not_found(input, &structure_id);
+            error_identifier_not_found(input, &structure_id);
 
             return PARSER_FAILURE;
         }
 
         /* XXX so type carry a const structure, it doesn't own it. */
         *type = type_structure_new(structure);
-        #endif
 
         return PARSER_SUCCESS;
     }
@@ -186,10 +184,10 @@ parser_status_t variable_tail_parser(FILE* input, const context_t* ctx,
     return PARSER_SUCCESS;
 }
 
-parser_status_t range_parser(FILE* input, const void* args,
+parser_status_t range_parser(FILE* input, const context_t* ctx,
                              range_t* range)
 {
-    PARSE(expression_parser(input, NULL, &range->from));
+    PARSE(expression_parser(input, ctx, &range->from));
 
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
@@ -197,7 +195,7 @@ parser_status_t range_parser(FILE* input, const void* args,
 
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
-    PARSE_ERR(expression_parser(input, NULL, &range->to),
+    PARSE_ERR(expression_parser(input, ctx, &range->to),
               "a valid expression is expected after range '..'");
 
     return PARSER_SUCCESS;

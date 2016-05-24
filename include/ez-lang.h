@@ -148,9 +148,7 @@ struct structure {
 
 struct type {
     type_type_t type;
-    bool constant;
     union {
-        expression_t* constant_expression;
         structure_t* structure_type;
         type_t* vector_type;
     };
@@ -165,6 +163,7 @@ type_t *type_real_new();
 type_t *type_char_new();
 type_t *type_string_new();
 type_t *type_vector_new(type_t *of);
+type_t* type_structure_new(structure_t* s);
 
 void type_print(FILE* output, const type_t* type);
 
@@ -177,9 +176,13 @@ void symbol_print(FILE* output, const symbol_t* symbol);
 
 bool symbol_is(const symbol_t* sym, const identifier_t* id);
 
-structure_t *structure_new(const identifier_t *identifier);
-void structure_add_member(structure_t *structure, symbol_t *member);
+structure_t* structure_new(const identifier_t *identifier);
 void structure_delete(structure_t *structure);
+
+void structure_add_member(structure_t *structure, symbol_t *member);
+bool structure_has_member(const structure_t* structure, const identifier_t* id);
+symbol_t* structure_find_member(const structure_t* structure,
+                                const identifier_t* id);
 
 void structure_print(FILE* output, const structure_t* structure);
 
@@ -376,8 +379,11 @@ void function_delete(function_t* function);
 void function_print(FILE* output, const function_t* function);
 
 bool function_has_arg(const function_t* func, const identifier_t* arg);
+function_arg_t* function_find_arg(const function_t* func,
+                                  const identifier_t* arg);
 
 bool function_has_local(const function_t* func, const identifier_t* arg);
+symbol_t* function_find_local(const function_t* func, const identifier_t* arg);
 
 bool function_is(const function_t* func, const identifier_t* id);
 
@@ -415,10 +421,20 @@ void program_delete(program_t* prg);
 void program_print(FILE* output, const program_t* prg);
 
 bool program_has_global(const program_t* prg, const identifier_t* id);
+symbol_t* program_find_global(const program_t* prg, const identifier_t* id);
+
 bool program_has_constant(const program_t* prg, const identifier_t* id);
+constant_t* program_find_constant(const program_t* prg, const identifier_t* id);
+
 bool program_has_structure(const program_t* prg, const identifier_t* id);
+structure_t* program_find_structure(const program_t* prg,
+                                    const identifier_t* id);
+
 bool program_has_function(const program_t* prg, const identifier_t* id);
+function_t* program_find_function(const program_t* prg, const identifier_t* id);
+
 bool program_has_procedure(const program_t* prg, const identifier_t* id);
+function_t* program_find_procedure(const program_t* prg, const identifier_t* id);
 
 bool program_main_function_is_valid(const program_t* prg);
 
@@ -431,42 +447,7 @@ typedef struct context {
 
 bool context_has_identifier(const context_t* ctx, const identifier_t* id);
 
-#if 0
-
-typedef struct context {
-    identifier_t identifier;
-    vector_t constants; /* of symbol_t* */
-    vector_t globals; /* of symbol_t* */
-    vector_t locals; /* of symbol_t* */
-    vector_t structures; /* of_structure_t* */
-    // TODO : functions
-    // TODO : procedures
-    vector_t arguments; /* of argument_t* */
-
-    struct context* parent_context;
-} context_t;
-
-context_t* context_new(identifier_t* identifier, context_t* parent_context);
-void context_delete(context_t* ctx);
-void context_print(context_t* ctx);
-
-void context_add_constant(context_t* ctx, symbol_t* constant);
-void context_add_global(context_t* ctx, symbol_t* global);
-void context_add_structure(context_t* ctx, structure_t* structure);
-// TODO : add function
-// TODO : add procedure
-void context_add_arg(context_t* ctx, argument_t* arg);
-void context_add_local(context_t* ctx, symbol_t* local);
-
-structure_t* context_find_structure(const context_t* ctx,
-                                    const identifier_t* id);
-
-symbol_t* vector_find_symbol(const vector_t* vector, const identifier_t* id);
-symbol_t* context_find_local(const context_t* ctx, const identifier_t* id);
-symbol_t* context_find_global(const context_t* ctx, const identifier_t* id);
-symbol_t* context_find_constant(const context_t* ctx, const identifier_t* id);
-symbol_t* context_find_argument(const context_t* ctx, const identifier_t* id);
-
-#endif
+bool context_valref_is_valid(const context_t* ctx, const valref_t* valref);
+bool valref_is_valid(const valref_t* valref, const symbol_t* symbol);
 
 #endif

@@ -7,15 +7,11 @@ void error_print(FILE* input);
 
 void error_identifier_is_keyword(FILE* input, const identifier_t* id);
 
-void error_symbol_exists(FILE* input, const symbol_t* s);
-
 void error_identifier_exists(FILE* input, const identifier_t* id);
 
-void error_symbol_not_found(FILE* input, const identifier_t* id);
+void error_identifier_not_found(FILE* input, const identifier_t* id);
 
-void error_structure_exists(FILE* input, const structure_t* s);
-
-void error_structure_not_found(FILE* input, const identifier_t* id);
+void error_valref_not_found(FILE* input, const valref_t* valref);
 
 void error_no_main_function(const identifier_t* id);
 

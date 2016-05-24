@@ -16,7 +16,6 @@ type_t* type_new(type_type_t type) {
     }
 
     t->type = type;
-    t->constant = false;
 
     return t;
 }
@@ -25,10 +24,6 @@ void type_delete(type_t* t) {
     if (t) {
         if (t->type == TYPE_TYPE_VECTOR) {
             type_delete(t->vector_type);
-        }
-
-        if (t->constant) {
-            expression_delete(t->constant_expression);
         }
 
         free(t);
@@ -154,11 +149,6 @@ void symbol_delete(symbol_t* symbol) {
     }
 }
 
-void symbol_set_constant(symbol_t* symbol, expression_t *constant) {
-    symbol->is->constant = true;
-    symbol->is->constant_expression = constant;
-}
-
 void symbol_print(FILE* output, const symbol_t* symbol) {
     type_print(output, symbol->is);
     fprintf(output, " %s ", symbol->identifier.value);
@@ -209,5 +199,15 @@ void structure_print(FILE* output, const structure_t* structure) {
 
 bool structure_is(const structure_t* structure, const identifier_t* id) {
     return strcmp(structure->identifier.value, id->value) == 0;
+}
+
+bool structure_has_member(const structure_t* structure, const identifier_t* id)i
+{
+    return vector_contains(&structure->members, id, (cmp_func_t)&symbol_is);
+}
+
+symbol_t* structure_find_member(const structure_t* structure,
+                                const identifier_t* id) {
+    return vector_find(&structure->members, id, (cmp_func_t)&symbol_is);
 }
 

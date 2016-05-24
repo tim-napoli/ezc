@@ -142,8 +142,16 @@ bool function_has_arg(const function_t* func, const identifier_t* arg) {
     return vector_contains(&func->args, arg, (cmp_func_t)&function_arg_is);
 }
 
+function_arg_t* function_find_arg(const function_t* func, const identifier_t* id) {
+    return vector_find(&func->args, id, (cmp_func_t)&function_arg_is);
+}
+
 bool function_has_local(const function_t* func, const identifier_t* arg) {
     return vector_contains(&func->locals, arg, (cmp_func_t)&symbol_is);
+}
+
+symbol_t* function_find_local(const function_t* func, const identifier_t* id) {
+    return vector_find(&func->locals, id, (cmp_func_t)&symbol_is);
 }
 
 bool function_is(const function_t* func, const identifier_t* id) {
@@ -249,12 +257,24 @@ bool program_has_global(const program_t* prg, const identifier_t* id) {
     return vector_contains(&prg->globals, id, (cmp_func_t)&symbol_is);
 }
 
+symbol_t* program_find_global(const program_t* prg, const identifier_t* id) {
+    return vector_find(&prg->globals, id, (cmp_func_t)&symbol_is);
+}
+
 bool program_has_constant(const program_t* prg, const identifier_t* id) {
     return vector_contains(&prg->constants, id, (cmp_func_t)&constant_is);
 }
 
+constant_t* program_find_constant(const program_t* prg, const identifier_t* id) {
+    return vector_find(&prg->constants, id, (cmp_func_t)&constant_is);
+}
+
 bool program_has_structure(const program_t* prg, const identifier_t* id) {
     return vector_contains(&prg->structures, id, (cmp_func_t)&structure_is);
+}
+
+structure_t* program_find_structure(const program_t* prg, const identifier_t* id) {
+    return vector_find(&prg->structures, id, (cmp_func_t)&structure_is);
 }
 
 bool program_has_function(const program_t* prg, const identifier_t* id) {
@@ -291,4 +311,3 @@ bool program_main_function_is_valid(const program_t* prg) {
 
     return true;
 }
-

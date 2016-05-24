@@ -14,6 +14,7 @@ bool context_has_identifier(const context_t* ctx,
             return true;
         }
     }
+
     if (program_has_global(ctx->program, id)
     ||  program_has_constant(ctx->program, id)
     ||  program_has_structure(ctx->program, id)
@@ -26,146 +27,61 @@ bool context_has_identifier(const context_t* ctx,
     return false;
 }
 
-#if 0
+bool context_valref_is_valid(const context_t* ctx, const valref_t* valref) {
 
-context_t *context_new(identifier_t *identifier, context_t *parent_context) {
-  context_t *c = calloc(1, sizeof(context_t));
-
-  if (!c) {
-    fprintf(stderr, "couldn't allocate program context\n");
-    exit(EXIT_FAILURE);
-  }
-
-  memcpy(&c->identifier, identifier, sizeof(identifier_t));
-  c->parent_context = parent_context;
-
-  vector_init(&c->constants, 0);
-  vector_init(&c->globals, 0);
-  vector_init(&c->locals, 0);
-  vector_init(&c->structures, 0);
-  vector_init(&c->arguments, 0);
-
-  return c;
-}
-
-void context_delete(context_t *ctx) {
-  vector_wipe(&ctx->constants, (delete_func_t)&symbol_delete);
-  vector_wipe(&ctx->globals, (delete_func_t)&symbol_delete);
-  vector_wipe(&ctx->locals, (delete_func_t)&symbol_delete);
-  vector_wipe(&ctx->structures, (delete_func_t)&structure_delete);
-  vector_wipe(&ctx->arguments, (delete_func_t)&structure_delete);
-  free(ctx);
-}
-
-void context_print(context_t *ctx) {
-  fprintf(stdout, "Context: %s\n\n", ctx->identifier.value);
-
-  vector_map(&ctx->structures, structure_print);
-  fprintf(stdout, "\n");
-
-  vector_map(&ctx->constants, symbol_print);
-  fprintf(stdout, "\n");
-
-  vector_map(&ctx->globals, symbol_print);
-  fprintf(stdout, "\n");
-}
-
-void context_add_constant(context_t *context, symbol_t *constant) {
-  vector_push(&context->constants, constant);
-}
-
-void context_add_global(context_t *context, symbol_t *global) {
-  vector_push(&context->globals, global);
-}
-
-void context_add_structure(context_t *context, structure_t *structure) {
-  vector_push(&context->structures, structure);
-}
-
-// TODO : add function
-
-// TODO : add procedure
-
-void context_add_local(context_t *context, symbol_t *local) {
-  vector_push(&context->locals, local);
-}
-
-// TODO add arg.
-
-structure_t *context_find_structure(const context_t *ctx,
-                                    const identifier_t *id) {
-  for (int i = 0; i < ctx->structures.size; i++) {
-    structure_t *structure = vector_get(&ctx->structures, i);
-
-    if (strcmp(structure->identifier.value, id->value) == 0) {
-      return structure;
+    if (!context_has_identifier(ctx, &valref->identifier)) {
+        return false;
     }
-  }
 
-  if (ctx->parent_context) {
-    return context_find_structure(ctx->parent_context, id);
-  }
+    if (ctx->function) {
 
-  return NULL;
-}
+        function_arg_t* arg = function_find_arg(ctx->function, &valref->identifier);
 
-symbol_t* context_find_symbol(const context_t *ctx,
-                              const identifier_t *id) {
-  symbol_t* symbol = NULL;
+        if (arg) {
+            return valref_is_valid(valref, arg->symbol);
+        }
 
-  if ((symbol = context_find_argument(ctx, id))) {
-      return symbol;
-  } else
-  if ((symbol = context_find_local(ctx, id))) {
-      return symbol;
-  } else
-  if ((symbol = context_find_global(ctx, id))) {
-      return symbol;
-  } else
-  if ((symbol = context_find_constant(ctx, id))) {
-      return symbol;
-  } else
-  if (ctx->parent_context) {
-    return context_find_symbol(ctx->parent_context, id);
-  }
+        symbol_t* local = function_find_local(ctx->function, &valref->identifier);
 
-  return NULL;
-}
-
-symbol_t* context_find_argument(const context_t* ctx, const identifier_t* id){
-    for (size_t i = 0; i < ctx->arguments.size; i++) {
-        argument_t* arg = vector_get(&ctx->arguments, i);
-
-        if (strcmp(arg->symbol->identifier.value, id->value) == 0) {
-            return arg->symbol;
+        if (local) {
+            return valref_is_valid(valref, local);
         }
     }
 
-    return NULL;
-}
+    if (ctx->program) {
+        symbol_t* global = program_find_global(ctx->program, &valref->identifier);
 
-symbol_t* _find_symbol(const vector_t* vector, const identifier_t* id) {
-    for (size_t i = 0; i < vector->size; i++) {
-        symbol_t* symbol = vector_get(vector, i);
-        if (strcmp(symbol->identifier.value, id->value) == 0) {
-            return symbol;
+        if (global) {
+            return valref_is_valid(valref, global);
+        }
+
+        constant_t* constant = program_find_constant(ctx->program, &valref->identifier);
+
+        if (constant) {
+            return valref_is_valid(valref, constant->symbol);
         }
     }
 
-    return NULL;
+    // TODO : if is funccall : search in vector functions.
+
+    return false;
 }
 
-symbol_t* context_find_local(const context_t* ctx, const identifier_t* id) {
-    return _find_symbol(&ctx->locals, id);
+bool valref_is_valid(const valref_t* valref, const symbol_t* symbol) {
+    if (symbol->is->type == TYPE_TYPE_STRUCTURE && !valref->next) {
+        return false;
+    }
+
+    if (symbol->is->type == TYPE_TYPE_STRUCTURE && valref->next) {
+        symbol_t* next_symbol = structure_find_member(symbol->is->structure_type, &valref->next->identifier);
+
+        if (!next_symbol) {
+            return false;
+        }
+
+        return valref_is_valid(valref->next, next_symbol);
+    }
+
+
+    return true;
 }
-
-symbol_t* context_find_global(const context_t* ctx, const identifier_t* id) {
-    return _find_symbol(&ctx->globals, id);
-}
-
-symbol_t* context_find_constant(const context_t* ctx, const identifier_t* id) {
-    return _find_symbol(&ctx->constants, id);
-}
-
-#endif
-
