@@ -168,6 +168,8 @@ type_t *type_vector_new(type_t *of);
 
 void type_print(FILE* output, const type_t* type);
 
+bool type_is_equals(const type_t* a, const type_t* b);
+
 symbol_t *symbol_new(const identifier_t *identifier, type_t *is);
 void symbol_delete(symbol_t *symbol);
 
@@ -340,6 +342,22 @@ function_arg_t* function_arg_new(function_arg_modifier_t modifier,
 void function_arg_delete(function_arg_t* func_arg);
 
 void function_arg_print(FILE* output, const function_arg_t* arg);
+
+typedef struct function_signature {
+    type_t*     return_type;
+    vector_t    args_types;     /* of type_t* */
+} function_signature_t;
+
+void function_signature_init(function_signature_t* signature);
+
+function_signature_t* function_signature_new(void);
+
+void function_signature_wipe(function_signature_t* signature);
+
+void function_signature_delete(function_signature_t* signature);
+
+bool function_signature_is_equals(const function_signature_t* a,
+                                  const function_signature_t* b);
 
 typedef struct function {
     identifier_t identifier;

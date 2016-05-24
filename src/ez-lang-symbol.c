@@ -110,6 +110,26 @@ void type_print(FILE* output, const type_t* type) {
     }
 }
 
+bool type_is_equals(const type_t* a, const type_t* b) {
+    if (a && b) {
+        if (a->type == b->type) {
+            if (a->type == TYPE_TYPE_STRUCTURE) {
+                /* Can compare structure address since it comes from the
+                 * program. */
+                return a->structure_type == b->structure_type;
+            } else
+            if (a->type == TYPE_TYPE_VECTOR) {
+                return type_is_equals(a->vector_type, b->vector_type);
+            }
+            return true;
+        }
+        return false;
+    } else if (!a && !b) {
+        return true;
+    }
+    return false;
+}
+
 symbol_t *symbol_new(const identifier_t *identifier, type_t *is) {
     symbol_t *s = calloc(1, sizeof(symbol_t));
 
@@ -190,3 +210,4 @@ void structure_print(FILE* output, const structure_t* structure) {
 bool structure_is(const structure_t* structure, const identifier_t* id) {
     return strcmp(structure->identifier.value, id->value) == 0;
 }
+

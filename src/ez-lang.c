@@ -28,6 +28,49 @@ bool function_arg_is(const function_arg_t* arg, const identifier_t* id) {
     return strcmp(arg->symbol->identifier.value, id->value) == 0;
 }
 
+void function_signature_init(function_signature_t* signature) {
+    signature->return_type = NULL;
+    vector_init(&signature->args_types, 0);
+}
+
+function_signature_t* function_signature_new(void) {
+    function_signature_t* signature = malloc(sizeof(function_signature_t));
+    if (!signature) {
+        fprintf(stderr, "couldn't allocate function signature\n");
+        return NULL;
+    }
+    function_signature_init(signature);
+    return signature;
+}
+
+void function_signature_wipe(function_signature_t* signature) {
+    if (signature->return_type) {
+        type_delete(signature->return_type);
+    }
+    vector_wipe(&signature->args_types, (delete_func_t)&type_delete);
+}
+
+bool function_signature_is_equals(const function_signature_t* a,
+                                  const function_signature_t* b)
+{
+    if (!type_is_equals(a->return_type, b->return_type)) {
+        return false;
+    } else
+    if (a->args_types.size != b->args_types.size) {
+        return false;
+    }
+
+    for (int i = 0; i < a->args_types.size; i++) {
+        if (!type_is_equals(a->args_types.elements[i],
+                            b->args_types.elements[i]))
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 function_t* function_new(const identifier_t* id) {
     function_t* f = malloc(sizeof(function_t));
     if (!f) {
