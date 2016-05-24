@@ -281,6 +281,12 @@ bool program_has_function(const program_t* prg, const identifier_t* id) {
     return vector_contains(&prg->functions, id, (cmp_func_t)&function_is);
 }
 
+function_t* program_find_function(const program_t* prg,
+                                  const identifier_t* id)
+{
+    return vector_find(&prg->functions, id, (cmp_func_t)&function_is);
+}
+
 bool program_has_procedure(const program_t* prg, const identifier_t* id) {
     return vector_contains(&prg->procedures, id, (cmp_func_t)&function_is);
 }
@@ -311,3 +317,32 @@ bool program_main_function_is_valid(const program_t* prg) {
 
     return true;
 }
+
+const type_t* context_find_identifier_type(const context_t* ctx,
+                                           const identifier_t* id)
+{
+    if (ctx->function) {
+        function_arg_t* arg = function_find_arg(ctx->function, id);
+        symbol_t* sym = function_find_local(ctx->function, id);
+
+        if (arg) {
+            return arg->symbol->is;
+        } else
+        if (sym) {
+            return sym->is;
+        }
+    }
+
+    symbol_t* global = program_find_global(ctx->program, id);
+    constant_t* constant = program_find_constant(ctx->program, id);
+
+    if (global) {
+        return global->is;
+    } else
+    if (constant) {
+        return constant->symbol->is;
+    }
+
+    return NULL;
+}
+

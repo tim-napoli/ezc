@@ -19,6 +19,11 @@ typedef struct identifier {
 
 bool identifier_is_reserved(const identifier_t* id);
 
+typedef struct symbol symbol_t;
+typedef struct structure structure_t;
+typedef struct type type_t;
+typedef struct context context_t;
+
 /* ---------------------------- values ------------------------------------- */
 
 typedef struct parameters {
@@ -49,6 +54,8 @@ void valref_delete(valref_t* valref);
 
 void valref_print(FILE* output, const valref_t* value);
 
+const type_t* valref_get_type(const context_t* ctx, const valref_t* valref);
+
 typedef enum {
     VALUE_TYPE_STRING,
     VALUE_TYPE_REAL,
@@ -73,6 +80,8 @@ typedef struct value {
 void value_wipe(value_t* value);
 
 void value_print(FILE* output, const value_t* value);
+
+type_t* value_get_type(const context_t* ctx, const value_t* value);
 
 /* ---------------------------- expressions --------------------------------- */
 
@@ -132,10 +141,6 @@ typedef enum {
     TYPE_TYPE_STRUCTURE,
 } type_type_t;
 
-typedef struct symbol symbol_t;
-typedef struct structure structure_t;
-typedef struct type type_t;
-
 struct symbol {
     identifier_t identifier;
     type_t* is;
@@ -168,6 +173,8 @@ type_t* type_structure_new(structure_t* s);
 void type_print(FILE* output, const type_t* type);
 
 bool type_is_equals(const type_t* a, const type_t* b);
+
+type_t* type_copy(const type_t* type);
 
 symbol_t *symbol_new(const identifier_t *identifier, type_t *is);
 void symbol_delete(symbol_t *symbol);
@@ -440,14 +447,23 @@ bool program_main_function_is_valid(const program_t* prg);
 
 /* ------------------------------ contexts --------------------------------- */
 
-typedef struct context {
+struct context {
     const program_t* program;
     const function_t* function;
-} context_t;
+};
 
 bool context_has_identifier(const context_t* ctx, const identifier_t* id);
 
 bool context_valref_is_valid(const context_t* ctx, const valref_t* valref);
 bool valref_is_valid(const valref_t* valref, const symbol_t* symbol);
+
+const type_t* context_find_identifier_type(const context_t* ctx,
+                                           const identifier_t* id);
+
+/* ------------------------ Language builtins ------------------------------ */
+
+bool vector_has_function(const identifier_t* id);
+
+bool vector_is_valid_function_call(const valref_t* valref);
 
 #endif

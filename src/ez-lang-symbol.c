@@ -125,6 +125,17 @@ bool type_is_equals(const type_t* a, const type_t* b) {
     return false;
 }
 
+type_t* type_copy(const type_t* type) {
+    type_t* copy = type_new(type->type);
+    if (copy->type == TYPE_TYPE_VECTOR) {
+        copy->vector_type = type_copy(type->vector_type);
+    } else
+    if (copy->type == TYPE_TYPE_STRUCTURE) {
+        copy->structure_type = type->structure_type;
+    }
+    return copy;
+}
+
 symbol_t *symbol_new(const identifier_t *identifier, type_t *is) {
     symbol_t *s = calloc(1, sizeof(symbol_t));
 
@@ -201,7 +212,7 @@ bool structure_is(const structure_t* structure, const identifier_t* id) {
     return strcmp(structure->identifier.value, id->value) == 0;
 }
 
-bool structure_has_member(const structure_t* structure, const identifier_t* id)i
+bool structure_has_member(const structure_t* structure, const identifier_t* id)
 {
     return vector_contains(&structure->members, id, (cmp_func_t)&symbol_is);
 }

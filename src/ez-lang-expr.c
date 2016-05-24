@@ -111,3 +111,42 @@ void expression_print(FILE* output, const expression_t* expr) {
     }
 }
 
+type_t* expression_get_type(const context_t* ctx, const expression_t* expr) {
+    if (expr->type == EXPRESSION_TYPE_VALUE) {
+        return value_get_type(ctx, &expr->value);
+    } else if (expr->type == EXPRESSION_TYPE_BOOL_OP_NOT) {
+        return type_boolean_new();
+    }
+
+    type_t* left_type = expression_get_type(ctx, expr->left);
+    type_t* right_type = expression_get_type(ctx, expr->right);
+
+    if (expr->type >= EXPRESSION_TYPE_CMP_OP_EQUALS
+    &&  expr->type <= EXPRESSION_TYPE_BOOL_OP_OR)
+    {
+        type_delete(left_type);
+        type_delete(right_type);
+        return type_boolean_new();
+    }
+
+    /* Arithmetic operator :
+     * if we have only naturals, return naturals,
+     * if we have an integer, return integer,
+     * if we have a real, return real,
+     * if we have something else, ohoh, something is wrong during parsing !
+     */
+    type_type_t max_type = left_type->type;
+    if (right_type->type == TYPE_TYPE_REAL) {
+        max_type = TYPE_TYPE_REAL;
+    } else
+    if (right_type->type == TYPE_TYPE_INTEGER
+    &&  left_type->type == TYPE_TYPE_NATURAL)
+    {
+        max_type = TYPE_TYPE_INTEGER;
+    }
+
+    type_delete(left_type);
+    type_delete(right_type);
+    return type_new(max_type);
+}
+
