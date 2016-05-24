@@ -72,12 +72,10 @@ parser_status_t identifier_parser(FILE* input, const context_t* ctx,
 
     PARSE_MANY(input, char_parser(input, id_charset, &value_ptr));
 
-    if (strlen(value) >= IDENTIFIER_SIZE) {
+    if (!identifier_set_value(id, value)) {
         PARSER_LANG_ERR("identifier %s is too long (%d max chars)",
-                        value, IDENTIFIER_SIZE);
+                            value, IDENTIFIER_SIZE);
     }
-
-    strcpy(id->value, value);
 
     if (identifier_is_reserved(id)) {
         return PARSER_FAILURE;
@@ -132,7 +130,7 @@ parser_status_t type_parser(FILE* input, const context_t* ctx,
     } else
     if (TRY(input, identifier_parser(input, NULL, &structure_id))
         == PARSER_SUCCESS) {
-        structure_t* structure = vector_find(&ctx->program->structures, &structure_id, (cmp_func_t)&structure_is);
+        structure_t* structure = context_find_structure(ctx, &structure_id);
 
         if (structure == NULL) {
             error_identifier_not_found(input, &structure_id);
@@ -187,7 +185,12 @@ parser_status_t variable_tail_parser(FILE* input, const context_t* ctx,
 parser_status_t range_parser(FILE* input, const context_t* ctx,
                              range_t* range)
 {
-    PARSE(expression_parser(input, ctx, &range->from));
+    expression_t* from = NULL;
+    expression_t* to = NULL;
+
+    PARSE(expression_parser(input, ctx, &from));
+
+    range_set_from(range, from);
 
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
@@ -195,8 +198,10 @@ parser_status_t range_parser(FILE* input, const context_t* ctx,
 
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
-    PARSE_ERR(expression_parser(input, ctx, &range->to),
+    PARSE_ERR(expression_parser(input, ctx, &to),
               "a valid expression is expected after range '..'");
+
+    range_set_to(range, to);
 
     return PARSER_SUCCESS;
 }

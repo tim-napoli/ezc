@@ -17,6 +17,7 @@ typedef struct identifier {
     char value[IDENTIFIER_SIZE];
 } identifier_t;
 
+bool identifier_set_value(identifier_t* id, char *value);
 bool identifier_is_reserved(const identifier_t* id);
 
 /* ---------------------------- values ------------------------------------- */
@@ -270,6 +271,11 @@ typedef struct for_instr {
 
 for_instr_t* for_instr_new(const identifier_t* subject);
 
+
+void range_set_from(range_t* range, expression_t* from);
+
+void range_set_to(range_t* range, expression_t* to);
+
 void for_instr_delete(for_instr_t* for_instr);
 
 void for_instr_print(FILE* output, const for_instr_t* for_instr);
@@ -451,6 +457,10 @@ typedef struct context {
 void context_init(context_t* ctx);
 void context_set_program(context_t* ctx, program_t* prg);
 void context_set_function(context_t* ctx, function_t* func);
+
+
+structure_t* context_find_structure(const context_t* ctx,
+                                    const identifier_t* structure_id);
 
 identifier_t context_get_program_identifier(context_t* ctx);
 

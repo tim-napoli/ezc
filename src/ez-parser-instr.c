@@ -301,6 +301,7 @@ parser_status_t loop_parser(FILE* input, const context_t* ctx,
 parser_status_t flowcontrol_parser(FILE* input, const context_t* ctx,
                                    flowcontrol_t* flowcontrol)
 {
+    // XXX XXX XXX
     if (TRY(input, if_parser(input, ctx, &flowcontrol->if_instr))
         == PARSER_SUCCESS)
     {
@@ -338,7 +339,7 @@ parser_status_t flowcontrol_parser(FILE* input, const context_t* ctx,
 parser_status_t affectation_parser(FILE* input, const context_t* ctx,
                                    affectation_instr_t* affectation_instr)
 {
-    PARSE(valref_parser(input, ctx, &affectation_instr->lvalue));
+    PARSE(valref_parser(input, ctx, &affectation_instr->lvalue)); // XXX
 
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
@@ -346,7 +347,7 @@ parser_status_t affectation_parser(FILE* input, const context_t* ctx,
 
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
-    PARSE_ERR(expression_parser(input, ctx, &affectation_instr->expression),
+    PARSE_ERR(expression_parser(input, ctx, &affectation_instr->expression), // XXX
               "a valid expression must be provided after an affectation '='");
 
     PARSE_ERR(end_of_line_parser(input, NULL, NULL),

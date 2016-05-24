@@ -44,6 +44,11 @@ bool context_has_identifier(const context_t* ctx,
     return false;
 }
 
+structure_t* context_find_structure(const context_t* ctx,
+                                    const identifier_t* structure_id) {
+    return program_find_structure(ctx->program, structure_id);
+}
+
 bool context_valref_is_valid(const context_t* ctx, const valref_t* valref) {
 
     if (!context_has_identifier(ctx, &valref->identifier)) {

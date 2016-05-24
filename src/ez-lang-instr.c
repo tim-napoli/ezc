@@ -172,6 +172,14 @@ for_instr_t* for_instr_new(const identifier_t* subject) {
     return instr;
 }
 
+void range_set_from(range_t* range, expression_t* from) {
+    range->from = from;
+}
+
+void range_set_to(range_t* range, expression_t* to) {
+    range->to = to;
+}
+
 void for_instr_delete(for_instr_t* for_instr) {
     expression_delete(for_instr->range.from);
     expression_delete(for_instr->range.to);
@@ -331,4 +339,3 @@ void instructions_print(FILE* output, const vector_t* instrs) {
         instruction_print(output, instrs->elements[i]);
     }
 }
-

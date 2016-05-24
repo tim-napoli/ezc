@@ -449,7 +449,7 @@ parser_status_t program_parser(FILE* input,
 
     while (entity_parser(input, ctx, *program) == PARSER_SUCCESS) {}
 
-    if (!program_has_function(ctx->program, &prg_id)) {
+    if (!program_has_function(*program, &prg_id)) {
         error_no_main_function(&prg_id);
 
         return PARSER_FATAL;
