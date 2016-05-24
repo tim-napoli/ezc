@@ -360,12 +360,18 @@ void function_delete(function_t* function);
 
 void function_print(FILE* output, const function_t* function);
 
+void function_set_args(function_t* func, vector_t* args);
 bool function_has_arg(const function_t* func, const identifier_t* arg);
 function_arg_t* function_find_arg(const function_t* func,
                                   const identifier_t* arg);
 
+void function_add_local(function_t* func, symbol_t* local);
 bool function_has_local(const function_t* func, const identifier_t* arg);
 symbol_t* function_find_local(const function_t* func, const identifier_t* arg);
+
+void function_set_return_type(function_t* func, type_t* return_type);
+
+void function_set_instructions(function_t* func, vector_t* instructions);
 
 bool function_is(const function_t* func, const identifier_t* id);
 
@@ -402,19 +408,24 @@ void program_delete(program_t* prg);
 
 void program_print(FILE* output, const program_t* prg);
 
+void program_add_global(program_t* prg, symbol_t* global);
 bool program_has_global(const program_t* prg, const identifier_t* id);
 symbol_t* program_find_global(const program_t* prg, const identifier_t* id);
 
+void program_add_constant(program_t* prg, constant_t* constant);
 bool program_has_constant(const program_t* prg, const identifier_t* id);
 constant_t* program_find_constant(const program_t* prg, const identifier_t* id);
 
+void program_add_structure(program_t* prg, structure_t* structure);
 bool program_has_structure(const program_t* prg, const identifier_t* id);
 structure_t* program_find_structure(const program_t* prg,
                                     const identifier_t* id);
 
+void program_add_function(program_t* prg, function_t* function);
 bool program_has_function(const program_t* prg, const identifier_t* id);
 function_t* program_find_function(const program_t* prg, const identifier_t* id);
 
+void program_add_procedure(program_t* prg, function_t* procedure);
 bool program_has_procedure(const program_t* prg, const identifier_t* id);
 function_t* program_find_procedure(const program_t* prg, const identifier_t* id);
 
@@ -426,6 +437,12 @@ typedef struct context {
     const program_t* program;
     const function_t* function;
 } context_t;
+
+void context_init(context_t* ctx);
+void context_set_program(context_t* ctx, program_t* prg);
+void context_set_function(context_t* ctx, function_t* func);
+
+identifier_t context_get_program_identifier(context_t* ctx);
 
 bool context_has_identifier(const context_t* ctx, const identifier_t* id);
 

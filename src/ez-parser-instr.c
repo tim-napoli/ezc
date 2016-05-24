@@ -1,5 +1,6 @@
 #include <string.h>
 #include "ez-parser.h"
+#include <ez-lang-errors.h>
 
 parser_status_t print_parser(FILE* input, const context_t* ctx,
                              parameters_t* output)
@@ -11,6 +12,7 @@ parser_status_t print_parser(FILE* input, const context_t* ctx,
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
     parameters_init(output);
+
     PARSE(parameters_parser(input, ctx, output));
 
     PARSE(end_of_line_parser(input, NULL, NULL));
@@ -19,7 +21,7 @@ parser_status_t print_parser(FILE* input, const context_t* ctx,
 }
 
 parser_status_t read_parser(FILE* input, const context_t* ctx,
-                            valref_t** output)
+                            valref_t** valref)
 {
     PARSE(word_parser(input, "read", NULL));
 
@@ -27,8 +29,12 @@ parser_status_t read_parser(FILE* input, const context_t* ctx,
           "a space is expected after 'read' keyword");
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
-    PARSE_ERR(valref_parser(input, ctx, output),
+    PARSE_ERR(valref_parser(input, ctx, valref),
               "a single value reference must follow the 'read' keyword");
+
+    if (!context_valref_is_valid(ctx, *valref)) {
+        error_valref_not_found(input, *valref);
+    }
 
     PARSE_ERR(end_of_line_parser(input, NULL, NULL),
               "a new line must follow the 'read' line");
@@ -37,7 +43,7 @@ parser_status_t read_parser(FILE* input, const context_t* ctx,
 }
 
 parser_status_t return_parser(FILE* input, const void* args,
-                              expression_t** output)
+                              expression_t** expression)
 {
     PARSE(word_parser(input, "return", NULL));
 
@@ -46,7 +52,7 @@ parser_status_t return_parser(FILE* input, const void* args,
 
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
-    PARSE_ERR(expression_parser(input, NULL, output),
+    PARSE_ERR(expression_parser(input, NULL, expression),
               "bad return expression");
 
     PARSE(end_of_line_parser(input, NULL, NULL));
@@ -55,7 +61,7 @@ parser_status_t return_parser(FILE* input, const void* args,
 }
 
 parser_status_t elsif_parser(FILE* input, const context_t* ctx,
-                             elsif_instr_t** output)
+                             elsif_instr_t** elsif_intr)
 {
     expression_t* coundition = NULL;
 
@@ -73,31 +79,31 @@ parser_status_t elsif_parser(FILE* input, const context_t* ctx,
 
     PARSE(end_of_line_parser(input, NULL, NULL));
 
-    *output = elsif_instr_new(coundition);
+    *elsif_intr = elsif_instr_new(coundition);
 
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
-    PARSE(instructions_parser(input, ctx, &(*output)->instructions));
+    PARSE(instructions_parser(input, ctx, &(*elsif_intr)->instructions)); // XXX
 
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
     return PARSER_SUCCESS;
 }
 
-parser_status_t else_parser(FILE* input, const context_t* ctx, vector_t* output)
+parser_status_t else_parser(FILE* input, const context_t* ctx, vector_t* vector)
 {
     PARSE(word_parser(input, "else", NULL));
     PARSE(end_of_line_parser(input, NULL, NULL));
 
     SKIP_MANY(input, space_parser(input, NULL, NULL));
-    PARSE(instructions_parser(input, ctx, output));
+    PARSE(instructions_parser(input, ctx, vector));
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
     return PARSER_SUCCESS;
 }
 
 parser_status_t if_parser(FILE* input, const context_t* ctx,
-                          if_instr_t** output)
+                          if_instr_t** if_instr)
 {
     expression_t* coundition = NULL;
 
@@ -118,22 +124,22 @@ parser_status_t if_parser(FILE* input, const context_t* ctx,
     PARSE_ERR(end_of_line_parser(input, NULL, NULL),
               "an end of line must follow the 'then' keyword");
 
-    *output = if_instr_new(coundition);
+    *if_instr = if_instr_new(coundition);
 
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
-    PARSE(instructions_parser(input, ctx, &(*output)->instructions));
+    PARSE(instructions_parser(input, ctx, &(*if_instr)->instructions)); // XXX
 
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
     elsif_instr_t* elsif = NULL;
     while (TRY(input, elsif_parser(input, ctx, &elsif)) == PARSER_SUCCESS) {
-        vector_push(&(*output)->elsifs, elsif);
+        vector_push(&(*if_instr)->elsifs, elsif); // XXX
     }
 
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
-    TRY(input, else_parser(input, ctx, &(*output)->else_instrs));
+    TRY(input, else_parser(input, ctx, &(*if_instr)->else_instrs)); // XXX
 
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
@@ -147,7 +153,7 @@ parser_status_t if_parser(FILE* input, const context_t* ctx,
 }
 
 parser_status_t on_parser(FILE* input, const context_t* ctx,
-                          on_instr_t** output)
+                          on_instr_t** on_instr)
 {
     expression_t* coundition = NULL;
 
@@ -168,15 +174,15 @@ parser_status_t on_parser(FILE* input, const context_t* ctx,
 
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
-    *output = on_instr_new(coundition);
+    *on_instr = on_instr_new(coundition);
 
-    PARSE(instruction_parser(input, ctx, &(*output)->instruction));
+    PARSE(instruction_parser(input, ctx, &(*on_instr)->instruction)); // XXX
 
     return PARSER_SUCCESS;
 }
 
 parser_status_t while_parser(FILE* input, const context_t* ctx,
-                             while_instr_t** output)
+                             while_instr_t** while_instr)
 {
     expression_t* expr = NULL;
 
@@ -197,9 +203,9 @@ parser_status_t while_parser(FILE* input, const context_t* ctx,
     PARSE_ERR(end_of_line_parser(input, NULL, NULL),
               "a new line is expected after the while 'do' keyword");
 
-    *output = while_instr_new(expr);
+    *while_instr = while_instr_new(expr);
 
-    PARSE(instructions_parser(input, ctx, &(*output)->instructions));
+    PARSE(instructions_parser(input, ctx, &(*while_instr)->instructions)); // XXX
 
     SKIP_MANY(input, comment_or_empty_parser(input, NULL, NULL));
 
@@ -212,7 +218,7 @@ parser_status_t while_parser(FILE* input, const context_t* ctx,
 }
 
 parser_status_t for_parser(FILE* input, const context_t* ctx,
-                           for_instr_t** output)
+                           for_instr_t** for_instr)
 {
     identifier_t id;
 
@@ -225,7 +231,7 @@ parser_status_t for_parser(FILE* input, const context_t* ctx,
     PARSE_ERR(identifier_parser(input, NULL, &id),
               "a valid identifier is expected after the 'for' keyword");
 
-    *output = for_instr_new(&id);
+    *for_instr = for_instr_new(&id);
 
     PARSE_ERR(space_parser(input, NULL, NULL),
           "a space is expcted after for identifier");
@@ -238,7 +244,7 @@ parser_status_t for_parser(FILE* input, const context_t* ctx,
           "a space is expcted after for 'in' keyword");
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
-    PARSE_ERR(range_parser(input, ctx, &(*output)->range),
+    PARSE_ERR(range_parser(input, ctx, &(*for_instr)->range), // XXX
               "a valid range is expected after 'for' 'in' keyword");
 
     SKIP_MANY(input, space_parser(input, NULL, NULL));
@@ -249,7 +255,7 @@ parser_status_t for_parser(FILE* input, const context_t* ctx,
     PARSE_ERR(end_of_line_parser(input, NULL, NULL),
               "a new line is expected after the for 'do' keyword");
 
-    PARSE(instructions_parser(input, ctx, &(*output)->instructions));
+    PARSE(instructions_parser(input, ctx, &(*for_instr)->instructions)); // XXX
 
     SKIP_MANY(input, comment_or_empty_parser(input, NULL, NULL));
 
@@ -263,16 +269,16 @@ parser_status_t for_parser(FILE* input, const context_t* ctx,
 }
 
 parser_status_t loop_parser(FILE* input, const context_t* ctx,
-                            loop_instr_t** output)
+                            loop_instr_t** loop_instr)
 {
     PARSE(word_parser(input, "loop", NULL));
 
     PARSE_ERR(end_of_line_parser(input, NULL, NULL),
               "a new line is expected after the 'loop' keyword");
 
-    *output = loop_instr_new(NULL);
+    *loop_instr = loop_instr_new(NULL);
 
-    PARSE(instructions_parser(input, ctx, &(*output)->instructions));
+    PARSE(instructions_parser(input, ctx, &(*loop_instr)->instructions)); // XXX
 
     SKIP_MANY(input, comment_or_empty_parser(input, NULL, NULL));
 
@@ -283,7 +289,7 @@ parser_status_t loop_parser(FILE* input, const context_t* ctx,
               "a space is expected after 'until' keyword");
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
-    PARSE_ERR(expression_parser(input, ctx, &(*output)->coundition),
+    PARSE_ERR(expression_parser(input, ctx, &(*loop_instr)->coundition), // XXX
               "a valid expression is expected after the 'until' keyword");
 
     PARSE_ERR(end_of_line_parser(input, NULL, NULL),
@@ -293,36 +299,36 @@ parser_status_t loop_parser(FILE* input, const context_t* ctx,
 }
 
 parser_status_t flowcontrol_parser(FILE* input, const context_t* ctx,
-                                   flowcontrol_t* output)
+                                   flowcontrol_t* flowcontrol)
 {
-    if (TRY(input, if_parser(input, ctx, &output->if_instr))
+    if (TRY(input, if_parser(input, ctx, &flowcontrol->if_instr))
         == PARSER_SUCCESS)
     {
-        output->type = FLOWCONTROL_TYPE_IF;
+        flowcontrol->type = FLOWCONTROL_TYPE_IF;
         return PARSER_SUCCESS;
     } else
-    if (TRY(input, on_parser(input, ctx, &output->on_instr))
+    if (TRY(input, on_parser(input, ctx, &flowcontrol->on_instr))
         == PARSER_SUCCESS)
     {
-        output->type = FLOWCONTROL_TYPE_ON;
+        flowcontrol->type = FLOWCONTROL_TYPE_ON;
         return PARSER_SUCCESS;
     } else
-    if (TRY(input, while_parser(input, ctx, &output->while_instr))
+    if (TRY(input, while_parser(input, ctx, &flowcontrol->while_instr))
         == PARSER_SUCCESS)
     {
-        output->type = FLOWCONTROL_TYPE_WHILE;
+        flowcontrol->type = FLOWCONTROL_TYPE_WHILE;
         return PARSER_SUCCESS;
     } else
-    if (TRY(input, for_parser(input, ctx, &output->for_instr))
+    if (TRY(input, for_parser(input, ctx, &flowcontrol->for_instr))
         == PARSER_SUCCESS)
     {
-        output->type = FLOWCONTROL_TYPE_FOR;
+        flowcontrol->type = FLOWCONTROL_TYPE_FOR;
         return PARSER_SUCCESS;
     } else
-    if (TRY(input, loop_parser(input, ctx, &output->loop_instr))
+    if (TRY(input, loop_parser(input, ctx, &flowcontrol->loop_instr))
         == PARSER_SUCCESS)
     {
-        output->type = FLOWCONTROL_TYPE_LOOP;
+        flowcontrol->type = FLOWCONTROL_TYPE_LOOP;
         return PARSER_SUCCESS;
     }
 
@@ -330,9 +336,9 @@ parser_status_t flowcontrol_parser(FILE* input, const context_t* ctx,
 }
 
 parser_status_t affectation_parser(FILE* input, const context_t* ctx,
-                                   affectation_instr_t* output)
+                                   affectation_instr_t* affectation_instr)
 {
-    PARSE(valref_parser(input, ctx, &output->lvalue));
+    PARSE(valref_parser(input, ctx, &affectation_instr->lvalue));
 
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
@@ -340,7 +346,7 @@ parser_status_t affectation_parser(FILE* input, const context_t* ctx,
 
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
-    PARSE_ERR(expression_parser(input, ctx, &output->expression),
+    PARSE_ERR(expression_parser(input, ctx, &affectation_instr->expression),
               "a valid expression must be provided after an affectation '='");
 
     PARSE_ERR(end_of_line_parser(input, NULL, NULL),
@@ -350,7 +356,7 @@ parser_status_t affectation_parser(FILE* input, const context_t* ctx,
 }
 
 parser_status_t instruction_parser(FILE* input, const context_t* ctx,
-                                   instruction_t** output)
+                                   instruction_t** instruction)
 {
     valref_t* valref = NULL;
     flowcontrol_t flowcontrol;
@@ -363,35 +369,40 @@ parser_status_t instruction_parser(FILE* input, const context_t* ctx,
     if (TRY(input, flowcontrol_parser(input, ctx, &flowcontrol))
         == PARSER_SUCCESS)
     {
-        *output = instruction_new(INSTRUCTION_TYPE_FLOWCONTROL);
-        memcpy(&(*output)->flowcontrol, &flowcontrol, sizeof(flowcontrol_t));
+        *instruction = instruction_new(INSTRUCTION_TYPE_FLOWCONTROL);
+        memcpy(&(*instruction)->flowcontrol, &flowcontrol, sizeof(flowcontrol_t)); // XXX XXX
+
         return PARSER_SUCCESS;
     } else
     if (TRY(input, affectation_parser(input, ctx, &affectation))
         == PARSER_SUCCESS) {
-        *output = instruction_new(INSTRUCTION_TYPE_AFFECTATION);
-        memcpy(&(*output)->affectation, &affectation,
+        *instruction = instruction_new(INSTRUCTION_TYPE_AFFECTATION);
+        memcpy(&(*instruction)->affectation, &affectation, // XXX XXX
                sizeof(affectation_instr_t));
+
         return PARSER_SUCCESS;
     } else
     if (TRY(input, print_parser(input, ctx, &parameters)) == PARSER_SUCCESS) {
-        *output = instruction_new(INSTRUCTION_TYPE_PRINT);
-        memcpy(&(*output)->parameters, &parameters, sizeof(parameters_t));
+        *instruction = instruction_new(INSTRUCTION_TYPE_PRINT);
+        memcpy(&(*instruction)->parameters, &parameters, sizeof(parameters_t)); // XXX XXX
         return PARSER_SUCCESS;
     } else
     if (TRY(input, read_parser(input, NULL, &valref)) == PARSER_SUCCESS) {
-        *output = instruction_new(INSTRUCTION_TYPE_READ);
-        (*output)->valref = valref;
+        *instruction = instruction_new(INSTRUCTION_TYPE_READ);
+        (*instruction)->valref = valref; // XXX
         return PARSER_SUCCESS;
     } else
     if (TRY(input, return_parser(input, NULL, &expression)) == PARSER_SUCCESS) {
-        *output = instruction_new(INSTRUCTION_TYPE_RETURN);
-        (*output)->expression = expression;
+        *instruction = instruction_new(INSTRUCTION_TYPE_RETURN);
+        (*instruction)->expression = expression; // XXX
+
         return PARSER_SUCCESS;
     } else
-    if (TRY(input, expression_parser(input, ctx, &expression)) == PARSER_SUCCESS) {
-        *output = instruction_new(INSTRUCTION_TYPE_EXPRESSION);
-        (*output)->expression = expression;
+    if (TRY(input, expression_parser(input, ctx, &expression))
+        == PARSER_SUCCESS) {
+        *instruction = instruction_new(INSTRUCTION_TYPE_EXPRESSION);
+        (*instruction)->expression = expression; // XXX
+
         return PARSER_SUCCESS;
     }
 
@@ -399,13 +410,13 @@ parser_status_t instruction_parser(FILE* input, const context_t* ctx,
 }
 
 parser_status_t instructions_parser(FILE* input, const context_t* ctx,
-                                    vector_t* output)
+                                    vector_t* instructions)
 {
     instruction_t* instr = NULL;
     while (TRY(input, instruction_parser(input, ctx, &instr))
            == PARSER_SUCCESS)
     {
-        vector_push(output, instr);
+        vector_push(instructions, instr);
     }
 
     return PARSER_SUCCESS;
