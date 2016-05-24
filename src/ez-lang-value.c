@@ -11,6 +11,10 @@ void parameters_wipe(parameters_t* params) {
     vector_wipe(&params->parameters, (delete_func_t)&expression_delete);
 }
 
+void parameters_add(parameters_t* params, expression_t* expr) {
+    vector_push(&params->parameters, expr);
+}
+
 void parameters_print(FILE* output, const parameters_t* params) {
     for (int i = 0; i < params->parameters.size; i++) {
         expression_print(output, params->parameters.elements[i]);
@@ -43,6 +47,30 @@ void valref_delete(valref_t* v) {
         vector_wipe(&v->indexings, (delete_func_t)&expression_delete);
         free(v);
     }
+}
+
+void valref_set_next(valref_t* v, valref_t* n) {
+    v->next = n;
+}
+
+parameters_t* valref_get_parameters(valref_t* v) {
+    return &v->parameters;
+}
+
+void valref_add_parameter(valref_t* v, expression_t* p) {
+    vector_push(&v->parameters.parameters, p);
+}
+
+void valref_set_is_funccall(valref_t* v, bool is_funccall) {
+    v->is_funccall = is_funccall;
+}
+
+void valref_set_has_indexing(valref_t* v, bool has_indexing) {
+    v->has_indexing = has_indexing;
+}
+
+void valref_add_index(valref_t* v, expression_t* index) {
+    vector_push(&v->indexings, index);
 }
 
 void valref_print(FILE* output, const valref_t* value) {

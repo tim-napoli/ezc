@@ -48,7 +48,7 @@ parser_status_t valref_parser(FILE* input, const context_t* ctx,
                               valref_t** valref);
 
 parser_status_t parameters_parser(FILE* input, const context_t* ctx,
-                                  parameters_t* parameters);
+                                  parameters_t** parameters);
 
 parser_status_t value_parser(FILE* input, const context_t* ctx,
                              value_t* value);

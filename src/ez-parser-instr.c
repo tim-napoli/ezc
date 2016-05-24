@@ -13,7 +13,7 @@ parser_status_t print_parser(FILE* input, const context_t* ctx,
 
     parameters_init(output);
 
-    PARSE(parameters_parser(input, ctx, output));
+    PARSE(parameters_parser(input, ctx, &output));
 
     PARSE(end_of_line_parser(input, NULL, NULL));
 

@@ -92,16 +92,18 @@ parser_status_t bool_parser(FILE* input, const void* args,
 }
 
 parser_status_t parameters_parser(FILE* input, const context_t* ctx,
-                                  parameters_t* parameters)
+                                  parameters_t** parameters)
 {
     expression_t* expr = NULL;
 
     if (TRY(input, expression_parser(input, ctx, &expr)) == PARSER_SUCCESS) {
-        vector_push(&parameters->parameters, expr); // XXX
+        parameters_add(*parameters, expr);
 
         SKIP_MANY(input, space_parser(input, NULL, NULL));
+
         if (TRY(input, char_parser(input, ",", NULL)) == PARSER_SUCCESS) {
             SKIP_MANY(input, space_parser(input, NULL, NULL));
+
             PARSE_ERR(parameters_parser(input, ctx, parameters),
                       "invalid parameter");
         }
@@ -119,64 +121,56 @@ parser_status_t valref_parser(FILE* input, const context_t* ctx,
 
     *valref = valref_new(&id);
 
-    /* XXX find a better way to do this function... */
-    if (TRY(input, char_parser(input, ".", NULL)) == PARSER_SUCCESS) {
-        /* Continue with a valref */
-        PARSE_ERR(valref_parser(input, ctx, &(*valref)->next), // XXX
-                  "expected identifier after '.'");
-    } else {
-        /* Check if this is a function call */
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
+
+    if (TRY(input, char_parser(input, "(", NULL)) == PARSER_SUCCESS) {
         SKIP_MANY(input, space_parser(input, NULL, NULL));
 
-        if (TRY(input, char_parser(input, "(", NULL)) == PARSER_SUCCESS) {
-            SKIP_MANY(input, space_parser(input, NULL, NULL));
+        parameters_t* parameters = valref_get_parameters(*valref);
+        PARSE(parameters_parser(input, ctx, &parameters));
 
-            PARSE(parameters_parser(input, ctx, &(*valref)->parameters)); // XXX
+        SKIP_MANY(input, space_parser(input, NULL, NULL));
 
-            SKIP_MANY(input, space_parser(input, NULL, NULL));
+        PARSE_ERR(char_parser(input, ")", NULL),
+                  "unclosed function call");
 
-            PARSE_ERR(char_parser(input, ")", NULL),
-                      "unclosed function call");
+        valref_set_is_funccall(*valref, true);
 
-            (*valref)->is_funccall = true; // XXX
-
-            /* TODO check if 'identifier' is a function and not a procedure */
-            if (TRY(input, char_parser(input, ".", NULL)) == PARSER_SUCCESS) {
-                /* Continue with a valref */
-                PARSE_ERR(valref_parser(input, ctx, &(*valref)->next), // XXX
-                          "expected identifier after '.'");
-            }
-        }
-
-        while (TRY(input, char_parser(input, "[", NULL)) == PARSER_SUCCESS) {
-            expression_t* expr = NULL;
-
-            /* Check is this is a array/vector/map indexing */
-            /* TODO check if 'identifier' is a array/vector value */
-            SKIP_MANY(input, space_parser(input, NULL, NULL));
-
-            PARSE_ERR(expression_parser(input, ctx, &expr),
-                      "a valid expression must follow '['");
-            (*valref)->has_indexing = true; // XXX
-
-            vector_push(&(*valref)->indexings, expr); // XXX
-
-            SKIP_MANY(input, space_parser(input, NULL, NULL));
-
-            PARSE_ERR(char_parser(input, "]", NULL),
-                      "missing ']'");
-
-            SKIP_MANY(input, space_parser(input, NULL, NULL));
-
-            if (TRY(input, char_parser(input, ".", NULL)) == PARSER_SUCCESS) {
-                /* Continue with a valref */
-                PARSE_ERR(valref_parser(input, ctx, &(*valref)->next), // XXX
-                          "expected identifier after '.'");
-            }
-
-            SKIP_MANY(input, space_parser(input, NULL, NULL));
-        }
+        /* TODO check if 'identifier' is a function and not a procedure */
     }
+
+    while (TRY(input, char_parser(input, "[", NULL)) == PARSER_SUCCESS) {
+        expression_t* expr = NULL;
+
+        /* Check is this is a array/vector/map indexing */
+        /* TODO check if 'identifier' is a array/vector value */
+        SKIP_MANY(input, space_parser(input, NULL, NULL));
+
+        PARSE_ERR(expression_parser(input, ctx, &expr),
+                  "a valid expression must follow '['");
+
+        valref_set_has_indexing(*valref, true);
+        valref_add_index(*valref, expr);
+
+        SKIP_MANY(input, space_parser(input, NULL, NULL));
+
+        PARSE_ERR(char_parser(input, "]", NULL),
+                  "missing ']'");
+
+        SKIP_MANY(input, space_parser(input, NULL, NULL));
+    }
+
+    if (TRY(input, char_parser(input, ".", NULL)) == PARSER_SUCCESS) {
+        /* Continue with a valref */
+        valref_t* next = NULL;
+
+        PARSE_ERR(valref_parser(input, ctx, &next),
+                  "expected identifier after '.'");
+
+        valref_set_next(*valref, next);
+    }
+
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
 
     return PARSER_SUCCESS;
 }
@@ -184,6 +178,7 @@ parser_status_t valref_parser(FILE* input, const context_t* ctx,
 parser_status_t value_parser(FILE* input, const context_t* ctx,
                              value_t* value)
 {
+    // XXX (->)
     if (TRY(input, string_parser(input, NULL, &value->string))
         == PARSER_SUCCESS)
     {

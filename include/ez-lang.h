@@ -27,6 +27,8 @@ typedef struct parameters {
 
 void parameters_init(parameters_t* params);
 
+void parameters_add(parameters_t* params, expression_t* expr);
+
 void parameters_wipe(parameters_t* params);
 
 void parameters_print(FILE* output, const parameters_t* params);
@@ -71,6 +73,14 @@ typedef struct value {
 } value_t;
 
 void value_wipe(value_t* value);
+
+parameters_t* valref_get_parameters(valref_t* v);
+
+void valref_set_next(valref_t* v, valref_t* n);
+void valref_add_parameter(valref_t* v, expression_t* p);
+void valref_set_is_funccall(valref_t* v, bool is_funccall);
+void valref_set_has_indexing(valref_t* v, bool has_indexing);
+void valref_add_index(valref_t* v, expression_t* index);
 
 void value_print(FILE* output, const value_t* value);
 
