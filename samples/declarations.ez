@@ -16,9 +16,10 @@ global p is Person
 constant PI         is real    = 3
 constant TOTO       is string  = "toto"
 constant MAX_PRIMES is integer = 20
-constant EXPR       is boolean = 4 * PIZEFZE * 6 + 3 * 7 <= MAX_PRIMES * 2 + 1 * 5
+constant EXPR       is boolean = 4 * PI * 6 + 3 * 7 <= MAX_PRIMES * 2 + 1 * 5
 
 function person(in args is vector of string) return integer
 begin
-    print "Hello, world", p.name
+    print "Hello, world", p.name, args
+    person(p)
 end

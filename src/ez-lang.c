@@ -138,6 +138,10 @@ void function_print(FILE* output, const function_t* function) {
     fprintf(output, "}\n\n");
 }
 
+void function_set_args(function_t* func, vector_t* args) {
+    memcpy(&func->args, args, sizeof(vector_t));
+}
+
 bool function_has_arg(const function_t* func, const identifier_t* arg) {
     return vector_contains(&func->args, arg, (cmp_func_t)&function_arg_is);
 }
@@ -146,12 +150,24 @@ function_arg_t* function_find_arg(const function_t* func, const identifier_t* id
     return vector_find(&func->args, id, (cmp_func_t)&function_arg_is);
 }
 
+void function_add_local(function_t* func, symbol_t* local) {
+    vector_push(&func->locals, local);
+}
+
 bool function_has_local(const function_t* func, const identifier_t* arg) {
     return vector_contains(&func->locals, arg, (cmp_func_t)&symbol_is);
 }
 
 symbol_t* function_find_local(const function_t* func, const identifier_t* id) {
     return vector_find(&func->locals, id, (cmp_func_t)&symbol_is);
+}
+
+void function_set_return_type(function_t* func, type_t* return_type) {
+    func->return_type = return_type;
+}
+
+void function_set_instructions(function_t* func, vector_t* instructions) {
+    memcpy(&func->instructions, instructions, sizeof(vector_t));
 }
 
 bool function_is(const function_t* func, const identifier_t* id) {
@@ -253,12 +269,21 @@ void program_print(FILE* output, const program_t* prg) {
             prg->identifier.value);
 }
 
+void program_add_global(program_t* prg, symbol_t* global) {
+    vector_push(&prg->globals, global);
+}
+
 bool program_has_global(const program_t* prg, const identifier_t* id) {
     return vector_contains(&prg->globals, id, (cmp_func_t)&symbol_is);
 }
 
 symbol_t* program_find_global(const program_t* prg, const identifier_t* id) {
     return vector_find(&prg->globals, id, (cmp_func_t)&symbol_is);
+}
+
+
+void program_add_constant(program_t* prg, constant_t* constant) {
+    vector_push(&prg->constants, constant);
 }
 
 bool program_has_constant(const program_t* prg, const identifier_t* id) {
@@ -269,12 +294,22 @@ constant_t* program_find_constant(const program_t* prg, const identifier_t* id) 
     return vector_find(&prg->constants, id, (cmp_func_t)&constant_is);
 }
 
+
+void program_add_structure(program_t* prg, structure_t* structure) {
+    vector_push(&prg->structures, structure);
+}
+
 bool program_has_structure(const program_t* prg, const identifier_t* id) {
     return vector_contains(&prg->structures, id, (cmp_func_t)&structure_is);
 }
 
-structure_t* program_find_structure(const program_t* prg, const identifier_t* id) {
+structure_t* program_find_structure(const program_t* prg,
+                                    const identifier_t* id) {
     return vector_find(&prg->structures, id, (cmp_func_t)&structure_is);
+}
+
+void program_add_function(program_t* prg, function_t* function) {
+    vector_push(&prg->functions, function);
 }
 
 bool program_has_function(const program_t* prg, const identifier_t* id) {
@@ -285,6 +320,10 @@ function_t* program_find_function(const program_t* prg,
                                   const identifier_t* id)
 {
     return vector_find(&prg->functions, id, (cmp_func_t)&function_is);
+}
+
+void program_add_procedure(program_t* prg, function_t* procedure) {
+    vector_push(&prg->procedures, procedure);
 }
 
 bool program_has_procedure(const program_t* prg, const identifier_t* id) {

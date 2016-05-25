@@ -128,5 +128,3 @@ void* vector_find(const vector_t* vector, const void* element,
     }
     return NULL;
 }
-
-

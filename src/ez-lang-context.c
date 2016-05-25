@@ -3,6 +3,23 @@
 #include <stdlib.h>
 #include <string.h>
 
+void context_init(context_t* ctx) {
+    ctx->program = NULL;
+    ctx->function = NULL;
+}
+
+void context_set_program(context_t* ctx, program_t* prg) {
+    ctx->program = prg;
+}
+
+void context_set_function(context_t* ctx, function_t* func) {
+    ctx->function = func;
+}
+
+identifier_t context_get_program_identifier(context_t* ctx) {
+    return ctx->program->identifier;
+}
+
 bool context_has_identifier(const context_t* ctx,
                             const identifier_t* id)
 {
@@ -25,6 +42,11 @@ bool context_has_identifier(const context_t* ctx,
     }
 
     return false;
+}
+
+structure_t* context_find_structure(const context_t* ctx,
+                                    const identifier_t* structure_id) {
+    return program_find_structure(ctx->program, structure_id);
 }
 
 bool context_valref_is_valid(const context_t* ctx, const valref_t* valref) {
@@ -72,6 +94,10 @@ bool valref_is_valid(const valref_t* valref, const symbol_t* symbol) {
         return false;
     }
 
+    if (symbol->is->type != TYPE_TYPE_STRUCTURE && valref->next) {
+        return false;
+    }
+
     if (symbol->is->type == TYPE_TYPE_STRUCTURE && valref->next) {
         symbol_t* next_symbol = structure_find_member(symbol->is->structure_type, &valref->next->identifier);
 
@@ -81,7 +107,6 @@ bool valref_is_valid(const valref_t* valref, const symbol_t* symbol) {
 
         return valref_is_valid(valref->next, next_symbol);
     }
-
 
     return true;
 }

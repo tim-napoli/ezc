@@ -17,6 +17,7 @@ typedef struct identifier {
     char value[IDENTIFIER_SIZE];
 } identifier_t;
 
+bool identifier_set_value(identifier_t* id, char *value);
 bool identifier_is_reserved(const identifier_t* id);
 
 typedef struct symbol symbol_t;
@@ -31,6 +32,8 @@ typedef struct parameters {
 } parameters_t;
 
 void parameters_init(parameters_t* params);
+
+void parameters_add(parameters_t* params, expression_t* expr);
 
 void parameters_wipe(parameters_t* params);
 
@@ -78,6 +81,14 @@ typedef struct value {
 } value_t;
 
 void value_wipe(value_t* value);
+
+parameters_t* valref_get_parameters(valref_t* v);
+
+void valref_set_next(valref_t* v, valref_t* n);
+void valref_add_parameter(valref_t* v, expression_t* p);
+void valref_set_is_funccall(valref_t* v, bool is_funccall);
+void valref_set_has_indexing(valref_t* v, bool has_indexing);
+void valref_add_index(valref_t* v, expression_t* index);
 
 void value_print(FILE* output, const value_t* value);
 
@@ -269,6 +280,11 @@ typedef struct for_instr {
 
 for_instr_t* for_instr_new(const identifier_t* subject);
 
+
+void range_set_from(range_t* range, expression_t* from);
+
+void range_set_to(range_t* range, expression_t* to);
+
 void for_instr_delete(for_instr_t* for_instr);
 
 void for_instr_print(FILE* output, const for_instr_t* for_instr);
@@ -385,12 +401,18 @@ void function_delete(function_t* function);
 
 void function_print(FILE* output, const function_t* function);
 
+void function_set_args(function_t* func, vector_t* args);
 bool function_has_arg(const function_t* func, const identifier_t* arg);
 function_arg_t* function_find_arg(const function_t* func,
                                   const identifier_t* arg);
 
+void function_add_local(function_t* func, symbol_t* local);
 bool function_has_local(const function_t* func, const identifier_t* arg);
 symbol_t* function_find_local(const function_t* func, const identifier_t* arg);
+
+void function_set_return_type(function_t* func, type_t* return_type);
+
+void function_set_instructions(function_t* func, vector_t* instructions);
 
 bool function_is(const function_t* func, const identifier_t* id);
 
@@ -427,19 +449,24 @@ void program_delete(program_t* prg);
 
 void program_print(FILE* output, const program_t* prg);
 
+void program_add_global(program_t* prg, symbol_t* global);
 bool program_has_global(const program_t* prg, const identifier_t* id);
 symbol_t* program_find_global(const program_t* prg, const identifier_t* id);
 
+void program_add_constant(program_t* prg, constant_t* constant);
 bool program_has_constant(const program_t* prg, const identifier_t* id);
 constant_t* program_find_constant(const program_t* prg, const identifier_t* id);
 
+void program_add_structure(program_t* prg, structure_t* structure);
 bool program_has_structure(const program_t* prg, const identifier_t* id);
 structure_t* program_find_structure(const program_t* prg,
                                     const identifier_t* id);
 
+void program_add_function(program_t* prg, function_t* function);
 bool program_has_function(const program_t* prg, const identifier_t* id);
 function_t* program_find_function(const program_t* prg, const identifier_t* id);
 
+void program_add_procedure(program_t* prg, function_t* procedure);
 bool program_has_procedure(const program_t* prg, const identifier_t* id);
 function_t* program_find_procedure(const program_t* prg, const identifier_t* id);
 
@@ -451,6 +478,16 @@ struct context {
     const program_t* program;
     const function_t* function;
 };
+
+void context_init(context_t* ctx);
+void context_set_program(context_t* ctx, program_t* prg);
+void context_set_function(context_t* ctx, function_t* func);
+
+
+structure_t* context_find_structure(const context_t* ctx,
+                                    const identifier_t* structure_id);
+
+identifier_t context_get_program_identifier(context_t* ctx);
 
 bool context_has_identifier(const context_t* ctx, const identifier_t* id);
 
