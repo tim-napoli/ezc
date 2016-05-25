@@ -125,6 +125,9 @@ parser_status_t function_parser(FILE* input, context_t* ctx,
 
     *function = function_new(&function_id);
 
+    /* Push the current function inside the context. */
+    context_set_function(ctx, *function);
+
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
     PARSE_ERR(char_parser(input, "(", NULL), "missing '('");
@@ -162,13 +165,16 @@ parser_status_t function_parser(FILE* input, context_t* ctx,
 
         PARSE(local_parser(input, ctx, &local));
 
-        function_add_local(*function, local);
+        if (context_has_identifier(ctx, &local->identifier)) {
+            error_identifier_exists(input, &local->identifier);
+            symbol_delete(local);
+        } else {
+            function_add_local(*function, local);
+        }
+
 
         SKIP_MANY(input, comment_or_empty_parser(input, NULL, NULL));
     }
-
-    /* Push the current function inside the context. */
-    context_set_function(ctx, *function);
 
     PARSE_ERR(end_of_line_parser(input, NULL, NULL),
               "a newline is expected after the 'begin' keyword");
@@ -207,6 +213,9 @@ parser_status_t procedure_parser(FILE* input, context_t* ctx,
 
     *function = function_new(&procedure_id);
 
+    /* Push the current function inside the context. */
+    context_set_function(ctx, *function);
+
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
     PARSE_ERR(char_parser(input, "(", NULL), "missing '('");
@@ -231,13 +240,15 @@ parser_status_t procedure_parser(FILE* input, context_t* ctx,
 
         PARSE(local_parser(input, ctx, &local));
 
-        function_add_local(*function, local);
+        if (context_has_identifier(ctx, &local->identifier)) {
+            error_identifier_exists(input, &local->identifier);
+            symbol_delete(local);
+        } else {
+            function_add_local(*function, local);
+        }
 
         SKIP_MANY(input, comment_or_empty_parser(input, NULL, NULL));
     }
-
-    /* Push the current function inside the context. */
-    context_set_function(ctx, *function);
 
     PARSE_ERR(end_of_line_parser(input, NULL, NULL),
               "a newline is expected after the 'begin' keyword");

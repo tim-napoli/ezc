@@ -21,4 +21,9 @@ void error_expression_not_valid(FILE* input, const expression_t* expr);
 
 void error_parameters_not_valid(FILE* input, const parameters_t* parameters);
 
+void error_affectation_not_valid(FILE* input,
+                                 const affectation_instr_t* affectation);
+
+void error_value_not_valid(FILE* input, const value_t* value);
+
 #endif /* end of include guard: _ez_errors_h_ */

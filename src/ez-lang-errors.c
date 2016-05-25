@@ -57,3 +57,20 @@ void error_parameters_not_valid(FILE* input, const parameters_t* parameters) {
     parameters_print(stderr, parameters);
     fprintf(stderr, " are not valid in this context\n");
 };
+
+void error_affectation_not_valid(FILE* input,
+                                 const affectation_instr_t* affectation) {
+    error_print(input);
+    fprintf(stderr, "affectaton ");
+    valref_print(stderr, affectation->lvalue);
+    fprintf(stderr, " = ");
+    expression_print(stderr, affectation->expression);
+    fprintf(stderr, " is not valid in this context\n");
+}
+
+void error_value_not_valid(FILE* input, const value_t* value) {
+    error_print(input);
+    fprintf(stderr, "value ");
+    value_print(stderr, value);
+    fprintf(stderr, " is not valid in this context\n");
+}
