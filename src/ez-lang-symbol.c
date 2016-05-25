@@ -94,15 +94,46 @@ void type_print(FILE* output, const type_t* type) {
         break;
 
       case TYPE_TYPE_VECTOR:
-        fprintf(output, "std::vector<");
+        fprintf(output, "std::vector< ");
         type_print(output, type->vector_type);
-        fprintf(output, ">");
+        fprintf(output, " >");
         break;
 
       case TYPE_TYPE_STRUCTURE:
         fprintf(output, type->structure_type->identifier.value);
         break;
     }
+}
+
+bool type_is_equals(const type_t* a, const type_t* b) {
+    if (a && b) {
+        if (a->type == b->type) {
+            if (a->type == TYPE_TYPE_STRUCTURE) {
+                /* Can compare structure address since it comes from the
+                 * program. */
+                return a->structure_type == b->structure_type;
+            } else
+            if (a->type == TYPE_TYPE_VECTOR) {
+                return type_is_equals(a->vector_type, b->vector_type);
+            }
+            return true;
+        }
+        return false;
+    } else if (!a && !b) {
+        return true;
+    }
+    return false;
+}
+
+type_t* type_copy(const type_t* type) {
+    type_t* copy = type_new(type->type);
+    if (copy->type == TYPE_TYPE_VECTOR) {
+        copy->vector_type = type_copy(type->vector_type);
+    } else
+    if (copy->type == TYPE_TYPE_STRUCTURE) {
+        copy->structure_type = type->structure_type;
+    }
+    return copy;
 }
 
 symbol_t *symbol_new(const identifier_t *identifier, type_t *is) {
@@ -181,7 +212,8 @@ bool structure_is(const structure_t* structure, const identifier_t* id) {
     return strcmp(structure->identifier.value, id->value) == 0;
 }
 
-bool structure_has_member(const structure_t* structure, const identifier_t* id) {
+bool structure_has_member(const structure_t* structure, const identifier_t* id)
+{
     return vector_contains(&structure->members, id, (cmp_func_t)&symbol_is);
 }
 
@@ -189,3 +221,4 @@ symbol_t* structure_find_member(const structure_t* structure,
                                 const identifier_t* id) {
     return vector_find(&structure->members, id, (cmp_func_t)&symbol_is);
 }
+

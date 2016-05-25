@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <assert.h>
 #include "ez-lang.h"
 
 void parameters_init(parameters_t* params) {
@@ -95,6 +96,45 @@ void valref_print(FILE* output, const valref_t* value) {
     }
 }
 
+static const type_t* _valref_get_type(const context_t* ctx,
+                                      const valref_t* valref,
+                                      const type_t* type)
+{
+    const type_t* next_type = NULL;
+
+    if (valref->next) {
+        /* TODO and when indexing ? */
+        if (!type) {
+            next_type = context_find_identifier_type(ctx, &valref->identifier);
+        } else {
+            assert (type->type == TYPE_TYPE_STRUCTURE);
+            structure_t* structure = type->structure_type;
+            symbol_t* member = structure_find_member(structure,
+                                                     &valref->identifier);
+            next_type = member->is;
+        }
+        return _valref_get_type(ctx, valref->next, next_type);
+    } else
+    if (valref->is_funccall) {
+        function_t* func = program_find_function(ctx->program,
+                                                 &valref->identifier);
+        return func->return_type;
+    } else
+    if (valref->has_indexing) {
+        return NULL;
+    }
+
+    return type;
+}
+
+const type_t* valref_get_type(const context_t* ctx, const valref_t* valref)
+{
+    const type_t* initial_type =
+        context_find_identifier_type(ctx, &valref->identifier);
+
+    return _valref_get_type(ctx, valref, initial_type);
+}
+
 void value_wipe(value_t* value) {
     switch (value->type) {
       case VALUE_TYPE_STRING:
@@ -137,3 +177,28 @@ void value_print(FILE* output, const value_t* value) {
         break;
     }
 }
+
+type_t* value_get_type(const context_t* ctx, const value_t* value) {
+    switch (value->type) {
+      case VALUE_TYPE_STRING:
+        return type_string_new();
+
+      case VALUE_TYPE_REAL:
+        return type_real_new();
+
+      case VALUE_TYPE_INTEGER:
+        return type_integer_new();
+
+      case VALUE_TYPE_NATURAL:
+        return type_natural_new();
+
+      case VALUE_TYPE_BOOLEAN:
+        return type_boolean_new();
+
+      case VALUE_TYPE_VALREF:
+        return type_copy(valref_get_type(ctx, value->valref));
+    }
+
+    return NULL;
+}
+

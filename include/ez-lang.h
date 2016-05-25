@@ -20,6 +20,11 @@ typedef struct identifier {
 bool identifier_set_value(identifier_t* id, char *value);
 bool identifier_is_reserved(const identifier_t* id);
 
+typedef struct symbol symbol_t;
+typedef struct structure structure_t;
+typedef struct type type_t;
+typedef struct context context_t;
+
 /* ---------------------------- values ------------------------------------- */
 
 typedef struct parameters {
@@ -51,6 +56,8 @@ valref_t* valref_new(const identifier_t* identifier);
 void valref_delete(valref_t* valref);
 
 void valref_print(FILE* output, const valref_t* value);
+
+const type_t* valref_get_type(const context_t* ctx, const valref_t* valref);
 
 typedef enum {
     VALUE_TYPE_STRING,
@@ -84,6 +91,8 @@ void valref_set_has_indexing(valref_t* v, bool has_indexing);
 void valref_add_index(valref_t* v, expression_t* index);
 
 void value_print(FILE* output, const value_t* value);
+
+type_t* value_get_type(const context_t* ctx, const value_t* value);
 
 /* ---------------------------- expressions --------------------------------- */
 
@@ -143,10 +152,6 @@ typedef enum {
     TYPE_TYPE_STRUCTURE,
 } type_type_t;
 
-typedef struct symbol symbol_t;
-typedef struct structure structure_t;
-typedef struct type type_t;
-
 struct symbol {
     identifier_t identifier;
     type_t* is;
@@ -177,6 +182,10 @@ type_t *type_vector_new(type_t *of);
 type_t* type_structure_new(structure_t* s);
 
 void type_print(FILE* output, const type_t* type);
+
+bool type_is_equals(const type_t* a, const type_t* b);
+
+type_t* type_copy(const type_t* type);
 
 symbol_t *symbol_new(const identifier_t *identifier, type_t *is);
 void symbol_delete(symbol_t *symbol);
@@ -360,6 +369,22 @@ void function_arg_delete(function_arg_t* func_arg);
 
 void function_arg_print(FILE* output, const function_arg_t* arg);
 
+typedef struct function_signature {
+    type_t*     return_type;
+    vector_t    args_types;     /* of type_t* */
+} function_signature_t;
+
+void function_signature_init(function_signature_t* signature);
+
+function_signature_t* function_signature_new(void);
+
+void function_signature_wipe(function_signature_t* signature);
+
+void function_signature_delete(function_signature_t* signature);
+
+bool function_signature_is_equals(const function_signature_t* a,
+                                  const function_signature_t* b);
+
 typedef struct function {
     identifier_t identifier;
 
@@ -449,10 +474,10 @@ bool program_main_function_is_valid(const program_t* prg);
 
 /* ------------------------------ contexts --------------------------------- */
 
-typedef struct context {
+struct context {
     const program_t* program;
     const function_t* function;
-} context_t;
+};
 
 void context_init(context_t* ctx);
 void context_set_program(context_t* ctx, program_t* prg);
@@ -476,5 +501,14 @@ bool context_value_is_valid(const context_t* ctx, const value_t* value);
 bool context_expression_is_valid(const context_t* ctx, const expression_t* e);
 
 bool context_parameters_is_valid(const context_t* ctx, const parameters_t* p);
+
+const type_t* context_find_identifier_type(const context_t* ctx,
+                                           const identifier_t* id);
+
+/* ------------------------ Language builtins ------------------------------ */
+
+bool vector_has_function(const identifier_t* id);
+
+bool vector_is_valid_function_call(const valref_t* valref);
 
 #endif
