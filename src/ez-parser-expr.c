@@ -1,6 +1,7 @@
 #include <string.h>
 #include <assert.h>
 #include "ez-parser.h"
+#include "ez-lang-errors.h"
 
 #define EXPR_STACK_MAX_SYMBOLS      128
 #define EXPR_STACK_MAX_OPERATORS    128
@@ -222,7 +223,7 @@ static expression_t* expression_from_stack(expr_stacks_t* stacks)
 
 
 parser_status_t expression_parser(FILE* input, const context_t* ctx,
-                                  expression_t** output)
+                                  expression_t** expression)
 {
     expr_stacks_t stacks = {
         .nleaves = 0,
@@ -230,7 +231,7 @@ parser_status_t expression_parser(FILE* input, const context_t* ctx,
     };
 
     PARSE(expression_in_parser(input, ctx, &stacks));
-    *output = expression_from_stack(&stacks);
+    *expression = expression_from_stack(&stacks);
 
     return PARSER_SUCCESS;
 }

@@ -236,6 +236,9 @@ parser_status_t procedure_parser(FILE* input, context_t* ctx,
         SKIP_MANY(input, comment_or_empty_parser(input, NULL, NULL));
     }
 
+    /* Push the current function inside the context. */
+    context_set_function(ctx, *function);
+
     PARSE_ERR(end_of_line_parser(input, NULL, NULL),
               "a newline is expected after the 'begin' keyword");
 
@@ -252,6 +255,8 @@ parser_status_t procedure_parser(FILE* input, context_t* ctx,
 
     PARSE_ERR(end_of_line_parser(input, NULL, NULL),
               "a newline is expected after the 'end' keyword");
+
+    context_set_function(ctx, NULL);
 
     return PARSER_SUCCESS;
 }

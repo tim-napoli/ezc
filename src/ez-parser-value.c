@@ -161,7 +161,6 @@ parser_status_t valref_parser(FILE* input, const context_t* ctx,
     }
 
     if (TRY(input, char_parser(input, ".", NULL)) == PARSER_SUCCESS) {
-        /* Continue with a valref */
         valref_t* next = NULL;
 
         PARSE_ERR(valref_parser(input, ctx, &next),
@@ -207,10 +206,6 @@ parser_status_t value_parser(FILE* input, const context_t* ctx,
         == PARSER_SUCCESS)
     {
         value->type = VALUE_TYPE_VALREF;
-
-        if (!context_valref_is_valid(ctx, value->valref)) {
-            error_valref_not_found(input, value->valref);
-        }
 
         return PARSER_SUCCESS;
     }

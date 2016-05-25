@@ -21,5 +21,7 @@ constant EXPR       is boolean = 4 * PI * 6 + 3 * 7 <= MAX_PRIMES * 2 + 1 * 5
 function person(in args is vector of string) return integer
 begin
     print "Hello, world", p.name, args
-    person(p)
+    toto(a, b, c)
+
+    return 2 + 4 + PI
 end

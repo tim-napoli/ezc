@@ -17,4 +17,8 @@ void error_no_main_function(const identifier_t* id);
 
 void error_invalid_main_function(const identifier_t* id);
 
+void error_expression_not_valid(FILE* input, const expression_t* expr);
+
+void error_parameters_not_valid(FILE* input, const parameters_t* parameters);
+
 #endif /* end of include guard: _ez_errors_h_ */

@@ -265,7 +265,6 @@ structure_t* program_find_structure(const program_t* prg,
     return vector_find(&prg->structures, id, (cmp_func_t)&structure_is);
 }
 
-
 void program_add_function(program_t* prg, function_t* function) {
     vector_push(&prg->functions, function);
 }
@@ -273,7 +272,6 @@ void program_add_function(program_t* prg, function_t* function) {
 bool program_has_function(const program_t* prg, const identifier_t* id) {
     return vector_contains(&prg->functions, id, (cmp_func_t)&function_is);
 }
-
 
 void program_add_procedure(program_t* prg, function_t* procedure) {
     vector_push(&prg->procedures, procedure);
