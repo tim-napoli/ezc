@@ -102,8 +102,18 @@ static const type_t* _valref_get_type(const context_t* ctx,
 {
     const type_t* next_type = NULL;
 
+    if (valref->has_indexing) {
+        if (!type) {
+            type = context_find_identifier_type(ctx, &valref->identifier);
+        }
+        assert (type->type == TYPE_TYPE_VECTOR);
+        for (int i = 0; i < valref->indexings.size; i++) {
+            type = type->vector_type;
+            assert (type->type == TYPE_TYPE_VECTOR);
+        }
+    }
+
     if (valref->next) {
-        /* TODO and when indexing ? */
         if (!type) {
             next_type = context_find_identifier_type(ctx, &valref->identifier);
         } else {
@@ -119,9 +129,6 @@ static const type_t* _valref_get_type(const context_t* ctx,
         function_t* func = program_find_function(ctx->program,
                                                  &valref->identifier);
         return func->return_type;
-    } else
-    if (valref->has_indexing) {
-        return NULL;
     }
 
     return type;
