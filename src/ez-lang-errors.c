@@ -7,7 +7,7 @@ void error_print(FILE *input) {
   char c;
   get_file_coordinates(input, &line, &column, &c);
 
-  fprintf(stderr, "error (line %d column %d): ", line, column);
+  fprintf(stderr, "error (line %d): ", line);
 }
 
 void error_identifier_is_keyword(FILE* input, const identifier_t* id) {
@@ -73,4 +73,10 @@ void error_value_not_valid(FILE* input, const value_t* value) {
     fprintf(stderr, "value ");
     value_print(stderr, value);
     fprintf(stderr, " is not valid in this context\n");
+}
+
+void error_decleration_not_valid(FILE* input) {
+    error_print(input);
+    fprintf(stderr, "declaration is not valid\n");
+
 }

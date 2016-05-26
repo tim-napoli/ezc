@@ -18,7 +18,6 @@ elsif_instr_t* elsif_instr_new(expression_t* coundition) {
 
 void elsif_instr_delete(elsif_instr_t* elsif) {
     expression_delete(elsif->coundition);
-    /* TODO instruction_delete */
     vector_wipe(&elsif->instructions, NULL);
     free(elsif);
 }
@@ -51,10 +50,8 @@ if_instr_t* if_instr_new(expression_t* coundition) {
 void if_instr_delete(if_instr_t* if_instr) {
     expression_delete(if_instr->coundition);
 
-    /* TODO instruction_delete */
     vector_wipe(&if_instr->instructions, NULL);
     vector_wipe(&if_instr->elsifs, (delete_func_t)&elsif_instr_delete);
-    /* TODO instruction_delete */
     vector_wipe(&if_instr->else_instrs, NULL);
     free(if_instr);
 }
@@ -93,7 +90,6 @@ loop_instr_t* loop_instr_new(expression_t* coundition) {
 
 void loop_instr_delete(loop_instr_t* loop) {
     expression_delete(loop->coundition);
-    /* TODO instruction_delete */
     vector_wipe(&loop->instructions, NULL);
     free(loop);
 }
@@ -121,7 +117,6 @@ while_instr_t* while_instr_new(expression_t* coundition) {
 
 void while_instr_delete(while_instr_t* while_instr) {
     expression_delete(while_instr->coundition);
-    /* TODO instruction_delete */
     vector_wipe(&while_instr->instructions, NULL);
     free(while_instr);
 }
@@ -149,7 +144,6 @@ on_instr_t* on_instr_new(expression_t* coundition) {
 
 void on_instr_delete(on_instr_t* on_instr) {
     expression_delete(on_instr->coundition);
-    /* TODO instruction_delete */
     free(on_instr);
 }
 
@@ -184,7 +178,6 @@ void for_instr_delete(for_instr_t* for_instr) {
     expression_delete(for_instr->range.from);
     expression_delete(for_instr->range.to);
 
-    /* TODO instruction_delete */
     vector_wipe(&for_instr->instructions, NULL);
     free(for_instr);
 }

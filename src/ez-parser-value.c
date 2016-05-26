@@ -150,8 +150,6 @@ parser_status_t valref_parser(FILE* input, const context_t* ctx,
         valref_t* valref_at = valref_new(&id_at);
         expression_t* expr = NULL;
 
-        /* Check is this is a array/vector/map indexing */
-        /* TODO check if 'identifier' is a array/vector value */
         SKIP_MANY(input, space_parser(input, NULL, NULL));
 
         parameters_t* parameters = valref_get_parameters(valref_at);

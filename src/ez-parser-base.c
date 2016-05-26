@@ -55,6 +55,15 @@ parser_status_t end_of_line_parser(FILE* input, const void* args,
     return PARSER_SUCCESS;
 }
 
+parser_status_t end_of_file_parser(FILE* input, const void* args,
+                                   void* output) {
+    char c = fgetc(input);
+
+    if (c != EOF) return PARSER_FAILURE;
+
+    return PARSER_SUCCESS;
+}
+
 parser_status_t identifier_parser(FILE* input, const context_t* ctx,
                                   identifier_t* id)
 {

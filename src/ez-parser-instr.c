@@ -378,8 +378,6 @@ parser_status_t instruction_parser(FILE* input, const context_t* ctx,
         *instruction = instruction_new(INSTRUCTION_TYPE_FLOWCONTROL);
         memcpy(&(*instruction)->flowcontrol, &flowcontrol, sizeof(flowcontrol_t)); // XXX XXX
 
-        // TODO : check flowcontrol 4
-
         return PARSER_SUCCESS;
     } else
     if (TRY(input, affectation_parser(input, ctx, &affectation))
