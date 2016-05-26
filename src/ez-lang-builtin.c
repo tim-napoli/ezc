@@ -60,6 +60,61 @@ bool vector_function_call_is_valid(const context_t* ctx,
         break;
       }
 
+      case VECTOR_FUNC_INSERT: {
+        if (valref->parameters.parameters.size != 2) {
+            return false;
+        }
+        const type_t* arg_type_1 =
+            expression_get_type(ctx,
+                                valref->parameters.parameters.elements[0]);
+        const type_t* arg_type_2 =
+            expression_get_type(ctx,
+                                valref->parameters.parameters.elements[1]);
+        bool res =  type_is_equals(arg_type_1, type_integer)
+                 && type_is_equals(arg_type_2, vector_type->vector_type);
+
+        if (!res) {
+            return false;
+        }
+        break;
+      }
+
+      case VECTOR_FUNC_REMOVE: {
+        if (valref->parameters.parameters.size != 1) {
+            return false;
+        }
+        const type_t* arg_type =
+            expression_get_type(ctx,
+                                valref->parameters.parameters.elements[0]);
+        bool res = type_is_equals(arg_type, type_integer);
+
+        if (!res) {
+            return false;
+        }
+        break;
+      }
+
+      case VECTOR_FUNC_POP: {
+        if (valref->parameters.parameters.size != 0) {
+            return false;
+        }
+        break;
+      }
+
+      case VECTOR_FUNC_CLEAR: {
+        if (valref->parameters.parameters.size != 0) {
+            return false;
+        }
+        break;
+      }
+
+      case VECTOR_FUNC_SIZE: {
+        if (valref->parameters.parameters.size != 0) {
+            return false;
+        }
+        break;
+      }
+
       case VECTOR_FUNC_AT: {
         if (valref->parameters.parameters.size != 1) {
             return false;
