@@ -159,6 +159,13 @@ parser_status_t function_parser(FILE* input, context_t* ctx,
     PARSE_ERR(end_of_line_parser(input, NULL, NULL),
               "a new line is expected after a function head");
 
+    if (context_has_identifier(ctx, &(*function)->identifier)) {
+        error_identifier_exists(input, &(*function)->identifier);
+        function_delete(*function);
+        return PARSER_FATAL;
+    }
+    program_add_function(ctx->program, *function);
+
     SKIP_MANY(input, comment_or_empty_parser(input, NULL, NULL));
 
     while (TRY(input, word_parser(input, "begin", NULL)) == PARSER_FAILURE) {
@@ -233,6 +240,13 @@ parser_status_t procedure_parser(FILE* input, context_t* ctx,
 
     PARSE_ERR(end_of_line_parser(input, NULL, NULL),
               "a new line is expected after a procedure head");
+
+    if (context_has_identifier(ctx, &(*function)->identifier)) {
+        error_identifier_exists(input, &(*function)->identifier);
+        function_delete(*function);
+        return PARSER_FATAL;
+    }
+    program_add_procedure(ctx->program, *function);
 
     SKIP_MANY(input, comment_or_empty_parser(input, NULL, NULL));
 
@@ -424,23 +438,9 @@ parser_status_t entity_parser(FILE* input, context_t* ctx,
         return PARSER_SUCCESS;
     } else
     if (TRY(input, function_parser(input, ctx, &func)) == PARSER_SUCCESS) {
-        if (context_has_identifier(ctx, &func->identifier)) {
-            error_identifier_exists(input, &func->identifier);
-            function_delete(func);
-        } else {
-            program_add_function(program, func);
-        }
-
         return PARSER_SUCCESS;
     } else
     if (TRY(input, procedure_parser(input, ctx, &func)) == PARSER_SUCCESS) {
-        if (context_has_identifier(ctx, &func->identifier)) {
-            error_identifier_exists(input, &func->identifier);
-            function_delete(func);
-        } else {
-            program_add_procedure(program, func);
-        }
-
         return PARSER_SUCCESS;
     }
 

@@ -25,8 +25,7 @@ bool context_has_identifier(const context_t* ctx,
 {
     if (ctx->function) {
         if (function_has_arg(ctx->function, id)
-        ||  function_has_local(ctx->function, id)
-        ||  function_is(ctx->function, id))
+        ||  function_has_local(ctx->function, id))
         {
             return true;
         }
