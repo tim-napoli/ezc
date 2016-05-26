@@ -42,7 +42,7 @@ parser_status_t read_parser(FILE* input, const context_t* ctx,
     return PARSER_SUCCESS;
 }
 
-parser_status_t return_parser(FILE* input, const void* args,
+parser_status_t return_parser(FILE* input, const context_t* ctx,
                               expression_t** expression)
 {
     PARSE(word_parser(input, "return", NULL));
@@ -52,7 +52,7 @@ parser_status_t return_parser(FILE* input, const void* args,
 
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
-    PARSE_ERR(expression_parser(input, NULL, expression),
+    PARSE_ERR(expression_parser(input, ctx, expression),
               "bad return expression");
 
     PARSE(end_of_line_parser(input, NULL, NULL));
@@ -339,11 +339,16 @@ parser_status_t flowcontrol_parser(FILE* input, const context_t* ctx,
 parser_status_t affectation_parser(FILE* input, const context_t* ctx,
                                    affectation_instr_t* affectation_instr)
 {
+
     PARSE(valref_parser(input, ctx, &affectation_instr->lvalue)); // XXX
 
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
     PARSE(char_parser(input, "=", NULL));
+
+    if (!context_valref_is_valid(ctx, affectation_instr->lvalue)) { // XXX
+        error_valref_not_found(input, affectation_instr->lvalue); // XXX
+    }
 
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
@@ -373,6 +378,8 @@ parser_status_t instruction_parser(FILE* input, const context_t* ctx,
         *instruction = instruction_new(INSTRUCTION_TYPE_FLOWCONTROL);
         memcpy(&(*instruction)->flowcontrol, &flowcontrol, sizeof(flowcontrol_t)); // XXX XXX
 
+        // TODO : check flowcontrol 4
+
         return PARSER_SUCCESS;
     } else
     if (TRY(input, affectation_parser(input, ctx, &affectation))
@@ -386,14 +393,20 @@ parser_status_t instruction_parser(FILE* input, const context_t* ctx,
     if (TRY(input, print_parser(input, ctx, &parameters)) == PARSER_SUCCESS) {
         *instruction = instruction_new(INSTRUCTION_TYPE_PRINT);
         memcpy(&(*instruction)->parameters, &parameters, sizeof(parameters_t)); // XXX XXX
+
+        if (!context_parameters_is_valid(ctx, &parameters)) {
+            error_parameters_not_valid(input, &parameters);
+        }
+
         return PARSER_SUCCESS;
     } else
-    if (TRY(input, read_parser(input, NULL, &valref)) == PARSER_SUCCESS) {
+    if (TRY(input, read_parser(input, ctx, &valref)) == PARSER_SUCCESS) {
         *instruction = instruction_new(INSTRUCTION_TYPE_READ);
         (*instruction)->valref = valref; // XXX
+
         return PARSER_SUCCESS;
     } else
-    if (TRY(input, return_parser(input, NULL, &expression)) == PARSER_SUCCESS) {
+    if (TRY(input, return_parser(input, ctx, &expression)) == PARSER_SUCCESS) {
         *instruction = instruction_new(INSTRUCTION_TYPE_RETURN);
         (*instruction)->expression = expression; // XXX
 
@@ -401,6 +414,7 @@ parser_status_t instruction_parser(FILE* input, const context_t* ctx,
     } else
     if (TRY(input, expression_parser(input, ctx, &expression))
         == PARSER_SUCCESS) {
+
         *instruction = instruction_new(INSTRUCTION_TYPE_EXPRESSION);
         (*instruction)->expression = expression; // XXX
 
@@ -414,9 +428,9 @@ parser_status_t instructions_parser(FILE* input, const context_t* ctx,
                                     vector_t* instructions)
 {
     instruction_t* instr = NULL;
+
     while (TRY(input, instruction_parser(input, ctx, &instr))
-           == PARSER_SUCCESS)
-    {
+          == PARSER_SUCCESS) {
         vector_push(instructions, instr);
     }
 

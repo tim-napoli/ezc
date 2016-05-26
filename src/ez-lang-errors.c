@@ -43,3 +43,34 @@ void error_invalid_main_function(const identifier_t* id) {
                     "'function %s(in args is vector of string) : integer'\n",
             id->value);
 }
+
+void error_expression_not_valid(FILE* input, const expression_t* expr) {
+    error_print(input);
+    fprintf(stderr, "expression ");
+    expression_print(stderr, expr);
+    fprintf(stderr, " is not valid in this context\n");
+}
+
+void error_parameters_not_valid(FILE* input, const parameters_t* parameters) {
+    error_print(input);
+    fprintf(stderr, "parameters \n");
+    parameters_print(stderr, parameters);
+    fprintf(stderr, " are not valid in this context\n");
+};
+
+void error_affectation_not_valid(FILE* input,
+                                 const affectation_instr_t* affectation) {
+    error_print(input);
+    fprintf(stderr, "affectaton ");
+    valref_print(stderr, affectation->lvalue);
+    fprintf(stderr, " = ");
+    expression_print(stderr, affectation->expression);
+    fprintf(stderr, " is not valid in this context\n");
+}
+
+void error_value_not_valid(FILE* input, const value_t* value) {
+    error_print(input);
+    fprintf(stderr, "value ");
+    value_print(stderr, value);
+    fprintf(stderr, " is not valid in this context\n");
+}

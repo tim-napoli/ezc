@@ -384,4 +384,3 @@ const type_t* context_find_identifier_type(const context_t* ctx,
 
     return NULL;
 }
-

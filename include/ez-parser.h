@@ -59,7 +59,7 @@ parser_status_t expression_parser(FILE* input, const context_t* ctx,
 parser_status_t print_parser(FILE* input, const context_t* ctx,
                              parameters_t* parameters);
 
-parser_status_t return_parser(FILE* input, const void* args,
+parser_status_t return_parser(FILE* input, const context_t* ctx,
                               expression_t** expression);
 
 parser_status_t if_parser(FILE* input, const context_t* ctx,

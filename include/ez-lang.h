@@ -483,6 +483,7 @@ void context_init(context_t* ctx);
 void context_set_program(context_t* ctx, program_t* prg);
 void context_set_function(context_t* ctx, function_t* func);
 
+bool context_has_function(const context_t* ctx, const identifier_t* id);
 
 structure_t* context_find_structure(const context_t* ctx,
                                     const identifier_t* structure_id);
@@ -492,7 +493,14 @@ identifier_t context_get_program_identifier(context_t* ctx);
 bool context_has_identifier(const context_t* ctx, const identifier_t* id);
 
 bool context_valref_is_valid(const context_t* ctx, const valref_t* valref);
-bool valref_is_valid(const valref_t* valref, const symbol_t* symbol);
+bool context_valref_next_is_valid(const valref_t* valref,
+                                  const symbol_t* symbol);
+
+bool context_value_is_valid(const context_t* ctx, const value_t* value);
+
+bool context_expression_is_valid(const context_t* ctx, const expression_t* e);
+
+bool context_parameters_is_valid(const context_t* ctx, const parameters_t* p);
 
 const type_t* context_find_identifier_type(const context_t* ctx,
                                            const identifier_t* id);
