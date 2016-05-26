@@ -93,11 +93,11 @@ parser_status_t instructions_parser(FILE* input, const context_t* ctx,
                                     vector_t* vector);
 
 parser_status_t structure_parser(FILE* input,
-                                 const context_t* ctx,
+                                 context_t* ctx,
                                  structure_t** structure);
 
 parser_status_t structure_member_parser(FILE* input,
-                                        const void* unused_args,
+                                        const context_t* ctx,
                                         symbol_t** symbol);
 
 parser_status_t variable_tail_parser(FILE* input, const context_t* ctx,

@@ -325,10 +325,10 @@ parser_status_t global_parser(FILE* input,
 }
 
 parser_status_t structure_member_parser(FILE* input,
-                                        const void* unused_args,
+                                        const context_t* ctx,
                                         symbol_t** symbol)
 {
-    PARSE(variable_tail_parser(input, NULL, symbol));
+    PARSE(variable_tail_parser(input, ctx, symbol));
 
     PARSE_ERR(end_of_line_parser(input, NULL, NULL),
               "a new line is expected after the member type");
@@ -337,7 +337,7 @@ parser_status_t structure_member_parser(FILE* input,
 }
 
 parser_status_t structure_parser(FILE* input,
-                                 const context_t* ctx,
+                                 context_t* ctx,
                                  structure_t* *structure)
 {
     identifier_t id;
@@ -351,6 +351,13 @@ parser_status_t structure_parser(FILE* input,
     PARSE(identifier_parser(input, NULL, &id));
 
     *structure = structure_new(&id);
+    if (context_has_identifier(ctx, &(*structure)->identifier)) {
+        error_identifier_exists(input, &(*structure)->identifier);
+        structure_delete(*structure);
+        return PARSER_FATAL;
+    }
+    program_add_structure(ctx->program, *structure);
+
 
     PARSE_ERR(space_parser(input, NULL, NULL),
               "a space must follow the structure identifier");
@@ -367,7 +374,7 @@ parser_status_t structure_parser(FILE* input,
     while (TRY(input, word_parser(input, "end", NULL)) == PARSER_FAILURE) {
         symbol_t* symbol;
 
-        PARSE(structure_member_parser(input, NULL, &symbol));
+        PARSE(structure_member_parser(input, ctx, &symbol));
 
         SKIP_MANY(input, empty_parser(input, NULL, NULL));
 
@@ -414,13 +421,6 @@ parser_status_t entity_parser(FILE* input, context_t* ctx,
     if (TRY(input, structure_parser(input, ctx, &structure))
         == PARSER_SUCCESS)
     {
-        if (context_has_identifier(ctx, &structure->identifier)) {
-            error_identifier_exists(input, &structure->identifier);
-            structure_delete(structure);
-        } else {
-            program_add_structure(program, structure);
-        }
-
         return PARSER_SUCCESS;
     } else
     if (TRY(input, function_parser(input, ctx, &func)) == PARSER_SUCCESS) {

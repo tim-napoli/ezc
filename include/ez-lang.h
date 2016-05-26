@@ -486,8 +486,8 @@ bool program_main_function_is_valid(const program_t* prg);
 /* ------------------------------ contexts --------------------------------- */
 
 struct context {
-    const program_t* program;
-    const function_t* function;
+    program_t* program;
+    function_t* function;
 };
 
 void context_init(context_t* ctx);
