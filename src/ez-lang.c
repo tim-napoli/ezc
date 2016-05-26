@@ -256,6 +256,7 @@ void program_print(FILE* output, const program_t* prg) {
                     "#include <ctime>\n"
                     "#include <cstdlib>\n"
                     "#include \"ez/vector.hpp\"\n"
+                    "#include \"ez/optional.hpp\"\n"
                     "\n"
     );
 

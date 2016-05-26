@@ -60,6 +60,13 @@ type_t* type_vector_new(type_t* of) {
     return vector;
 }
 
+type_t* type_optional_new(type_t* of) {
+    type_t* optional = type_new(TYPE_TYPE_OPTIONAL);
+    optional->optional_type = of;
+
+    return optional;
+}
+
 type_t* type_structure_new(structure_t* s) {
     type_t* t = type_new(TYPE_TYPE_STRUCTURE);
     t->structure_type = s;
@@ -93,6 +100,12 @@ void type_print(FILE* output, const type_t* type) {
         fprintf(output, "std::string");
         break;
 
+      case TYPE_TYPE_OPTIONAL:
+        fprintf(output, "ez::optional< ");
+        type_print(output, type->optional_type);
+        fprintf(output, " >");
+        break;
+
       case TYPE_TYPE_VECTOR:
         fprintf(output, "ez::vector< ");
         type_print(output, type->vector_type);
@@ -115,6 +128,9 @@ bool type_are_equals(const type_t* a, const type_t* b) {
             } else
             if (a->type == TYPE_TYPE_VECTOR) {
                 return type_are_equals(a->vector_type, b->vector_type);
+            } else
+            if (a->type == TYPE_TYPE_OPTIONAL) {
+                return type_are_equals(a->optional_type, b->optional_type);
             }
             return true;
         }

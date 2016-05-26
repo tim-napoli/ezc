@@ -1,0 +1,12 @@
+program test_optional
+
+function test_optional(in args is vector of string) return integer
+    local opt is optional integer
+begin
+    opt.set(32)
+    if (opt.is_set()) then
+        print opt.get()
+    endif
+
+    return 0
+end

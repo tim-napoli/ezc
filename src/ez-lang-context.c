@@ -90,21 +90,36 @@ static bool _context_valref_is_valid(const context_t* ctx,
         return _context_valref_is_valid(ctx, valref->next, type);
     } else {
         if (valref->is_funccall) {
-            if (type->type != TYPE_TYPE_VECTOR) {
-                return false;
+            if (type->type == TYPE_TYPE_VECTOR) {
+                if (!vector_function_exists(&valref->identifier)) {
+                    return false;
+                }
+                if (!vector_function_call_is_valid(ctx, valref, type))
+                {
+                    return false;
+                }
+                type = vector_function_get_type(valref, type);
+                if (!type && valref->next) {
+                    return false;
+                }
+                return _context_valref_is_valid(ctx, valref->next, type);
+            } else
+            if (type->type == TYPE_TYPE_OPTIONAL) {
+                if (!optional_function_exists(&valref->identifier)) {
+                    return false;
+                }
+                if (!optional_function_call_is_valid(ctx, valref, type))
+                {
+                    return false;
+                }
+                type = optional_function_get_type(valref, type);
+                /* XXX what if type is not NULL but primitive ? */
+                if (!type && valref->next) {
+                    return false;
+                }
+                return _context_valref_is_valid(ctx, valref->next, type);
             }
-            if (!vector_function_exists(&valref->identifier)) {
-                return false;
-            }
-            if (!vector_function_call_is_valid(ctx, valref, type))
-            {
-                return false;
-            }
-            type = vector_function_get_type(valref, type);
-            if (!type && valref->next) {
-                return false;
-            }
-            return _context_valref_is_valid(ctx, valref->next, type);
+            return false;
         } else {
             if (type->type != TYPE_TYPE_STRUCTURE) {
                 return false;

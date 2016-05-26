@@ -71,12 +71,11 @@ parser_status_t real_parser(FILE* input, const void* args,
     }
 
     PARSE(natural_parser(input, NULL, &integer));
-    if (TRY(input, char_parser(input, ".", NULL)) == PARSER_SUCCESS) {
-        if (TRY(input, natural_parser(input, NULL, &decimal)) == PARSER_SUCCESS) {
-            true_decimal = decimal;
-            while (true_decimal > 0.0) {
-                true_decimal *= 0.1;
-            }
+    PARSE(char_parser(input, ".", NULL));
+    if (TRY(input, natural_parser(input, NULL, &decimal)) == PARSER_SUCCESS) {
+        true_decimal = decimal;
+        while (true_decimal > 0.0) {
+            true_decimal *= 0.1;
         }
     }
 

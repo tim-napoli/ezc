@@ -153,3 +153,94 @@ const type_t* vector_function_get_type(const valref_t* valref,
     return NULL;
 }
 
+
+
+
+
+
+enum {
+    OPTIONAL_FUNC_IS_SET,
+    OPTIONAL_FUNC_SET,
+    OPTIONAL_FUNC_GET,
+    OPTIONAL_FUNC_NFUNCTIONS,
+};
+
+static const char* optional_functions[OPTIONAL_FUNC_NFUNCTIONS] = {
+    [OPTIONAL_FUNC_IS_SET] = "is_set",
+    [OPTIONAL_FUNC_GET]    = "get",
+    [OPTIONAL_FUNC_SET]    = "set",
+};
+
+static int optional_get_function(const identifier_t* func) {
+    for (int i = 0; i < OPTIONAL_FUNC_NFUNCTIONS; i++) {
+        if (strcmp(func->value, optional_functions[i]) == 0) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+bool optional_function_exists(const identifier_t* func) {
+    return optional_get_function(func) >= 0;
+}
+
+bool optional_function_call_is_valid(const context_t* ctx,
+                                     const valref_t* valref,
+                                     const type_t* optional_type)
+{
+    assert (valref->is_funccall);
+    assert (optional_function_exists(&valref->identifier));
+
+    int func = optional_get_function(&valref->identifier);
+    switch (func) {
+      case OPTIONAL_FUNC_IS_SET: {
+        if (valref->parameters.parameters.size != 0) {
+            return false;
+        }
+        break;
+      }
+
+      case OPTIONAL_FUNC_SET: {
+        if (valref->parameters.parameters.size != 1) {
+            return false;
+        }
+        const type_t* arg_type =
+            expression_get_type(ctx,
+                                valref->parameters.parameters.elements[0]);
+        bool res = type_are_equals(arg_type, optional_type->optional_type);
+        if (!res) {
+            return false;
+        }
+        break;
+      }
+
+      case OPTIONAL_FUNC_GET: {
+        if (valref->parameters.parameters.size != 0) {
+            return false;
+        }
+        break;
+      }
+    }
+
+    return true;
+}
+
+const type_t* optional_function_get_type(const valref_t* valref,
+                                         const type_t* optional_type)
+{
+    int func = optional_get_function(&valref->identifier);
+
+    switch (func) {
+      case OPTIONAL_FUNC_IS_SET:
+        return type_boolean;
+
+      case OPTIONAL_FUNC_GET:
+        return optional_type->optional_type;
+
+      default:
+        return NULL;
+    }
+
+    return NULL;
+}
+

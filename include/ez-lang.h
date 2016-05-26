@@ -150,6 +150,7 @@ typedef enum {
     TYPE_TYPE_STRING,
     TYPE_TYPE_VECTOR,
     TYPE_TYPE_STRUCTURE,
+    TYPE_TYPE_OPTIONAL,
 } type_type_t;
 
 struct symbol {
@@ -167,6 +168,7 @@ struct type {
     union {
         structure_t* structure_type;
         type_t* vector_type;
+        type_t* optional_type;
     };
 };
 
@@ -180,6 +182,7 @@ type_t *type_char_new();
 type_t *type_string_new();
 type_t *type_vector_new(type_t *of);
 type_t* type_structure_new(structure_t* s);
+type_t* type_optional_new(type_t* of);
 
 void type_print(FILE* output, const type_t* type);
 
@@ -527,4 +530,15 @@ bool vector_function_call_is_valid(const context_t* ctx,
 const type_t* vector_function_get_type(const valref_t* valref,
                                        const type_t* vector_type);
 
+
+bool optional_function_exists(const identifier_t* id);
+
+bool optional_function_call_is_valid(const context_t* ctx,
+                                     const valref_t* valref,
+                                     const type_t* vector_type);
+
+const type_t* optional_function_get_type(const valref_t* valref,
+                                         const type_t* vector_type);
+
 #endif
+

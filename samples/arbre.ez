@@ -1,0 +1,52 @@
+program test_arbre
+
+structure arbre is
+    nombre is integer
+    enfant_gauche is optional arbre
+    enfant_droit is optional arbre
+end
+
+function creer_arbre(in nombre is integer) return arbre
+    local nouvel_arbre is arbre
+begin
+    nouvel_arbre.nombre = nombre
+    return nouvel_arbre
+end
+
+procedure inserer_dans_arbre(in nombre is integer, inout larbre is optional arbre)
+begin
+    if not larbre.is_set() then
+        larbre.set(creer_arbre(nombre))
+    else
+        if nombre <= larbre.get().nombre then
+            inserer_dans_arbre(nombre, larbre.get().enfant_gauche)
+        else
+            inserer_dans_arbre(nombre, larbre.get().enfant_droit)
+        endif
+    endif
+end
+
+procedure afficher_arbre(in larbre is optional arbre)
+begin
+    if larbre.is_set() then
+        afficher_arbre(larbre.get().enfant_gauche)
+        print larbre.get().nombre
+        afficher_arbre(larbre.get().enfant_droit)
+    endif
+end
+
+function test_arbre(in args is vector of string) return integer
+    local arbre_trie is optional arbre
+    local nombre_saisi is integer
+begin
+    for i in 0 .. 10 do
+        print "Entrez un nombre : "
+        read nombre_saisi
+        inserer_dans_arbre(nombre_saisi, arbre_trie)
+    endfor
+
+    print "Les nombre triés sont : "
+    afficher_arbre(arbre_trie)
+
+    return 0
+end

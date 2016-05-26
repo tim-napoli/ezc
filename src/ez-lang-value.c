@@ -98,9 +98,13 @@ static const type_t* _valref_get_type(const context_t* ctx,
         return _valref_get_type(ctx, valref->next, type);
     } else {
         if (valref->is_funccall) {
-            /* vector_is_valid_function_call(type->vector_type, valref); */
-            /* type = vector_function_type(type->vector_type, valref); */
-            /* return _valref_get_type(ctx, valref->next, type); */
+            if (type->type == TYPE_TYPE_VECTOR) {
+                type = vector_function_get_type(valref, type);
+            } else
+            if (type->type == TYPE_TYPE_OPTIONAL) {
+                type = optional_function_get_type(valref, type);
+            }
+            return _valref_get_type(ctx, valref->next, type);
         } else {
             structure_t* structure = type->structure_type;
             symbol_t* member = structure_find_member(structure,

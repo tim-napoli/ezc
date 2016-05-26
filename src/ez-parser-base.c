@@ -131,9 +131,23 @@ parser_status_t type_parser(FILE* input, const context_t* ctx,
         SKIP_MANY(input, space_parser(input, NULL, NULL));
 
         type_t* of;
-        PARSE(type_parser(input, ctx, &of));
+        PARSE_ERR(type_parser(input, ctx, &of),
+                  "invalid type for 'vector'");
 
         *type = type_vector_new(of);
+
+        return PARSER_SUCCESS;
+    } else
+    if (TRY(input, word_parser(input, "optional", NULL)) == PARSER_SUCCESS) {
+        PARSE_ERR(space_parser(input, NULL, NULL),
+                  "expected spaces after 'optional'");
+        SKIP_MANY(input, space_parser(input, NULL, NULL));
+
+        type_t* of;
+        PARSE_ERR(type_parser(input, ctx, &of),
+                  "invalid type for 'optional'");
+
+        *type = type_optional_new(of);
 
         return PARSER_SUCCESS;
     } else
