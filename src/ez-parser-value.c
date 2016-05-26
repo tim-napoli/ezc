@@ -61,22 +61,28 @@ parser_status_t integer_parser(FILE* input, const void* args,
 parser_status_t real_parser(FILE* input, const void* args,
                             double* output)
 {
-    return PARSER_FAILURE;
-#if 0
-    char buf[512];
-    char *buf_ptr = buf;
+    double signe = 1.0;
+    unsigned int integer = 0;
+    unsigned int decimal = 0;
+    double true_decimal = 0.0;
 
-    /* XXX bad parsing, berk ! */
-    PARSE(integer_parser(input, args, &buf_ptr));
-    PARSE(char_parser(input, ".", &buf_ptr));
-    PARSE(chars_parser(input, "0123456789", &buf_ptr));
-
-    if (sscanf(buf, "%f", output) != 1) {
-        PARSER_LANG_ERR("invalid real '%s'", buf);
+    if (TRY(input, char_parser(input, "-", NULL)) == PARSER_SUCCESS) {
+        signe = -1.0;
     }
 
+    PARSE(natural_parser(input, NULL, &integer));
+    if (TRY(input, char_parser(input, ".", NULL)) == PARSER_SUCCESS) {
+        if (TRY(input, natural_parser(input, NULL, &decimal)) == PARSER_SUCCESS) {
+            true_decimal = decimal;
+            while (true_decimal > 0.0) {
+                true_decimal *= 0.1;
+            }
+        }
+    }
+
+    *output = signe * (integer + true_decimal);
+
     return PARSER_SUCCESS;
-#endif
 }
 
 parser_status_t bool_parser(FILE* input, const void* args,
