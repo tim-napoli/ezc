@@ -130,7 +130,7 @@ static parser_status_t expression_in_parser(FILE* input, const context_t* ctx,
         expression_t* subexpr = NULL;
 
         SKIP_MANY(input, space_parser(input, NULL, NULL));
-        PARSE(expression_parser(input, NULL, &subexpr));
+        PARSE(expression_parser(input, ctx, &subexpr));
         SKIP_MANY(input, space_parser(input, NULL, NULL));
         PARSE(char_parser(input, ")", NULL));
 
