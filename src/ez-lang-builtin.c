@@ -52,7 +52,7 @@ bool vector_function_call_is_valid(const context_t* ctx,
         const type_t* arg_type =
             expression_get_type(ctx,
                                 valref->parameters.parameters.elements[0]);
-        bool res = type_is_equals(arg_type, vector_type->vector_type);
+        bool res = type_are_equals(arg_type, vector_type->vector_type);
 
         if (!res) {
             return false;
@@ -70,8 +70,8 @@ bool vector_function_call_is_valid(const context_t* ctx,
         const type_t* arg_type_2 =
             expression_get_type(ctx,
                                 valref->parameters.parameters.elements[1]);
-        bool res =  type_is_equals(arg_type_1, type_integer)
-                 && type_is_equals(arg_type_2, vector_type->vector_type);
+        bool res =  type_is_number(arg_type_1)
+                 && type_are_equals(arg_type_2, vector_type->vector_type);
 
         if (!res) {
             return false;
@@ -86,7 +86,7 @@ bool vector_function_call_is_valid(const context_t* ctx,
         const type_t* arg_type =
             expression_get_type(ctx,
                                 valref->parameters.parameters.elements[0]);
-        bool res = type_is_equals(arg_type, type_integer);
+        bool res = type_is_number(arg_type);
 
         if (!res) {
             return false;
@@ -123,7 +123,7 @@ bool vector_function_call_is_valid(const context_t* ctx,
             expression_get_type(ctx,
                                 valref->parameters.parameters.elements[0]);
         /* TODO type_is_number */
-        bool res = type_is_equals(arg_type, type_integer);
+        bool res = type_is_number(arg_type);
         if (!res) {
             return false;
         }

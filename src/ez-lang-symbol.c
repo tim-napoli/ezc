@@ -105,7 +105,7 @@ void type_print(FILE* output, const type_t* type) {
     }
 }
 
-bool type_is_equals(const type_t* a, const type_t* b) {
+bool type_are_equals(const type_t* a, const type_t* b) {
     if (a && b) {
         if (a->type == b->type) {
             if (a->type == TYPE_TYPE_STRUCTURE) {
@@ -114,7 +114,7 @@ bool type_is_equals(const type_t* a, const type_t* b) {
                 return a->structure_type == b->structure_type;
             } else
             if (a->type == TYPE_TYPE_VECTOR) {
-                return type_is_equals(a->vector_type, b->vector_type);
+                return type_are_equals(a->vector_type, b->vector_type);
             }
             return true;
         }
@@ -123,6 +123,19 @@ bool type_is_equals(const type_t* a, const type_t* b) {
         return true;
     }
     return false;
+}
+
+bool type_is_number(const type_t* type) {
+    return    type->type == TYPE_TYPE_INTEGER
+           || type->type == TYPE_TYPE_NATURAL
+           || type->type == TYPE_TYPE_REAL;
+}
+
+bool type_is_equivalent(const type_t* a, const type_t* b) {
+    if (type_is_number(a)) {
+        return type_is_number(b);
+    }
+    return type_are_equals(a, b);
 }
 
 type_t* type_copy(const type_t* type) {

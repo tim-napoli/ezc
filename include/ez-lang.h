@@ -183,7 +183,11 @@ type_t* type_structure_new(structure_t* s);
 
 void type_print(FILE* output, const type_t* type);
 
-bool type_is_equals(const type_t* a, const type_t* b);
+bool type_are_equals(const type_t* a, const type_t* b);
+
+bool type_are_equaivalent(const type_t* a, const type_t* b);
+
+bool type_is_number(const type_t* type);
 
 type_t* type_copy(const type_t* type);
 

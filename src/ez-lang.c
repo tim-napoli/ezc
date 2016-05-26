@@ -53,7 +53,7 @@ void function_signature_wipe(function_signature_t* signature) {
 bool function_signature_is_equals(const function_signature_t* a,
                                   const function_signature_t* b)
 {
-    if (!type_is_equals(a->return_type, b->return_type)) {
+    if (!type_are_equals(a->return_type, b->return_type)) {
         return false;
     } else
     if (a->args_types.size != b->args_types.size) {
@@ -61,7 +61,7 @@ bool function_signature_is_equals(const function_signature_t* a,
     }
 
     for (int i = 0; i < a->args_types.size; i++) {
-        if (!type_is_equals(a->args_types.elements[i],
+        if (!type_are_equals(a->args_types.elements[i],
                             b->args_types.elements[i]))
         {
             return false;
@@ -250,8 +250,6 @@ void program_print(FILE* output, const program_t* prg) {
         fprintf(output, ";\n");
     }
 
-    /* TODO print functions & procedures prototypes after structures
-     *      definitions */
     for (int i = 0; i < prg->functions.size; i++) {
         function_print(output, prg->functions.elements[i]);
     }
