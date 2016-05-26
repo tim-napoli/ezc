@@ -61,76 +61,67 @@ bool context_has_function(const context_t* ctx, const identifier_t* id) {
     return program_has_procedure(ctx->program, id);
 }
 
-bool context_valref_is_valid(const context_t* ctx, const valref_t* valref) {
-
-    if (!context_has_identifier(ctx, &valref->identifier)) {
-        return false;
+static bool _context_valref_is_valid(const context_t* ctx,
+                                     const valref_t* valref,
+                                     const type_t* type)
+{
+    if (!valref) {
+        return true;
     }
 
-    if (valref->is_funccall) {
-        if (context_has_function(ctx, &valref->identifier)) {
-            return context_parameters_is_valid(ctx, &valref->parameters);
-        }
-
-        return false;
-    }
-
-    if (valref->has_indexing) {
-
-    }
-
-    if (ctx->function) {
-
-        function_arg_t* arg = function_find_arg(ctx->function, &valref->identifier);
-
-        if (arg) {
-            return context_valref_next_is_valid(valref, arg->symbol);
-        }
-
-        symbol_t* local = function_find_local(ctx->function, &valref->identifier);
-
-        if (local) {
-            return context_valref_next_is_valid(valref, local);
-        }
-    }
-
-    if (ctx->program) {
-        symbol_t* global = program_find_global(ctx->program, &valref->identifier);
-
-        if (global) {
-            return context_valref_next_is_valid(valref, global);
-        }
-
-        constant_t* constant = program_find_constant(ctx->program, &valref->identifier);
-
-        if (constant) {
-            return context_valref_next_is_valid(valref, constant->symbol);
-        }
-    }
-
-    return false;
-}
-
-bool context_valref_next_is_valid(const valref_t* valref, const symbol_t* symbol) {
-    if (symbol->is->type == TYPE_TYPE_STRUCTURE && !valref->next) {
-        return false;
-    }
-
-    if (symbol->is->type != TYPE_TYPE_STRUCTURE && valref->next) {
-        return false;
-    }
-
-    if (symbol->is->type == TYPE_TYPE_STRUCTURE && valref->next) {
-        symbol_t* next_symbol = structure_find_member(symbol->is->structure_type, &valref->next->identifier);
-
-        if (!next_symbol) {
+    if (!type) {
+        if (!context_has_identifier(ctx, &valref->identifier)) {
             return false;
         }
 
-        return context_valref_next_is_valid(valref->next, next_symbol);
+        if (valref->is_funccall) {
+            function_t* func = program_find_function(ctx->program,
+                                                     &valref->identifier);
+            if (!func) {
+                return false;
+            }
+            type = func->return_type;
+        } else {
+            type = context_find_identifier_type(ctx, &valref->identifier);
+        }
+        return _context_valref_is_valid(ctx, valref->next, type);
+    } else {
+        if (valref->is_funccall) {
+            if (type->type != TYPE_TYPE_VECTOR) {
+                return false;
+            }
+            if (!vector_function_exists(&valref->identifier)) {
+                return false;
+            }
+            if (!vector_function_call_is_valid(ctx, valref, type))
+            {
+                return false;
+            }
+            type = vector_function_get_type(valref, type);
+            if (!type && valref->next) {
+                return false;
+            }
+            return _context_valref_is_valid(ctx, valref->next, type);
+        } else {
+            if (type->type != TYPE_TYPE_STRUCTURE) {
+                return false;
+            }
+            structure_t* structure = type->structure_type;
+            symbol_t* member = structure_find_member(structure,
+                                                     &valref->identifier);
+            if (!member) {
+                return false;
+            }
+
+            return _context_valref_is_valid(ctx, valref->next, member->is);
+        }
     }
 
     return true;
+}
+
+bool context_valref_is_valid(const context_t* ctx, const valref_t* valref) {
+    return _context_valref_is_valid(ctx, valref, NULL);
 }
 
 bool context_value_is_valid(const context_t* ctx, const value_t* value) {
@@ -145,6 +136,7 @@ bool context_expression_is_valid(const context_t* ctx, const expression_t* e) {
     if (e->type == EXPRESSION_TYPE_VALUE) {
         return context_value_is_valid(ctx, &e->value);
     } else {
+        /* TODO type validation */
         bool left_is_valid, right_is_valid;
 
         if (e->left) {
@@ -170,3 +162,4 @@ bool context_parameters_is_valid(const context_t* ctx, const parameters_t* p) {
 
     return is_valid;
 }
+

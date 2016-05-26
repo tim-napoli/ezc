@@ -36,7 +36,6 @@ valref_t* valref_new(const identifier_t* identifier) {
     memcpy(&v->identifier, identifier, sizeof(identifier_t));
 
     parameters_init(&v->parameters);
-    vector_init(&v->indexings, 0);
 
     return v;
 }
@@ -45,7 +44,6 @@ void valref_delete(valref_t* v) {
     if (v) {
         valref_delete(v->next);
         parameters_wipe(&v->parameters);
-        vector_wipe(&v->indexings, (delete_func_t)&expression_delete);
         free(v);
     }
 }
@@ -66,23 +64,8 @@ void valref_set_is_funccall(valref_t* v, bool is_funccall) {
     v->is_funccall = is_funccall;
 }
 
-void valref_set_has_indexing(valref_t* v, bool has_indexing) {
-    v->has_indexing = has_indexing;
-}
-
-void valref_add_index(valref_t* v, expression_t* index) {
-    vector_push(&v->indexings, index);
-}
-
 void valref_print(FILE* output, const valref_t* value) {
     fprintf(output, "%s", value->identifier.value);
-    if (value->has_indexing) {
-        for (int i = 0; i < value->indexings.size; i++) {
-            fprintf(output, "[");
-            expression_print(output, value->indexings.elements[i]);
-            fprintf(output, "]");
-        }
-    }
 
     if (value->is_funccall) {
         fprintf(output, "(");
@@ -100,35 +83,30 @@ static const type_t* _valref_get_type(const context_t* ctx,
                                       const valref_t* valref,
                                       const type_t* type)
 {
-    const type_t* next_type = NULL;
-
-    if (valref->has_indexing) {
-        if (!type) {
-            type = context_find_identifier_type(ctx, &valref->identifier);
-        }
-        assert (type->type == TYPE_TYPE_VECTOR);
-        for (int i = 0; i < valref->indexings.size; i++) {
-            type = type->vector_type;
-            assert (type->type == TYPE_TYPE_VECTOR);
-        }
+    if (!valref) {
+        return type;
     }
 
-    if (valref->next) {
-        if (!type) {
-            next_type = context_find_identifier_type(ctx, &valref->identifier);
+    if (!type) {
+        if (valref->is_funccall) {
+            function_t* func = program_find_function(ctx->program,
+                                                     &valref->identifier);
+            type = func->return_type;
         } else {
-            assert (type->type == TYPE_TYPE_STRUCTURE);
+            type = context_find_identifier_type(ctx, &valref->identifier);
+        }
+        return _valref_get_type(ctx, valref->next, type);
+    } else {
+        if (valref->is_funccall) {
+            /* vector_is_valid_function_call(type->vector_type, valref); */
+            /* type = vector_function_type(type->vector_type, valref); */
+            /* return _valref_get_type(ctx, valref->next, type); */
+        } else {
             structure_t* structure = type->structure_type;
             symbol_t* member = structure_find_member(structure,
                                                      &valref->identifier);
-            next_type = member->is;
+            return _valref_get_type(ctx, valref->next, member->is);
         }
-        return _valref_get_type(ctx, valref->next, next_type);
-    } else
-    if (valref->is_funccall) {
-        function_t* func = program_find_function(ctx->program,
-                                                 &valref->identifier);
-        return func->return_type;
     }
 
     return type;
@@ -136,10 +114,7 @@ static const type_t* _valref_get_type(const context_t* ctx,
 
 const type_t* valref_get_type(const context_t* ctx, const valref_t* valref)
 {
-    const type_t* initial_type =
-        context_find_identifier_type(ctx, &valref->identifier);
-
-    return _valref_get_type(ctx, valref, initial_type);
+    return _valref_get_type(ctx, valref, NULL);
 }
 
 void value_wipe(value_t* value) {
@@ -185,25 +160,25 @@ void value_print(FILE* output, const value_t* value) {
     }
 }
 
-type_t* value_get_type(const context_t* ctx, const value_t* value) {
+const type_t* value_get_type(const context_t* ctx, const value_t* value) {
     switch (value->type) {
       case VALUE_TYPE_STRING:
-        return type_string_new();
+        return type_string;
 
       case VALUE_TYPE_REAL:
-        return type_real_new();
+        return type_real;
 
       case VALUE_TYPE_INTEGER:
-        return type_integer_new();
+        return type_integer;
 
       case VALUE_TYPE_NATURAL:
-        return type_natural_new();
+        return type_natural;
 
       case VALUE_TYPE_BOOLEAN:
-        return type_boolean_new();
+        return type_boolean;
 
       case VALUE_TYPE_VALREF:
-        return type_copy(valref_get_type(ctx, value->valref));
+        return valref_get_type(ctx, value->valref);
     }
 
     return NULL;

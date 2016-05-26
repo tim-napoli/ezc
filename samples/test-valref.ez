@@ -1,0 +1,24 @@
+program test_valref
+
+structure Person is
+    name is string
+    age is integer
+end
+
+function test_valref(in args is vector of string) return integer
+    local p is Person
+    local v is vector of vector of Person
+    local name is string
+    local age is integer
+begin
+    p.name = "toto"
+    p.age = 32
+
+    name = p.name
+    age = p.age
+
+    name = v[0][1].name
+
+    return 0
+end
+

@@ -136,6 +136,33 @@ type_t* type_copy(const type_t* type) {
     return copy;
 }
 
+type_t* type_boolean;
+type_t* type_integer;
+type_t* type_natural;
+type_t* type_real;
+type_t* type_char;
+type_t* type_string;
+
+__attribute__((constructor))
+static void _allocate_primitive_types(void) {
+    type_boolean = type_boolean_new();
+    type_integer = type_integer_new();
+    type_natural = type_natural_new();
+    type_real    = type_real_new();
+    type_char    = type_char_new();
+    type_string  = type_string_new();
+}
+
+__attribute__((destructor))
+static void _free_primitive_types(void) {
+    type_delete(type_boolean);
+    type_delete(type_integer);
+    type_delete(type_natural);
+    type_delete(type_real);
+    type_delete(type_char);
+    type_delete(type_string);
+}
+
 symbol_t *symbol_new(const identifier_t *identifier, type_t *is) {
     symbol_t *s = calloc(1, sizeof(symbol_t));
 

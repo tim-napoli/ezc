@@ -140,22 +140,28 @@ parser_status_t valref_parser(FILE* input, const context_t* ctx,
     }
 
     while (TRY(input, char_parser(input, "[", NULL)) == PARSER_SUCCESS) {
+        identifier_t id_at = {.value = "at"};
+        valref_t* valref_at = valref_new(&id_at);
         expression_t* expr = NULL;
 
         /* Check is this is a array/vector/map indexing */
         /* TODO check if 'identifier' is a array/vector value */
         SKIP_MANY(input, space_parser(input, NULL, NULL));
 
+        parameters_t* parameters = valref_get_parameters(valref_at);
         PARSE_ERR(expression_parser(input, ctx, &expr),
                   "a valid expression must follow '['");
+        parameters_add(parameters, expr);
 
-        valref_set_has_indexing(*valref, true);
-        valref_add_index(*valref, expr);
+        valref_set_is_funccall(valref_at, true);
 
         SKIP_MANY(input, space_parser(input, NULL, NULL));
 
         PARSE_ERR(char_parser(input, "]", NULL),
                   "missing ']'");
+
+        (*valref)->next = valref_at;
+        valref = &(*valref)->next;
 
         SKIP_MANY(input, space_parser(input, NULL, NULL));
     }

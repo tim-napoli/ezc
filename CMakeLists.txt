@@ -32,6 +32,7 @@ add_library(ez-lang STATIC
             src/ez-lang-context.c
             src/ez-lang-instr.c
             src/ez-lang.c
+            src/ez-lang-builtin.c
             src/ez-lang-errors.c)
 
 add_library(vector STATIC

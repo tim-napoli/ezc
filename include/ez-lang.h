@@ -42,9 +42,6 @@ void parameters_print(FILE* output, const parameters_t* params);
 typedef struct valref {
     identifier_t  identifier;
 
-    bool             has_indexing;
-    vector_t         indexings;     /* of expression_t* */
-
     bool         is_funccall;
     parameters_t parameters;
 
@@ -92,7 +89,7 @@ void valref_add_index(valref_t* v, expression_t* index);
 
 void value_print(FILE* output, const value_t* value);
 
-type_t* value_get_type(const context_t* ctx, const value_t* value);
+const type_t* value_get_type(const context_t* ctx, const value_t* value);
 
 /* ---------------------------- expressions --------------------------------- */
 
@@ -138,6 +135,9 @@ void expression_delete(expression_t* expr);
 int expression_predecence(const expression_t* expr);
 
 void expression_print(FILE* output, const expression_t* expr);
+
+const type_t* expression_get_type(const context_t* ctx,
+                                  const expression_t* expr);
 
 /* -------------------------- types & symbols ------------------------------ */
 
@@ -186,6 +186,13 @@ void type_print(FILE* output, const type_t* type);
 bool type_is_equals(const type_t* a, const type_t* b);
 
 type_t* type_copy(const type_t* type);
+
+extern type_t* type_boolean;
+extern type_t* type_integer;
+extern type_t* type_natural;
+extern type_t* type_real;
+extern type_t* type_char;
+extern type_t* type_string;
 
 symbol_t *symbol_new(const identifier_t *identifier, type_t *is);
 void symbol_delete(symbol_t *symbol);
@@ -507,8 +514,13 @@ const type_t* context_find_identifier_type(const context_t* ctx,
 
 /* ------------------------ Language builtins ------------------------------ */
 
-bool vector_has_function(const identifier_t* id);
+bool vector_function_exists(const identifier_t* id);
 
-bool vector_is_valid_function_call(const valref_t* valref);
+bool vector_function_call_is_valid(const context_t* ctx,
+                                   const valref_t* valref,
+                                   const type_t* vector_type);
+
+const type_t* vector_function_get_type(const valref_t* valref,
+                                       const type_t* vector_type);
 
 #endif
