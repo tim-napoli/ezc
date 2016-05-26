@@ -418,6 +418,9 @@ parser_status_t instruction_parser(FILE* input, const context_t* ctx,
         *instruction = instruction_new(INSTRUCTION_TYPE_EXPRESSION);
         (*instruction)->expression = expression; // XXX
 
+        PARSE_ERR(end_of_line_parser(input, NULL, NULL),
+                  "An end of line must follow an expression instruction");
+
         return PARSER_SUCCESS;
     }
 

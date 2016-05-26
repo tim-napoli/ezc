@@ -138,6 +138,26 @@ void function_print(FILE* output, const function_t* function) {
     fprintf(output, "}\n\n");
 }
 
+void function_prototype_print(FILE* output, const function_t* function) {
+    if (function->return_type) {
+        type_print(output, function->return_type);
+        fprintf(output, " ");
+    } else {
+        fprintf(output, "void ");
+    }
+
+    fprintf(output, "%s(", function->identifier.value);
+
+    for (int i = 0; i < function->args.size; i++) {
+        function_arg_print(output, function->args.elements[i]);
+        if (i + 1 < function->args.size) {
+            fprintf(output, ", ");
+        }
+    }
+
+    fprintf(output, ");\n");
+}
+
 void function_set_args(function_t* func, vector_t* args) {
     memcpy(&func->args, args, sizeof(vector_t));
 }
@@ -235,13 +255,23 @@ void program_print(FILE* output, const program_t* prg) {
                     "#include <string>\n"
                     "#include <ctime>\n"
                     "#include <cstdlib>\n"
-                    "#include <vector>\n"
+                    "#include \"ez/vector.hpp\"\n"
                     "\n"
     );
 
     for (int i = 0; i < prg->structures.size; i++) {
         structure_print(output, prg->structures.elements[i]);
     }
+    fprintf(output, "\n");
+
+    for (int i = 0; i < prg->functions.size; i++) {
+        function_prototype_print(output, prg->functions.elements[i]);
+    }
+    for (int i = 0; i < prg->procedures.size; i++) {
+        function_prototype_print(output, prg->procedures.elements[i]);
+    }
+    fprintf(output, "\n");
+
     for (int i = 0; i < prg->constants.size; i++) {
         constant_print(output, prg->constants.elements[i]);
     }
@@ -258,9 +288,9 @@ void program_print(FILE* output, const program_t* prg) {
     }
 
     fprintf(output, "int main(int argc, char** argv) {\n"
-                    "    std::vector<std::string> args;\n"
+                    "    ez::vector<std::string> args;\n"
                     "    for (int i = 0; i < argc; i++) {\n"
-                    "        args.push_back(std::string(argv[i]));\n"
+                    "        args.push(std::string(argv[i]));\n"
                     "    }\n"
                     "    return %s(args);\n"
                     "}\n",
@@ -326,6 +356,11 @@ void program_add_procedure(program_t* prg, function_t* procedure) {
 
 bool program_has_procedure(const program_t* prg, const identifier_t* id) {
     return vector_contains(&prg->procedures, id, (cmp_func_t)&function_is);
+}
+
+function_t* program_find_procedure(const program_t* prg, const identifier_t* id)
+{
+    return vector_find(&prg->procedures, id, (cmp_func_t)&function_is);
 }
 
 bool program_main_function_is_valid(const program_t* prg) {

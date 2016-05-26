@@ -25,6 +25,13 @@ parser_status_t header_parser(FILE* input,
 parser_status_t modifier_parser(FILE* input, const void* args,
                                 function_arg_modifier_t* function_arg_modifier)
 {
+
+    if (TRY(input, word_parser(input, "inout", NULL)) == PARSER_SUCCESS) {
+        *function_arg_modifier = FUNCTION_ARG_MODIFIER_INOUT;
+
+        return PARSER_SUCCESS;
+    }
+
     if (TRY(input, word_parser(input, "in", NULL)) == PARSER_SUCCESS) {
         *function_arg_modifier = FUNCTION_ARG_MODIFIER_IN;
 
@@ -33,12 +40,6 @@ parser_status_t modifier_parser(FILE* input, const void* args,
 
     if (TRY(input, word_parser(input, "out", NULL)) == PARSER_SUCCESS) {
         *function_arg_modifier = FUNCTION_ARG_MODIFIER_OUT;
-
-        return PARSER_SUCCESS;
-    }
-
-    if (TRY(input, word_parser(input, "inout", NULL)) == PARSER_SUCCESS) {
-        *function_arg_modifier = FUNCTION_ARG_MODIFIER_INOUT;
 
         return PARSER_SUCCESS;
     }

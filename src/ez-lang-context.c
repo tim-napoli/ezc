@@ -78,7 +78,11 @@ static bool _context_valref_is_valid(const context_t* ctx,
             function_t* func = program_find_function(ctx->program,
                                                      &valref->identifier);
             if (!func) {
-                return false;
+                func = program_find_procedure(ctx->program,
+                                              &valref->identifier);
+                if (!func) {
+                    return false;
+                }
             }
             type = func->return_type;
         } else {
