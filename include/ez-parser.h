@@ -20,6 +20,9 @@ parser_status_t comment_or_empty_parser(FILE* input,
 parser_status_t end_of_line_parser(FILE* input, const void* args,
                                    void* unused_output);
 
+parser_status_t end_of_file_parser(FILE* input, const void* args,
+                                   void* output);
+
 parser_status_t identifier_parser(FILE* input, const context_t* ctx,
                                   identifier_t* identifier);
 

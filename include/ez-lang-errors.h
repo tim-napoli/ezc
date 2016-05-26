@@ -26,4 +26,5 @@ void error_affectation_not_valid(FILE* input,
 
 void error_value_not_valid(FILE* input, const value_t* value);
 
+void error_decleration_not_valid(FILE* input);
 #endif /* end of include guard: _ez_errors_h_ */

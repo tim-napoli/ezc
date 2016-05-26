@@ -135,8 +135,6 @@ void declaration_test() {
     char vector_of_real[] = "local toto is vector of real\n";
     char vector_of_vector_of_boolean[] = "global _ze23 is vector of vector of boolean\n";
 
-    // TODO : local or global ...
-
     symbol_t* s = NULL;
 
     TEST_ON(integer);
