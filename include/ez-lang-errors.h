@@ -31,4 +31,8 @@ void error_decleration_not_valid(FILE* input);
 
 void error_affectation_not_valid(FILE* input);
 
+void error_bad_access_left_value(FILE* input, const valref_t* v);
+
+void error_bad_access_expr_value(FILE* input, const value_t* v);
+
 #endif /* end of include guard: _ez_errors_h_ */

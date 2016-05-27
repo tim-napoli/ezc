@@ -83,3 +83,13 @@ void error_affectation_not_valid(FILE* input) {
     error_print(input);
     fprintf(stderr, "affectation is not valid (bad casting)\n");
 }
+
+void error_bad_access_left_value(FILE* input, const valref_t* v) {
+    error_print(input);
+    fprintf(stderr, "bad access type of left value (%s) on affectation\n", v->identifier.value);
+}
+
+void error_bad_access_expr_value(FILE* input, const value_t* v) {
+    error_print(input);
+    fprintf(stderr, "bad access type of value (%s) on expression\n", v->valref->identifier.value);
+}
