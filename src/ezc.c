@@ -5,7 +5,7 @@
 #include "ez-lang.h"
 
 static void help(void) {
-    printf( "usage: ezc [options] source target\n"
+    printf( "usage: ezc [options] source\n"
             "options are:\n"
             " -h        see this help\n"
           );
@@ -25,7 +25,7 @@ int main(int argc, char** argv) {
         }
     }
 
-    if (argc < optind + 2) {
+    if (argc < optind + 1) {
         help();
         return 1;
     }
