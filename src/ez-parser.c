@@ -171,7 +171,8 @@ parser_status_t function_parser(FILE* input, context_t* ctx,
     while (TRY(input, word_parser(input, "begin", NULL)) == PARSER_FAILURE) {
         symbol_t* local = NULL;
 
-        PARSE(local_parser(input, ctx, &local));
+        PARSE_ERR(local_parser(input, ctx, &local),
+                  "invalid local declaration");
 
         if (context_has_identifier(ctx, &local->identifier)) {
             error_identifier_exists(input, &local->identifier);
@@ -180,7 +181,7 @@ parser_status_t function_parser(FILE* input, context_t* ctx,
             function_add_local(*function, local);
         }
 
-
+        /* TODO handling when missing begin after function prototype. */
         SKIP_MANY(input, comment_or_empty_parser(input, NULL, NULL));
     }
 

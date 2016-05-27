@@ -1,23 +1,22 @@
-program fibonacci_suit
+program fibonacci_number
 
-function fibonacci(in n is integer) return integer
+function fibonacci(in n is natural) return natural
 begin
     on n < 2 do return 1
-    return fibonacci(n - 2) + fibonacci(n - 1)
+    return fibonacci(n - 1) + fibonacci(n - 2)
 end
 
-function fibonacci_suit(in args is vector of string) return integer
-    local n is integer
-    local result is integer
+function fibonacci_number(in args is vector of string) return integer
+    local n is natural
 begin
-    if args.size() < 2 then
-        print "usage: fibonacci n\n"
-        return 1
+    if args.size() == 2 then
+        // n = integer_from_string(args[1])
+        n = 0
+    else
+        print "Enter a number : "
+        read n
     endif
 
-    n = atoi(args.at(0))
-    result = fibonacci(n)
-
-    print "fibonacci({n}) = {result}"
+    print "fibonacci(", n, ") = ", fibonacci(n)
+    return 0
 end
-

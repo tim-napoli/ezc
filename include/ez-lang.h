@@ -6,10 +6,6 @@
 #include "vector.h"
 
 #define IDENTIFIER_SIZE             32
-#define INSTRUCTIONS_SIZE           128
-#define ELSIF_SIZE                  32
-
-typedef struct expression expression_t;
 
 /* ----------------------------- bases ------------------------------------- */
 
@@ -20,13 +16,19 @@ typedef struct identifier {
 bool identifier_set_value(identifier_t* id, char *value);
 bool identifier_is_reserved(const identifier_t* id);
 
+/* TODO bool_identifier_equals */
+
 typedef struct symbol symbol_t;
 typedef struct structure structure_t;
 typedef struct type type_t;
 typedef struct context context_t;
+typedef struct expression expression_t;
 
 /* ---------------------------- values ------------------------------------- */
 
+/**
+ * Function parameters during function call.
+ */
 typedef struct parameters {
     vector_t      parameters;    /* of expression_t* */
 } parameters_t;
@@ -39,6 +41,20 @@ void parameters_wipe(parameters_t* params);
 
 void parameters_print(FILE* output, const parameters_t* params);
 
+/**
+ * A valref (read 'Value Reference') is a special kind of value meaning
+ * a variable's value or a function return value.
+ * For example:
+ * 'a.b' is the 'b' member of the 'a' structure
+ * 'f().x' is the 'x' member of the structure returned by the 'f()' function
+ * call.
+ *
+ * This data structure is organized like a linked list. When the 'next'
+ * member of a valref is not NULL, then we have a '.'.
+ *
+ * If 'is_funccall' is true, then the valref is a function call with
+ * 'parameters' as function arguments.
+ */
 typedef struct valref {
     identifier_t  identifier;
 
@@ -56,6 +72,9 @@ void valref_print(FILE* output, const valref_t* value);
 
 const type_t* valref_get_type(const context_t* ctx, const valref_t* valref);
 
+/**
+ * Different kinds of values.
+ */
 typedef enum {
     VALUE_TYPE_STRING,
     VALUE_TYPE_REAL,
@@ -65,6 +84,10 @@ typedef enum {
     VALUE_TYPE_VALREF,
 } value_type_t;
 
+/**
+ * A value encountered in EZ expressions.
+ * For example '5', '"I'm Jojo"', '5.0', 'x().y' are values.
+ */
 typedef struct value {
     value_type_t type;
     union {
@@ -93,6 +116,9 @@ const type_t* value_get_type(const context_t* ctx, const value_t* value);
 
 /* ---------------------------- expressions --------------------------------- */
 
+/**
+ * Different kinds of expression nodes.
+ */
 typedef enum {
     EXPRESSION_TYPE_VALUE,
 
@@ -116,8 +142,19 @@ typedef enum {
     EXPRESSION_TYPE_SIZE
 } expression_type_t;
 
-extern int expression_type_predecence[EXPRESSION_TYPE_SIZE];
-
+/**
+ * Expression representation.
+ *
+ * An expression is a tree (number of childs of a given node depends of the
+ * node's kind), where `type` is the kind of node.
+ *
+ * If a node is of kind `EXPRESSION_TYPE_VALUE`, it has its internal union
+ * `value` set to a valid value.
+ *
+ * If it has a binary operator kind (all other kinds excepted
+ * 'EXPRESSION_TYPE_BOOL_OP_NOT'), all `left` and `right` childs are set.
+ * If it is of kind `EXPRESSION_TYPE_BOOL_OP_NOT`, only right child is set.
+ */
 struct expression {
     expression_type_t type;
     union {
@@ -141,28 +178,86 @@ const type_t* expression_get_type(const context_t* ctx,
 
 /* -------------------------- types & symbols ------------------------------ */
 
+/**
+ * Different kinds of type the EZ language support.
+ */
 typedef enum {
+    /**
+     * Classical boolean type.
+     */
     TYPE_TYPE_BOOLEAN,
+
+    /**
+     * Classical integer (-inf, +inf) type.
+     */
     TYPE_TYPE_INTEGER,
+
+    /**
+     * Positive integer type.
+     */
     TYPE_TYPE_NATURAL,
+
+    /**
+     * Real type.
+     */
     TYPE_TYPE_REAL,
+
+    /**
+     * Single character type.
+     */
     TYPE_TYPE_CHAR,
+
+    /**
+     * Multiple character type.
+     */
     TYPE_TYPE_STRING,
+
+    /**
+     * Dynamic array type.
+     * When a `type_t` has this type, it has a subtype in `optional_type`.
+     */
     TYPE_TYPE_VECTOR,
+
+    /**
+     * Structure type.
+     * When a `type_t` has this type, it must have a valid `structure_type`
+     * child.
+     */
     TYPE_TYPE_STRUCTURE,
+
+    /**
+     * Optional type. Values having this type could have a value or not.
+     * This is useful to do recursive data-structures.
+     * When a `type_t` has this type, it has a subtype in `optional_type`.
+     */
     TYPE_TYPE_OPTIONAL,
+
+    /* TODO TYPE_TYPE_FUNCTION (because lambda are cool :) ) */
+    /* TODO TYPE_TYPE_REFERENCE (to have control on when puttin reference or
+            not when using local or globals. */
 } type_type_t;
 
+/**
+ * A symbol is a simple data structure associating a type to an identifier.
+ */
 struct symbol {
     identifier_t identifier;
     type_t* is;
 };
 
+/**
+ * A structure is like a C data structure. It associates to a type name a set
+ * of members (sub-variables).
+ */
 struct structure {
     identifier_t identifier;
     vector_t members;   /* of symbol_t* */
 };
 
+/**
+ * The type data structure. Have a look to type_type_t enumeration for more
+ * details.
+ */
 struct type {
     type_type_t type;
     union {
@@ -194,6 +289,10 @@ bool type_is_number(const type_t* type);
 
 type_t* type_copy(const type_t* type);
 
+/**
+ * Primitive type pre-allocated.
+ * TODO const
+ */
 extern type_t* type_boolean;
 extern type_t* type_integer;
 extern type_t* type_natural;
@@ -224,6 +323,12 @@ bool structure_is(const structure_t* structure, const identifier_t* id);
 
 typedef struct instruction instruction_t;
 
+/**
+ * A `elsif` instruction is only encountered after a `if` one.
+ * It is composed of `coundition`, the boolean expression that will trigger
+ * the computer to execute `instructions` if the `if` instruction owning
+ * this `elsif` is not triggered.
+ */
 typedef struct elsif_instr {
     expression_t*  coundition;
     vector_t instructions;  /* of instruction_t* */
@@ -235,6 +340,12 @@ void elsif_instr_delete(elsif_instr_t* elsif);
 
 void elsif_instr_print(FILE* output, const elsif_instr_t* elsif);
 
+/**
+ * The classical computer-programming `if` instruction.
+ * Internaly, it is composed of a `coundition` that will trigger if we execute
+ * `instructions`, a set of `elsif` instructions, and a set of instructions
+ * for the `else` part of the `if` constrruction.
+ */
 typedef struct if_instr {
     expression_t* coundition;
     vector_t instructions;      /* of instruction_t* */
@@ -248,6 +359,11 @@ void if_instr_delete(if_instr_t* if_instr);
 
 void if_instr_print(FILE* output, const if_instr_t* if_instr);
 
+/**
+ * In EZ, a loop is a flowcontrol instruction that will loop `instructions`
+ * until `coundition` is validated. The check is done after that `instructions`
+ * are executed (like a do .. while in C).
+ */
 typedef struct loop_instr {
     expression_t* coundition;
     vector_t      instructions;     /* of instruction_t* */
@@ -259,6 +375,11 @@ void loop_instr_delete(loop_instr_t* loop);
 
 void loop_instr_print(FILE* output, const loop_instr_t* loop_instr);
 
+/**
+ * In EZ, a while is a flowcontrol instruction that will loop `instructions`
+ * until `coundition` is validated. The check is done before that `instructions`
+ * are executed (like a while in C).
+ */
 typedef struct while_instr {
     expression_t* coundition;
     vector_t      instructions;     /* of instruction_t* */
@@ -270,6 +391,10 @@ void while_instr_delete(while_instr_t* while_instr);
 
 void while_instr_print(FILE* output, const while_instr_t* while_instr);
 
+/**
+ * A `on` instruction is like a `if` without `elsif` or `else` part, and
+ * a single instruction.
+ */
 typedef struct on_instr {
     expression_t* coundition;
     instruction_t* instruction;
@@ -286,6 +411,11 @@ typedef struct range {
     expression_t* to;
 } range_t;
 
+/**
+ * The `for` instruction allows to iterates a variable `subject` on a given
+ * range, and to execute `instructions` each iteration.
+ * TODO remove subject
+ */
 typedef struct for_instr {
     identifier_t subject;
     range_t      range;
@@ -303,6 +433,10 @@ void for_instr_delete(for_instr_t* for_instr);
 
 void for_instr_print(FILE* output, const for_instr_t* for_instr);
 
+/**
+ * Different kinds of flowcontrol instructions (see above for description of
+ * these instructions).
+ */
 typedef enum {
     FLOWCONTROL_TYPE_IF,
     FLOWCONTROL_TYPE_WHILE,
@@ -311,6 +445,10 @@ typedef enum {
     FLOWCONTROL_TYPE_FOR,
 } flowcontrol_type_t;
 
+/**
+ * A flowcontrol instruction is an instruction that, if a given coundition
+ * match the program environment, will execute inner instructions.
+ */
 typedef struct flowcontrol {
     flowcontrol_type_t type;
     union {
@@ -326,6 +464,10 @@ void flowcontrol_wipe(flowcontrol_t* fc);
 
 void flowcontrol_print(FILE* output, const flowcontrol_t* fc_instr);
 
+/**
+ * An affectation instruction is used to affect the value of an expression
+ * to a value reference (variable).
+ */
 typedef struct affectation_instr {
     valref_t*       lvalue;
     expression_t*   expression;
@@ -335,15 +477,46 @@ void affectation_instr_wipe(affectation_instr_t* affectation);
 
 void affectation_instr_print(FILE* output, const affectation_instr_t* aff);
 
+/**
+ * Different types of instructions the EZ language know.
+ */
 typedef enum {
+    /**
+     * Used to print values to the standard output.
+     */
     INSTRUCTION_TYPE_PRINT,
+
+    /**
+     * Used to read a value of basic type from the standard input.
+     */
     INSTRUCTION_TYPE_READ,
+
+    /**
+     * Only used in functions, used to give the function result.
+     */
     INSTRUCTION_TYPE_RETURN,
+
+    /**
+     * See flowcontrol structure.
+     */
     INSTRUCTION_TYPE_FLOWCONTROL,
+
+    /**
+     * An instruction that is only an expression (like a function or procedure
+     * call).
+     */
     INSTRUCTION_TYPE_EXPRESSION,
+
+    /**
+     * See affectation structure.
+     */
     INSTRUCTION_TYPE_AFFECTATION,
 } instruction_type_t;
 
+/**
+ * instruction data structure (see enumeration above for more details about
+ * instructions).
+ */
 typedef struct instruction {
     instruction_type_t type;
     union {
@@ -365,12 +538,30 @@ void instructions_print(FILE* output, const vector_t* instrs);
 
 /* ------------------------------ functions -------------------------------- */
 
+/**
+ * Function arguments modifiers.
+ * Determine how a functon argument can be used in the function instructions.
+ */
 typedef enum {
+    /**
+     * Argument is read-only.
+     */
     FUNCTION_ARG_MODIFIER_IN,
+
+    /**
+     * Argument is write-only.
+     */
     FUNCTION_ARG_MODIFIER_OUT,
+
+    /**
+     * Argument is readable & writable.
+     */
     FUNCTION_ARG_MODIFIER_INOUT,
 } function_arg_modifier_t;
 
+/**
+ * Function argument.
+ */
 typedef struct function_arg {
     function_arg_modifier_t modifier;
     symbol_t*               symbol;
@@ -383,6 +574,9 @@ void function_arg_delete(function_arg_t* func_arg);
 
 void function_arg_print(FILE* output, const function_arg_t* arg);
 
+/**
+ * (unused for now) Function signature (arguments & return type).
+ */
 typedef struct function_signature {
     type_t*     return_type;
     vector_t    args_types;     /* of type_t* */
@@ -399,6 +593,9 @@ void function_signature_delete(function_signature_t* signature);
 bool function_signature_is_equals(const function_signature_t* a,
                                   const function_signature_t* b);
 
+/**
+ * Function data structure.
+ */
 typedef struct function {
     identifier_t identifier;
 
@@ -432,6 +629,10 @@ bool function_is(const function_t* func, const identifier_t* id);
 
 /* ------------------------------ constants -------------------------------- */
 
+/**
+ * A constant is a special symbol taking value of the given expression at
+ * declaration.
+ */
 typedef struct constant {
     symbol_t*     symbol;
     expression_t* value;
@@ -455,6 +656,8 @@ typedef struct program {
     vector_t    structures; /* of structure_t* */
     vector_t    functions;  /* of function_t* */
     vector_t    procedures; /* of function_t* */
+
+    vector_t    builtin_functions; /* of function_t* */
 } program_t;
 
 program_t* program_new(const identifier_t* id);
@@ -520,6 +723,7 @@ const type_t* context_find_identifier_type(const context_t* ctx,
                                            const identifier_t* id);
 
 /* ------------------------ Language builtins ------------------------------ */
+
 
 bool vector_function_exists(const identifier_t* id);
 
