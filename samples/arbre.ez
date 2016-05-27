@@ -30,7 +30,7 @@ procedure afficher_arbre(in larbre is optional arbre)
 begin
     if larbre.is_set() then
         afficher_arbre(larbre.get().enfant_gauche)
-        print larbre.get().nombre
+        print larbre.get().nombre, ", "
         afficher_arbre(larbre.get().enfant_droit)
     endif
 end
@@ -47,6 +47,7 @@ begin
 
     print "Les nombre triés sont : "
     afficher_arbre(arbre_trie)
+    print "\n"
 
     return 0
 end

@@ -315,9 +315,11 @@ void instruction_print(FILE* output, const context_t* ctx,
         for (int i = 0; i < instr->parameters.parameters.size; i++) {
             expression_print(output, ctx,
                              instr->parameters.parameters.elements[i]);
-            fprintf(output, " << ");
+            if (i + 1 < instr->parameters.parameters.size) {
+                fprintf(output, " << ");
+            }
         }
-        fprintf(output, "std::endl;\n");
+        fprintf(output, ";\n");
         break;
 
       case INSTRUCTION_TYPE_READ:

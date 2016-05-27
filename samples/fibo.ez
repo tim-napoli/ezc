@@ -10,13 +10,12 @@ function fibonacci_number(in args is vector of string) return integer
     local n is natural
 begin
     if args.size() == 2 then
-        // n = integer_from_string(args[1])
-        n = 0
+        n = integer_from_string(args[1])
     else
         print "Enter a number : "
         read n
     endif
 
-    print "fibonacci(", n, ") = ", fibonacci(n)
+    print "fibonacci(", n, ") = ", fibonacci(n), "\n"
     return 0
 end

@@ -17,14 +17,14 @@ begin
         print "enter a number: "
         read user_number
         if user_number < mysterious_num then
-            print "greater"
+            print "greater\n"
         elsif user_number > mysterious_num then
-            print "lower"
+            print "lower\n"
         endif
         try_number = try_number + 1
     until user_number != mysterious_num
 
-    print "won using ", try_number, " tries"
+    print "won using ", try_number, " tries\n"
 
     return 0
 end

@@ -3,6 +3,6 @@ program hello_world
 
 function hello_world(in args is vector of string) return integer
 begin
-    print "Hello, world"
+    print "Hello, world\n"
 end
 

@@ -48,7 +48,7 @@ function td_1_3(in args is vector of string) return integer
     local notes is vector of Note
 begin
     lit_les_notes(notes)
-    print "Votre moyenne est de ", moyenne_des_notes(notes)
+    print "Votre moyenne est de ", moyenne_des_notes(notes), "\n"
     return 0
 end
 
