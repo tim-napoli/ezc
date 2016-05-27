@@ -43,6 +43,22 @@ function_signature_t* function_signature_new(void) {
     return signature;
 }
 
+function_signature_t*
+function_signature_copy(const function_signature_t* signature)
+{
+    function_signature_t* copy = function_signature_new();
+
+    for (int i = 0; signature->args_types.size; i++) {
+        vector_push(&copy->args_types,
+                    type_copy(signature->args_types.elements[i]));
+    }
+    if (signature->return_type) {
+        copy->return_type = type_copy(signature->return_type);
+    }
+
+    return copy;
+}
+
 void function_signature_wipe(function_signature_t* signature) {
     if (signature->return_type) {
         type_delete(signature->return_type);

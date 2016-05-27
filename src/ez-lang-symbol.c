@@ -74,6 +74,13 @@ type_t* type_structure_new(structure_t* s) {
     return t;
 }
 
+type_t* type_function_new(function_signature_t* signature) {
+    type_t* t = type_new(TYPE_TYPE_FUNCTION);
+    t->signature = signature;
+
+    return t;
+}
+
 void type_print(FILE* output, const context_t* ctx, const type_t* type) {
     switch (type->type) {
       case TYPE_TYPE_BOOLEAN:
@@ -120,6 +127,9 @@ void type_print(FILE* output, const context_t* ctx, const type_t* type) {
         }
         fprintf(output, type->structure_type->identifier.value);
         break;
+
+      case TYPE_TYPE_FUNCTION:
+        break;
     }
 }
 
@@ -136,6 +146,10 @@ bool types_are_equals(const type_t* a, const type_t* b) {
             } else
             if (a->type == TYPE_TYPE_OPTIONAL) {
                 return types_are_equals(a->optional_type, b->optional_type);
+            } else
+            if (a->type == TYPE_TYPE_FUNCTION) {
+                return function_signature_is_equals(a->signature,
+                                                    b->signature);
             }
             return true;
         }
@@ -177,6 +191,9 @@ type_t* type_copy(const type_t* type) {
     } else
     if (copy->type == TYPE_TYPE_STRUCTURE) {
         copy->structure_type = type->structure_type;
+    } else
+    if (copy->type == TYPE_TYPE_FUNCTION) {
+        copy->signature = function_signature_copy(type->signature);
     }
     return copy;
 }

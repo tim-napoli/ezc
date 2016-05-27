@@ -93,6 +93,43 @@ parser_status_t identifier_parser(FILE* input, const context_t* ctx,
     return PARSER_SUCCESS;
 }
 
+parser_status_t function_signature_parser(FILE* input, const context_t* ctx,
+                                          function_signature_t** signature)
+{
+    type_t* type = NULL;
+
+    PARSE(char_parser(input, "(", NULL));
+
+    *signature = function_signature_new();
+    while (TRY(input, type_parser(input, ctx, &type)) == PARSER_SUCCESS) {
+        vector_push(&(*signature)->args_types, type);
+        SKIP_MANY(input, space_parser(input, NULL, NULL));
+        if (TRY(input, char_parser(input, ",", NULL)) == PARSER_SUCCESS) {
+            SKIP_MANY(input, space_parser(input, NULL, NULL));
+        } else {
+            break;
+        }
+    }
+    PARSE_ERR(char_parser(input, ")", NULL),
+              "a function signature must be closed with ')'");
+
+    PARSE_ERR(char_parser(input, " ", NULL),
+              "a space is required after function signature ')'");
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
+
+    PARSE_ERR(word_parser(input, "return", NULL),
+              "a 'return' keyword is required after function signature");
+
+    PARSE_ERR(char_parser(input, " ", NULL),
+              "a space is required after function signature 'return'");
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
+
+    PARSE_ERR(type_parser(input, ctx, &(*signature)->return_type),
+              "a valid return type is required for a function signature");
+
+    return PARSER_SUCCESS;
+}
+
 parser_status_t type_parser(FILE* input, const context_t* ctx,
                             type_t* *type)
 {
@@ -149,6 +186,14 @@ parser_status_t type_parser(FILE* input, const context_t* ctx,
 
         *type = type_optional_new(of);
 
+        return PARSER_SUCCESS;
+    } else
+    if (TRY(input, word_parser(input, "function", NULL)) == PARSER_SUCCESS) {
+        function_signature_t* signature = NULL;
+        SKIP_MANY(input, space_parser(input, NULL, NULL));
+        PARSE_ERR(function_signature_parser(input, ctx, &signature),
+                  "invalid function signature");
+        *type = type_function_new(signature);
         return PARSER_SUCCESS;
     } else
     if (TRY(input, identifier_parser(input, NULL, &structure_id))
@@ -226,3 +271,4 @@ parser_status_t range_parser(FILE* input, const context_t* ctx,
 
     return PARSER_SUCCESS;
 }
+

@@ -36,6 +36,7 @@ typedef struct structure structure_t;
 typedef struct type type_t;
 typedef struct context context_t;
 typedef struct expression expression_t;
+typedef struct function_signature function_signature_t;
 
 /* ---------------------------- values ------------------------------------- */
 
@@ -245,6 +246,11 @@ typedef enum {
      */
     TYPE_TYPE_OPTIONAL,
 
+    /**
+     * Function type.
+     */
+    TYPE_TYPE_FUNCTION,
+
     /* TODO TYPE_TYPE_FUNCTION (because lambda are cool :) ) */
     /* TODO TYPE_TYPE_REFERENCE (to have control on when puttin reference or
             not when using local or globals. */
@@ -277,6 +283,7 @@ struct type {
         structure_t* structure_type;
         type_t* vector_type;
         type_t* optional_type;
+        function_signature_t* signature;
     };
 };
 
@@ -291,6 +298,7 @@ type_t *type_string_new();
 type_t *type_vector_new(type_t *of);
 type_t* type_structure_new(structure_t* s);
 type_t* type_optional_new(type_t* of);
+type_t* type_function_new(function_signature_t* signature);
 
 void type_print(FILE* output, const context_t* ctx, const type_t* type);
 
@@ -300,6 +308,7 @@ bool types_are_equivalent(const type_t* a, const type_t* b);
 
 bool type_is_number(const type_t* type);
 bool type_is_integer(const type_t* type);
+bool type_is_function(const type_t* type);
 
 type_t* type_copy(const type_t* type);
 
@@ -603,14 +612,17 @@ void function_arg_print(FILE* output, const context_t* ctx,
 /**
  * (unused for now) Function signature (arguments & return type).
  */
-typedef struct function_signature {
+struct function_signature {
     type_t*     return_type;
     vector_t    args_types;     /* of type_t* */
-} function_signature_t;
+};
 
 void function_signature_init(function_signature_t* signature);
 
 function_signature_t* function_signature_new(void);
+
+function_signature_t*
+function_signature_copy(const function_signature_t* signature);
 
 void function_signature_wipe(function_signature_t* signature);
 
