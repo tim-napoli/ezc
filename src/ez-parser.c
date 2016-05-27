@@ -444,7 +444,6 @@ parser_status_t entity_parser(FILE* input, context_t* ctx,
         return PARSER_SUCCESS;
     }
 
-    error_decleration_not_valid(input);
     return PARSER_FAILURE;
 }
 
@@ -465,8 +464,11 @@ parser_status_t program_parser(FILE* input,
 
     SKIP_MANY(input, comment_or_empty_parser(input, NULL, NULL));
 
-    while (TRY(input, end_of_file_parser(input, NULL, NULL)) == PARSER_FAILURE
-        && entity_parser(input, ctx, *program) == PARSER_SUCCESS) {}
+    while (TRY(input, end_of_file_parser(input, NULL, NULL))
+    == PARSER_FAILURE) {
+        PARSE_ERR(entity_parser(input, ctx, *program),
+            "declaration is not valid");
+    }
 
     if (!program_has_function(*program, &prg_id)) {
         error_no_main_function(&prg_id);

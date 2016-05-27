@@ -238,5 +238,10 @@ parser_status_t expression_parser(FILE* input, const context_t* ctx,
     PARSE(expression_in_parser(input, ctx, &stacks));
     *expression = expression_from_stack(&stacks);
 
+
+    if (!context_expression_is_valid(ctx, *expression)) {
+        error_expression_not_valid(input, *expression);
+    }
+
     return PARSER_SUCCESS;
 }

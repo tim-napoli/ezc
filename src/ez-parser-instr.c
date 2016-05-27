@@ -83,14 +83,16 @@ parser_status_t elsif_parser(FILE* input, const context_t* ctx,
 
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
-    PARSE(instructions_parser(input, ctx, &(*elsif_intr)->instructions)); // XXX
+    // XXX
+    PARSE(instructions_parser(input, ctx, &(*elsif_intr)->instructions));
 
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
     return PARSER_SUCCESS;
 }
 
-parser_status_t else_parser(FILE* input, const context_t* ctx, vector_t* vector)
+parser_status_t else_parser(FILE* input, const context_t* ctx,
+                            vector_t* vector)
 {
     PARSE(word_parser(input, "else", NULL));
     PARSE(end_of_line_parser(input, NULL, NULL));
@@ -205,7 +207,8 @@ parser_status_t while_parser(FILE* input, const context_t* ctx,
 
     *while_instr = while_instr_new(expr);
 
-    PARSE(instructions_parser(input, ctx, &(*while_instr)->instructions)); // XXX
+    // XXX
+    PARSE(instructions_parser(input, ctx, &(*while_instr)->instructions));
 
     SKIP_MANY(input, comment_or_empty_parser(input, NULL, NULL));
 
@@ -278,7 +281,8 @@ parser_status_t loop_parser(FILE* input, const context_t* ctx,
 
     *loop_instr = loop_instr_new(NULL);
 
-    PARSE(instructions_parser(input, ctx, &(*loop_instr)->instructions)); // XXX
+    // XXX
+    PARSE(instructions_parser(input, ctx, &(*loop_instr)->instructions));
 
     SKIP_MANY(input, comment_or_empty_parser(input, NULL, NULL));
 
@@ -352,8 +356,13 @@ parser_status_t affectation_parser(FILE* input, const context_t* ctx,
 
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
-    PARSE_ERR(expression_parser(input, ctx, &affectation_instr->expression), // XXX
+    // XXX
+    PARSE_ERR(expression_parser(input, ctx, &affectation_instr->expression),
               "a valid expression must be provided after an affectation '='");
+
+    if (!context_affectation_is_valid(ctx, affectation_instr)) {
+        error_affectation_not_valid(input);
+    }
 
     PARSE_ERR(end_of_line_parser(input, NULL, NULL),
               "a new line must follow affaction's expression");
@@ -376,7 +385,8 @@ parser_status_t instruction_parser(FILE* input, const context_t* ctx,
         == PARSER_SUCCESS)
     {
         *instruction = instruction_new(INSTRUCTION_TYPE_FLOWCONTROL);
-        memcpy(&(*instruction)->flowcontrol, &flowcontrol, sizeof(flowcontrol_t)); // XXX XXX
+        memcpy(&(*instruction)->flowcontrol, &flowcontrol,
+               sizeof(flowcontrol_t)); // XXX XXX
 
         return PARSER_SUCCESS;
     } else
@@ -390,11 +400,13 @@ parser_status_t instruction_parser(FILE* input, const context_t* ctx,
     } else
     if (TRY(input, print_parser(input, ctx, &parameters)) == PARSER_SUCCESS) {
         *instruction = instruction_new(INSTRUCTION_TYPE_PRINT);
-        memcpy(&(*instruction)->parameters, &parameters, sizeof(parameters_t)); // XXX XXX
+        // XXX XXX
+        memcpy(&(*instruction)->parameters, &parameters, sizeof(parameters_t));
 
-        if (!context_parameters_is_valid(ctx, &parameters)) {
-            error_parameters_not_valid(input, &parameters);
-        }
+        // NOTE Is it useful ?
+        // if (!context_parameters_are_valid(ctx, &parameters)) {
+        //     error_parameters_not_valid(input, &parameters);
+        // }
 
         return PARSER_SUCCESS;
     } else
@@ -417,7 +429,7 @@ parser_status_t instruction_parser(FILE* input, const context_t* ctx,
         (*instruction)->expression = expression; // XXX
 
         PARSE_ERR(end_of_line_parser(input, NULL, NULL),
-                  "An end of line must follow an expression instruction");
+                  "a new line must follow each instructions");
 
         return PARSER_SUCCESS;
     }

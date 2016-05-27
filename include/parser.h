@@ -100,8 +100,8 @@ parser_status_t word_parser(FILE* input, const char* word, char** output);
 
 parser_status_t until_char_parser(FILE* input, const char* c, char** output);
 
-parser_status_t until_word_parser(FILE* input, const char* word, char** output);
+parser_status_t until_word_parser(FILE* input, const char* word,
+                                  char** output);
 
 
 #endif
-

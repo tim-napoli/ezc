@@ -6,7 +6,7 @@ global v is vector of boolean
 global vv is vector of vector of natural
 global vvvv is vector of vector of vector of vector of real
 
-struct Person is
+structure Person is
    name is string
    age is integer
 end
@@ -19,11 +19,15 @@ constant MAX_PRIMES is integer = 20
 constant EXPR       is boolean = 4 * PI * 6 + 3 * 7 <= MAX_PRIMES * 2 + 1 * 5
 
 function toto() return string
-local toto is string
+local t is string
 begin
-    toto = "toto"
+    t = "toto"
 
-    return toto
+    if ((1 + 3 * 4 * i / i) >= 3 % 2) then
+        i = (1 + 3 * 4 * i) % 2
+    endif
+
+    return t
 end
 
 function person(in args is vector of string) return integer
