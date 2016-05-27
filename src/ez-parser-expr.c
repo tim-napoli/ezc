@@ -1,5 +1,6 @@
 #include <string.h>
 #include <assert.h>
+#include "ez-lang.h"
 #include "ez-parser.h"
 #include "ez-lang-errors.h"
 
@@ -149,9 +150,14 @@ static parser_status_t expression_in_parser(FILE* input, const context_t* ctx,
     } else
     if (TRY(input, value_parser(input, ctx, &value)) == PARSER_SUCCESS) {
 
+        /* NOTE CHECK */
         if (!context_value_is_valid(ctx, &value)) {
             error_value_not_valid(input, ctx, &value);
-            return PARSER_FATAL;
+        } else
+        if (!access_type_is_input(
+            context_value_get_access_type(ctx, &value)
+        )) {
+            error_bad_access_expr_value(input, &value);
         }
 
         SKIP_MANY(input, space_parser(input, NULL, NULL));
@@ -239,7 +245,7 @@ parser_status_t expression_parser(FILE* input, const context_t* ctx,
     PARSE(expression_in_parser(input, ctx, &stacks));
     *expression = expression_from_stack(&stacks);
 
-
+    /* NOTE Check */
     if (!context_expression_is_valid(ctx, *expression)) {
         error_expression_not_valid(input, ctx, *expression);
     }

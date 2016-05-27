@@ -52,7 +52,7 @@ bool vector_function_call_is_valid(const context_t* ctx,
         const type_t* arg_type =
             context_expression_get_type(ctx,
                                 valref->parameters.parameters.elements[0]);
-        bool res = types_are_equals(arg_type, vector_type->vector_type);
+        bool res = types_are_equivalent(arg_type, vector_type->vector_type);
 
         if (!res) {
             return false;
@@ -71,7 +71,7 @@ bool vector_function_call_is_valid(const context_t* ctx,
             context_expression_get_type(ctx,
                                 valref->parameters.parameters.elements[1]);
         bool res =  type_is_number(arg_type_1)
-                 && types_are_equals(arg_type_2, vector_type->vector_type);
+                 && types_are_equivalent(arg_type_2, vector_type->vector_type);
 
         if (!res) {
             return false;

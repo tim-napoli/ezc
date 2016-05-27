@@ -22,24 +22,24 @@ parser_status_t header_parser(FILE* input,
     return PARSER_SUCCESS;
 }
 
-parser_status_t modifier_parser(FILE* input, const void* args,
-                                function_arg_modifier_t* function_arg_modifier)
+parser_status_t access_type_parser(FILE* input, const void* args,
+                                access_type_t* access_type)
 {
 
     if (TRY(input, word_parser(input, "inout", NULL)) == PARSER_SUCCESS) {
-        *function_arg_modifier = FUNCTION_ARG_MODIFIER_INOUT;
+        *access_type = ACCESS_TYPE_INPUT_OUTPUT;
 
         return PARSER_SUCCESS;
     }
 
     if (TRY(input, word_parser(input, "in", NULL)) == PARSER_SUCCESS) {
-        *function_arg_modifier = FUNCTION_ARG_MODIFIER_IN;
+        *access_type = ACCESS_TYPE_INPUT;
 
         return PARSER_SUCCESS;
     }
 
     if (TRY(input, word_parser(input, "out", NULL)) == PARSER_SUCCESS) {
-        *function_arg_modifier = FUNCTION_ARG_MODIFIER_OUT;
+        *access_type = ACCESS_TYPE_OUTPUT;
 
         return PARSER_SUCCESS;
     }
@@ -56,9 +56,10 @@ parser_status_t function_args_parser(FILE* input, const context_t* ctx,
     type_t* is = NULL;
     identifier_t arg_id;
     function_arg_t* arg = NULL;
-    function_arg_modifier_t modifier;
+    access_type_t access_type;
 
-    if (TRY(input, modifier_parser(input, NULL, &modifier)) == PARSER_SUCCESS)
+    if (TRY(input, access_type_parser(input, NULL, &access_type))
+        == PARSER_SUCCESS)
     {
         PARSE_ERR(space_parser(input, NULL, NULL),
                   "expected spaces");
@@ -66,7 +67,7 @@ parser_status_t function_args_parser(FILE* input, const context_t* ctx,
         SKIP_MANY(input, space_parser(input, NULL, NULL));
 
         PARSE_ERR(identifier_parser(input, NULL, &arg_id),
-                  "a valid identifier must follow a modifier in function "
+                  "a valid identifier must follow a access type in function "
                   "arguments");
 
         PARSE(space_parser(input, NULL, NULL));
@@ -82,7 +83,7 @@ parser_status_t function_args_parser(FILE* input, const context_t* ctx,
                   "expected valid type");
 
         symbol = symbol_new(&arg_id, is);
-        arg = function_arg_new(modifier, symbol);
+        arg = function_arg_new(access_type, symbol);
         vector_push(arguments, arg);
 
         SKIP_MANY(input, space_parser(input, NULL, NULL));

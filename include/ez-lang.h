@@ -558,28 +558,28 @@ typedef enum {
     /**
      * Argument is read-only.
      */
-    FUNCTION_ARG_MODIFIER_IN,
+    ACCESS_TYPE_INPUT,
 
     /**
      * Argument is write-only.
      */
-    FUNCTION_ARG_MODIFIER_OUT,
+    ACCESS_TYPE_OUTPUT,
 
     /**
      * Argument is readable & writable.
      */
-    FUNCTION_ARG_MODIFIER_INOUT,
-} function_arg_modifier_t;
+    ACCESS_TYPE_INPUT_OUTPUT,
+} access_type_t;
 
 /**
  * Function argument.
  */
 typedef struct function_arg {
-    function_arg_modifier_t modifier;
-    symbol_t*               symbol;
+    access_type_t access_type;
+    symbol_t*     symbol;
 } function_arg_t;
 
-function_arg_t* function_arg_new(function_arg_modifier_t modifier,
+function_arg_t* function_arg_new(access_type_t access_type,
                                  symbol_t* symbol);
 
 void function_arg_delete(function_arg_t* func_arg);
@@ -630,6 +630,9 @@ void function_set_args(function_t* func, vector_t* args);
 bool function_has_arg(const function_t* func, const identifier_t* arg);
 function_arg_t* function_find_arg(const function_t* func,
                                   const identifier_t* arg);
+
+bool access_type_is_input(const access_type_t access_type);
+bool access_type_is_output(const access_type_t access_type);
 
 void function_add_local(function_t* func, symbol_t* local);
 bool function_has_local(const function_t* func, const identifier_t* arg);
@@ -761,6 +764,12 @@ const type_t* context_find_identifier_type(const context_t* ctx,
 
 const type_t* context_expression_get_type(const context_t* ctx,
                                   const expression_t* expr);
+
+access_type_t context_value_get_access_type(const context_t* ctx,
+                                                  const value_t* v);
+
+access_type_t context_valref_get_access_type(const context_t* ctx,
+                                                 const valref_t* v);
 
 /* ------------------------ Language builtins ------------------------------ */
 

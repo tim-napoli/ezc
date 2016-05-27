@@ -1,4 +1,5 @@
 #include <string.h>
+#include "ez-lang.h"
 #include "ez-parser.h"
 #include <ez-lang-errors.h>
 
@@ -32,6 +33,7 @@ parser_status_t read_parser(FILE* input, const context_t* ctx,
     PARSE_ERR(valref_parser(input, ctx, valref),
               "a single value reference must follow the 'read' keyword");
 
+    /* NOTE Check */
     if (!context_valref_is_valid(ctx, *valref)) {
         error_valref_not_found(input, ctx, *valref);
     }
@@ -350,8 +352,14 @@ parser_status_t affectation_parser(FILE* input, const context_t* ctx,
 
     PARSE(char_parser(input, "=", NULL));
 
+    // NOTE Check valref validity and access type
     if (!context_valref_is_valid(ctx, affectation_instr->lvalue)) { // XXX
         error_valref_not_found(input, ctx, affectation_instr->lvalue); // XXX
+    } else
+    if (!access_type_is_output(context_valref_get_access_type(ctx,
+                                                     affectation_instr->lvalue)
+    )) {
+        error_bad_access_left_value(input, affectation_instr->lvalue);
     }
 
     SKIP_MANY(input, space_parser(input, NULL, NULL));
@@ -360,6 +368,7 @@ parser_status_t affectation_parser(FILE* input, const context_t* ctx,
     PARSE_ERR(expression_parser(input, ctx, &affectation_instr->expression),
               "a valid expression must be provided after an affectation '='");
 
+    // NOTE Check types equivalence
     if (!context_affectation_is_valid(ctx, affectation_instr)) {
         error_affectation_not_valid(input);
     }

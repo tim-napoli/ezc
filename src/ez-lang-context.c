@@ -124,9 +124,16 @@ static bool _context_valref_is_valid(const context_t* ctx,
             if (type->type != TYPE_TYPE_STRUCTURE) {
                 return false;
             }
+
             structure_t* structure = type->structure_type;
+
+            if (!structure) {
+                return false;
+            }
+
             symbol_t* member = structure_find_member(structure,
                                                      &valref->identifier);
+
             if (!member) {
                 return false;
             }
@@ -159,21 +166,27 @@ bool context_expression_is_valid(const context_t* ctx, const expression_t* e) {
     bool left = true;
     bool right = true;
 
-    const type_t* ltype = NULL;
-    const type_t* rtype = NULL;
-
     if (e->left) {
         left = context_expression_is_valid(ctx, e->left);
-        ltype = context_expression_get_type(ctx, e->left);
     }
 
     if (e->right) {
         right = context_expression_is_valid(ctx, e->right);
-        rtype = context_expression_get_type(ctx, e->right);
     }
 
     if (!left || !right) {
         return false;
+    }
+
+    const type_t* ltype = NULL;
+    const type_t* rtype = NULL;
+
+    if (e->left) {
+        ltype = context_expression_get_type(ctx, e->left);
+    }
+
+    if (e->right) {
+        rtype = context_expression_get_type(ctx, e->right);
     }
 
     if (ltype && !types_are_equivalent(ltype, rtype)) {
@@ -233,11 +246,94 @@ bool context_parameters_are_valid(const context_t* ctx,
 bool context_affectation_is_valid(const context_t* ctx,
                                   const affectation_instr_t* affectation)
 {
-    return types_are_equivalent(context_valref_get_type(ctx, affectation->lvalue),
+    // NOTE : We must RE-check the expression ...
+    if (!context_expression_is_valid(ctx, affectation->expression))
+        return false;
+
+    if (!context_valref_is_valid(ctx, affectation->lvalue))
+        return false;
+
+    return types_are_equivalent(context_valref_get_type(ctx,
+                                                        affectation->lvalue),
                                 context_expression_get_type(ctx,
                                                      affectation->expression));
 }
 
+static const type_t* _context_valref_get_type(const context_t* ctx,
+                                      const valref_t* valref,
+                                      const type_t* type)
+{
+    if (!valref) {
+        return type;
+    }
+
+    if (!type) {
+        if (valref->is_funccall) {
+            function_t* func = program_find_function(ctx->program,
+                                                     &valref->identifier);
+            if (!func) {
+                func = program_find_procedure(ctx->program,
+                                              &valref->identifier);
+            }
+            type = func->return_type;
+        } else {
+            type = context_find_identifier_type(ctx, &valref->identifier);
+        }
+        return _context_valref_get_type(ctx, valref->next, type);
+    } else {
+        if (valref->is_funccall) {
+            if (type->type == TYPE_TYPE_VECTOR) {
+                type = vector_function_get_type(valref, type);
+            } else
+            if (type->type == TYPE_TYPE_OPTIONAL) {
+                type = optional_function_get_type(valref, type);
+            }
+            return _context_valref_get_type(ctx, valref->next, type);
+        } else {
+            structure_t* structure = type->structure_type;
+            symbol_t* member = structure_find_member(structure,
+                                                     &valref->identifier);
+            return _context_valref_get_type(ctx, valref->next, member->is);
+        }
+    }
+
+    return type;
+}
+
+const type_t* context_valref_get_type(const context_t* ctx,
+                                      const valref_t* valref)
+{
+    return _context_valref_get_type(ctx, valref, NULL);
+}
+
+const type_t* context_value_get_type(const context_t* ctx,
+                                     const value_t* value) {
+    if (!value) {
+        return NULL;
+    }
+
+    switch (value->type) {
+      case VALUE_TYPE_STRING:
+        return type_string;
+
+      case VALUE_TYPE_REAL:
+        return type_real;
+
+      case VALUE_TYPE_INTEGER:
+        return type_integer;
+
+      case VALUE_TYPE_NATURAL:
+        return type_natural;
+
+      case VALUE_TYPE_BOOLEAN:
+        return type_boolean;
+
+      case VALUE_TYPE_VALREF:
+        return context_valref_get_type(ctx, value->valref);
+    }
+
+    return NULL;
+}
 
 const type_t* context_expression_get_type(const context_t* ctx,
                                   const expression_t* expr)
@@ -273,4 +369,44 @@ const type_t* context_expression_get_type(const context_t* ctx,
     }
 
     return ret_type;
+}
+
+access_type_t context_value_get_access_type(const context_t* ctx,
+                                                  const value_t* v) {
+
+    if (v->type != VALUE_TYPE_VALREF) {
+        return ACCESS_TYPE_INPUT;
+    }
+
+    return context_valref_get_access_type(ctx, v->valref);
+}
+
+access_type_t context_valref_get_access_type(const context_t* ctx,
+                                                   const valref_t* v) {
+
+    if (ctx->function) {
+        function_arg_t* arg = function_find_arg(ctx->function,
+                                                &v->identifier);
+
+        if (!arg) {
+            symbol_t* local = function_find_local(ctx->function,
+                                                  &v->identifier);
+
+            if (local) {
+                return ACCESS_TYPE_INPUT_OUTPUT;
+            }
+        } else {
+            return arg->access_type;
+        }
+    }
+
+    if (ctx->program) {
+        constant_t* constant = program_find_constant(ctx->program,
+                                                &v->identifier);
+        if (!constant) {
+            return ACCESS_TYPE_INPUT_OUTPUT;
+        }
+    }
+
+    return ACCESS_TYPE_INPUT;
 }

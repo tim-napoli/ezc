@@ -4,7 +4,7 @@
 #include <assert.h>
 #include "ez-lang.h"
 
-function_arg_t* function_arg_new(function_arg_modifier_t modifier,
+function_arg_t* function_arg_new(access_type_t access_type,
                                  symbol_t* symbol)
 {
     function_arg_t* func_arg = malloc(sizeof(function_arg_t));
@@ -13,7 +13,7 @@ function_arg_t* function_arg_new(function_arg_modifier_t modifier,
         return NULL;
     }
 
-    func_arg->modifier = modifier;
+    func_arg->access_type = access_type;
     func_arg->symbol = symbol;
 
     return func_arg;
@@ -91,7 +91,7 @@ function_t* function_new(const identifier_t* id) {
 void function_arg_print(FILE* output, const context_t* ctx,
                         const function_arg_t* arg)
 {
-    if (arg->modifier == FUNCTION_ARG_MODIFIER_IN) {
+    if (arg->access_type == ACCESS_TYPE_INPUT) {
         fprintf(output, "const ");
     }
     type_print(output, ctx, arg->symbol->is);
@@ -175,6 +175,16 @@ bool function_has_arg(const function_t* func, const identifier_t* arg) {
 function_arg_t* function_find_arg(const function_t* func,
                                   const identifier_t* id) {
     return vector_find(&func->args, id, (cmp_func_t)&function_arg_is);
+}
+
+bool access_type_is_input(const access_type_t access_type) {
+    return access_type == ACCESS_TYPE_INPUT
+        || access_type == ACCESS_TYPE_INPUT_OUTPUT;
+}
+
+bool access_type_is_output(const access_type_t access_type) {
+    return access_type == ACCESS_TYPE_OUTPUT
+        || access_type == ACCESS_TYPE_INPUT_OUTPUT;
 }
 
 void function_add_local(function_t* func, symbol_t* local) {
@@ -477,7 +487,7 @@ bool program_main_function_is_valid(const program_t* prg) {
     }
 
     const function_arg_t* arg = func->args.elements[0];
-    if (arg->modifier != FUNCTION_ARG_MODIFIER_IN) {
+    if (arg->access_type != ACCESS_TYPE_INPUT) {
         return false;
     }
     if (arg->symbol->is->type != TYPE_TYPE_VECTOR) {
