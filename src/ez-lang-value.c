@@ -87,7 +87,7 @@ void valref_print(FILE* output, const context_t* ctx, const valref_t* value) {
     }
 }
 
-static const type_t* _valref_get_type(const context_t* ctx,
+static const type_t* _context_valref_get_type(const context_t* ctx,
                                       const valref_t* valref,
                                       const type_t* type)
 {
@@ -99,11 +99,15 @@ static const type_t* _valref_get_type(const context_t* ctx,
         if (valref->is_funccall) {
             function_t* func = program_find_function(ctx->program,
                                                      &valref->identifier);
+            if (!func) {
+                func = program_find_procedure(ctx->program,
+                                              &valref->identifier);
+            }
             type = func->return_type;
         } else {
             type = context_find_identifier_type(ctx, &valref->identifier);
         }
-        return _valref_get_type(ctx, valref->next, type);
+        return _context_valref_get_type(ctx, valref->next, type);
     } else {
         if (valref->is_funccall) {
             if (type->type == TYPE_TYPE_VECTOR) {
@@ -112,21 +116,21 @@ static const type_t* _valref_get_type(const context_t* ctx,
             if (type->type == TYPE_TYPE_OPTIONAL) {
                 type = optional_function_get_type(valref, type);
             }
-            return _valref_get_type(ctx, valref->next, type);
+            return _context_valref_get_type(ctx, valref->next, type);
         } else {
             structure_t* structure = type->structure_type;
             symbol_t* member = structure_find_member(structure,
                                                      &valref->identifier);
-            return _valref_get_type(ctx, valref->next, member->is);
+            return _context_valref_get_type(ctx, valref->next, member->is);
         }
     }
 
     return type;
 }
 
-const type_t* valref_get_type(const context_t* ctx, const valref_t* valref)
+const type_t* context_valref_get_type(const context_t* ctx, const valref_t* valref)
 {
-    return _valref_get_type(ctx, valref, NULL);
+    return _context_valref_get_type(ctx, valref, NULL);
 }
 
 void value_wipe(value_t* value) {
@@ -172,7 +176,7 @@ void value_print(FILE* output, const context_t* ctx, const value_t* value) {
     }
 }
 
-const type_t* value_get_type(const context_t* ctx, const value_t* value) {
+const type_t* context_value_get_type(const context_t* ctx, const value_t* value) {
     switch (value->type) {
       case VALUE_TYPE_STRING:
         return type_string;
@@ -190,7 +194,7 @@ const type_t* value_get_type(const context_t* ctx, const value_t* value) {
         return type_boolean;
 
       case VALUE_TYPE_VALREF:
-        return valref_get_type(ctx, value->valref);
+        return context_valref_get_type(ctx, value->valref);
     }
 
     return NULL;

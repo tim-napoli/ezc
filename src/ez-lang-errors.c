@@ -17,7 +17,8 @@ void error_identifier_is_keyword(FILE* input, const identifier_t* id) {
 
 void error_identifier_exists(FILE* input, const identifier_t* id) {
     error_print(input);
-    fprintf(stderr, "identifier %s already exists in this context\n", id->value);
+    fprintf(stderr, "identifier %s already exists in this context\n",
+            id->value);
 }
 
 void error_identifier_not_found(FILE* input, const identifier_t* id) {
@@ -63,17 +64,6 @@ void error_parameters_not_valid(FILE* input, const context_t* ctx,
     fprintf(stderr, " are not valid in this context\n");
 };
 
-void error_affectation_not_valid(FILE* input,
-                                 const context_t* ctx,
-                                 const affectation_instr_t* affectation) {
-    error_print(input);
-    fprintf(stderr, "affectaton ");
-    valref_print(stderr, ctx, affectation->lvalue);
-    fprintf(stderr, " = ");
-    expression_print(stderr, ctx, affectation->expression);
-    fprintf(stderr, " is not valid in this context\n");
-}
-
 void error_value_not_valid(FILE* input, const context_t* ctx,
                            const value_t* value)
 {
@@ -87,4 +77,9 @@ void error_decleration_not_valid(FILE* input) {
     error_print(input);
     fprintf(stderr, "declaration is not valid\n");
 
+}
+
+void error_affectation_not_valid(FILE* input) {
+    error_print(input);
+    fprintf(stderr, "affectation is not valid (bad casting)\n");
 }

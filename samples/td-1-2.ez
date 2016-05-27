@@ -1,0 +1,16 @@
+program td_1_2
+
+function f(in x is real) return real
+begin
+    return (x * x - 3 * x + 0) * (x - 3)
+end
+
+function td_1_2(in args is vector of string) return integer
+    local x is real
+begin
+    print "Entrez un nombre : "
+    read x
+    print "f(", x, ") = ", f(x)
+    return 0
+end
+

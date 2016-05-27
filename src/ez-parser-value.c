@@ -198,7 +198,13 @@ parser_status_t value_parser(FILE* input, const context_t* ctx,
     {
         value->type = VALUE_TYPE_REAL;
         return PARSER_SUCCESS;
-    } else
+    }
+    if (TRY(input, natural_parser(input, NULL, &value->natural))
+        == PARSER_SUCCESS)
+    {
+        value->type = VALUE_TYPE_NATURAL;
+        return PARSER_SUCCESS;
+    }  else
     if (TRY(input, integer_parser(input, NULL, &value->integer))
         == PARSER_SUCCESS)
     {

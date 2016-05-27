@@ -1,0 +1,57 @@
+program space_invader
+
+structure Point2d is
+    x is integer
+    y is integer
+end
+
+structure Star is
+    position is Point2d
+    speed is integer
+    // TODO Color builtin type
+    colour is Color
+end
+
+structure Background is
+    dimensions is Point2d
+    stars is vector of Star
+end
+
+// TODO Image built-in type
+procedure draw_background(in backg is Background, out screen is Image)
+    // TODO "reference on" built-in
+    local star is reference on Star
+begin
+    // TODO "foreach" built-in
+    foreach star in backg.stars do
+        draw_point(star.colour, star.position, screen)
+    endforeach
+end
+
+procedure update_background(inout backg is Background)
+    local star is reference on Star
+    local new_star is Star
+begin
+    foreach star in backg.stars do
+        star.position.y = star.position.y + star.speed
+        if star.position.y > back.dimensions.y then
+            // TODO handling this situation with class ?
+            vector_remove(backg.stars, star)
+        endif
+    endforeach
+
+    if rand(1, 100) == 1 then
+        new_star.x = rand(0, dimensions.x)
+        new_star.y = 0
+        new_star.r = rand(0, 255)
+        new_star.g = new_star.r
+        new_star.b = new_star.b
+        vector_push(backg.stars, new_star)
+    endif
+end
+
+function space_invader(input args is vector of string) return integer
+begin
+    return 0
+end
+

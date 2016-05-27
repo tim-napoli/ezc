@@ -1,0 +1,54 @@
+program td_1_3
+
+structure Note is
+    nom is string
+    note is real
+end
+
+procedure lit_une_note(inout note is Note)
+begin
+    note.note = -1.0
+    while (note.note < 0 or note.note > 20) do
+        print "Entrez la note '", note.nom, "' : "
+        read note.note
+    endwhile
+end
+
+procedure lit_les_notes(inout notes is vector of Note)
+    local note is Note
+    local nom_note is string
+    local continuer is boolean
+begin
+    continuer = true
+    while continuer do
+        print "Entrez un nom de note (ou 'quitter') pour quitter : "
+        read nom_note
+        if nom_note == "quitter" then
+            continuer = false
+        else
+            note.nom = nom_note
+            lit_une_note(note)
+            notes.push(note)
+        endif
+    endwhile
+end
+
+function moyenne_des_notes(in notes is vector of Note) return real
+    local sum is real
+    local i is integer
+begin
+    sum = 0.0
+    for i in 0 .. notes.size() do
+        sum = sum + notes[i].note
+    endfor
+    return sum / notes.size()
+end
+
+function td_1_3(in args is vector of string) return integer
+    local notes is vector of Note
+begin
+    lit_les_notes(notes)
+    print "Votre moyenne est de ", moyenne_des_notes(notes)
+    return 0
+end
+

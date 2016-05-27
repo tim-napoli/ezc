@@ -1,0 +1,23 @@
+program td_1_3
+
+procedure lit_une_note(in nom is string, inout note is real)
+begin
+    note = -1.0
+    while (note < 0 or note > 20) do
+        print "Entrez la note '", nom, "' : "
+        read note
+    endwhile
+end
+
+function td_1_3(in args is vector of string) return integer
+    local note_anglais is real
+    local note_maths is real
+    local note_info is real
+begin
+    lit_une_note("anglais", note_anglais)
+    lit_une_note("mathématiques", note_maths)
+    lit_une_note("informatique", note_info)
+    print "Votre moyenne est de ", (note_anglais + note_maths + note_info) / 3
+    return 0
+end
+

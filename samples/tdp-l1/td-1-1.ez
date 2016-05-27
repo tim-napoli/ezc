@@ -1,0 +1,14 @@
+program td_1_1
+
+function td_1_1(in args is vector of string) return integer
+    local n1 is integer
+    local n2 is integer
+begin
+    print "Entrez un entier : "
+    read n1
+    print "Entrez un autre entier : "
+    read n2
+    print n1, " x ", n2, " = ", n1 * n2
+    return 0
+end
+

@@ -9,17 +9,17 @@ structure Person is
 end
 
 function person(in args is vector of string) return integer
-//local p is Person
-//local v is vector of Person
+local p is Person
+local v is vector of Person
 local i is integer
 local max is integer
 
 begin
 
-  for i in 1..10 do
-    p.name = "p" + i
-    p.age = rand(1,100)
-    v.insert(p)
+  for i in 1 .. 10 do
+    p.name = "p" + string_from_integer(i)
+    p.age = random(1,100)
+    v.push(p)
   endfor
 
   // sort by name

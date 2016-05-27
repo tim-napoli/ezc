@@ -114,8 +114,6 @@ void valref_add_index(valref_t* v, expression_t* index);
 
 void value_print(FILE* output, const context_t* ctx, const value_t* value);
 
-const type_t* value_get_type(const context_t* ctx, const value_t* value);
-
 /* ---------------------------- expressions --------------------------------- */
 
 /**
@@ -175,9 +173,6 @@ int expression_predecence(const expression_t* expr);
 
 void expression_print(FILE* output, const context_t* ctx,
                       const expression_t* expr);
-
-const type_t* expression_get_type(const context_t* ctx,
-                                  const expression_t* expr);
 
 /* -------------------------- types & symbols ------------------------------ */
 
@@ -284,11 +279,12 @@ type_t* type_optional_new(type_t* of);
 
 void type_print(FILE* output, const type_t* type);
 
-bool type_are_equals(const type_t* a, const type_t* b);
+bool types_are_equals(const type_t* a, const type_t* b);
 
-bool type_are_equaivalent(const type_t* a, const type_t* b);
+bool types_are_equivalent(const type_t* a, const type_t* b);
 
 bool type_is_number(const type_t* type);
+bool type_is_integer(const type_t* type);
 
 type_t* type_copy(const type_t* type);
 
@@ -733,20 +729,28 @@ structure_t* context_find_structure(const context_t* ctx,
 
 identifier_t context_get_program_identifier(context_t* ctx);
 
+const type_t* context_value_get_type(const context_t* ctx, const value_t* value);
+
+const type_t* context_valref_get_type(const context_t* ctx, const valref_t* valref);
+
 bool context_has_identifier(const context_t* ctx, const identifier_t* id);
 
 bool context_valref_is_valid(const context_t* ctx, const valref_t* valref);
-bool context_valref_next_is_valid(const valref_t* valref,
-                                  const symbol_t* symbol);
 
 bool context_value_is_valid(const context_t* ctx, const value_t* value);
 
 bool context_expression_is_valid(const context_t* ctx, const expression_t* e);
 
-bool context_parameters_is_valid(const context_t* ctx, const parameters_t* p);
+bool context_parameters_are_valid(const context_t* ctx, const parameters_t* p);
+
+bool context_affectation_is_valid(const context_t* ctx,
+                                  const affectation_instr_t* affectation);
 
 const type_t* context_find_identifier_type(const context_t* ctx,
                                            const identifier_t* id);
+
+const type_t* context_expression_get_type(const context_t* ctx,
+                                  const expression_t* expr);
 
 /* ------------------------ Language builtins ------------------------------ */
 
@@ -772,4 +776,3 @@ const type_t* optional_function_get_type(const valref_t* valref,
                                          const type_t* vector_type);
 
 #endif
-

@@ -53,7 +53,7 @@ void function_signature_wipe(function_signature_t* signature) {
 bool function_signature_is_equals(const function_signature_t* a,
                                   const function_signature_t* b)
 {
-    if (!type_are_equals(a->return_type, b->return_type)) {
+    if (!types_are_equals(a->return_type, b->return_type)) {
         return false;
     } else
     if (a->args_types.size != b->args_types.size) {
@@ -61,7 +61,7 @@ bool function_signature_is_equals(const function_signature_t* a,
     }
 
     for (int i = 0; i < a->args_types.size; i++) {
-        if (!type_are_equals(a->args_types.elements[i],
+        if (!types_are_equals(a->args_types.elements[i],
                             b->args_types.elements[i]))
         {
             return false;
@@ -169,7 +169,8 @@ bool function_has_arg(const function_t* func, const identifier_t* arg) {
     return vector_contains(&func->args, arg, (cmp_func_t)&function_arg_is);
 }
 
-function_arg_t* function_find_arg(const function_t* func, const identifier_t* id) {
+function_arg_t* function_find_arg(const function_t* func,
+                                  const identifier_t* id) {
     return vector_find(&func->args, id, (cmp_func_t)&function_arg_is);
 }
 
@@ -330,7 +331,8 @@ bool program_has_constant(const program_t* prg, const identifier_t* id) {
     return vector_contains(&prg->constants, id, (cmp_func_t)&constant_is);
 }
 
-constant_t* program_find_constant(const program_t* prg, const identifier_t* id) {
+constant_t* program_find_constant(const program_t* prg,
+                                  const identifier_t* id) {
     return vector_find(&prg->constants, id, (cmp_func_t)&constant_is);
 }
 
