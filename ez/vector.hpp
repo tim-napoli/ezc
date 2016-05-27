@@ -45,6 +45,18 @@ class vector : private std::vector<T> {
     }
 };
 
+template <typename T>
+std::ostream& operator<<(std::ostream& os, const vector<T>& v) {
+    os << "[";
+    for (unsigned int i = 0; i < v.size(); i++) {
+        os << v.at(i);
+        if (i + 1 < v.size()) {
+            os << ", ";
+        }
+    }
+    os << "]";
+}
+
 }
 
 #endif

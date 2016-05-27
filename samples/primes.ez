@@ -13,17 +13,30 @@ begin
  
   return true
 end
- 
- 
-procedure prime_numbers()
+
+function average(in primes is vector of integer) return real
+    local i is integer
+    local sum is real
+begin
+    sum = 0
+    for i in 0 .. primes.size() do
+        sum = sum + primes[i]
+    endfor
+
+    return sum / primes.size()
+end
+
+function prime_numbers(in args is vector of string) return integer
 local v is vector of integer
 local n is integer
 begin
   n = 1
-  while v.size() < MAX_PRIMES do
-    on is_prime(n) do v.insert(n)
+  while v.size() < integer_from_string(args[1]) do
+    on is_prime(n) do v.push(n)
     n = n + 1
   endwhile
   print "the first ", MAX_PRIMES, " numbers are ", v
-  print "their average is ", v.average()
+  print "their average is ", average(v)
+
+    return 0
 end
