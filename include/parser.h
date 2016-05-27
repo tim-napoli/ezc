@@ -1,4 +1,4 @@
-/* Module       : cparser.parser
+/* Module       : parser
  * Description  : C simple macros to do parsing.
  * Copyright    : (c) Timothée Napoli, Kevin Hivert, 2016
  * License      : WTFPL

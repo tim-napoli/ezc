@@ -1,3 +1,16 @@
+/* Module       : ez-lang
+ * Description  : The ezc internal representation of a program
+ * Copyright    : (c) Timothée Napoli, Kevin Hivert, 2016
+ * License      : WTFPL
+ * Maintainer   : meg@caca.paris
+ * Stability    : burn with it or don't try.
+ * Portability  : POSIX
+ *
+ * This file list all types and functions used to represent and use the EZ
+ * language representation for ezc compiler.
+ *
+ * TODO a nice harcoded type "maybe" for error handling, like in Haskell.
+ */
 #ifndef _ez_lang_h_
 #define _ez_lang_h_
 
