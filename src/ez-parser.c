@@ -542,6 +542,37 @@ parser_status_t builtin_procedure_parser(FILE* input, context_t* ctx,
     return PARSER_SUCCESS;
 }
 
+parser_status_t builtin_structure_parser(FILE* input, context_t* ctx,
+                                         structure_t** structure)
+{
+    identifier_t structure_id;
+
+    SKIP_MANY(input, comment_or_empty_parser(input, NULL, NULL));
+
+    PARSE(word_parser(input, "builtin", NULL));
+    PARSE_ERR(space_parser(input, NULL, NULL),
+              "a space is expceted after the 'builtin' keyword");
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
+
+    PARSE(word_parser(input, "structure", NULL));
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
+
+    PARSE_ERR(identifier_parser(input, NULL, &structure_id),
+              "a builtin structure must have a valid identifier");
+
+    *structure = structure_new(&structure_id);
+
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
+
+    PARSE_ERR(end_of_line_parser(input, NULL, NULL),
+              "a new line is expected after a structure head builtin");
+
+    program_add_builtin_structure(ctx->program, *structure);
+
+    return PARSER_SUCCESS;
+}
+
+
 parser_status_t builtins_parser(context_t* ctx, program_t** prg)
 {
     FILE* f = fopen(EZ_BUILTINS_FILE, "r");
@@ -552,6 +583,7 @@ parser_status_t builtins_parser(context_t* ctx, program_t** prg)
     }
 
     function_t* func = NULL;
+    structure_t* structure = NULL;
     parser_status_t status;
 
     do {
@@ -560,6 +592,11 @@ parser_status_t builtins_parser(context_t* ctx, program_t** prg)
             status = PARSER_SUCCESS;
         } else
         if (TRY(f, builtin_procedure_parser(f, ctx, &func)) == PARSER_SUCCESS) {
+            status = PARSER_SUCCESS;
+        } else
+        if (TRY(f, builtin_structure_parser(f, ctx, &structure))
+            == PARSER_SUCCESS)
+        {
             status = PARSER_SUCCESS;
         }
     } while (status != PARSER_FAILURE);

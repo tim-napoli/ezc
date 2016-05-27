@@ -1,0 +1,27 @@
+program cat
+
+procedure display_file(in path is string)
+    local file is File
+    local line is string
+begin
+    open_file(path, "r", file)
+    if (not is_file_open(file)) then
+        print "couldn't open file ", path
+    else
+        while not is_file_over(file) do
+            line = read_line_from_file(file)
+            print line
+        endwhile
+        close_file(file)
+    endif
+end
+
+function cat(in args is vector of string) return integer
+    local i is integer
+begin
+    for i in 1 .. args.size() do
+        display_file(args[i])
+    endfor
+    return 0
+end
+

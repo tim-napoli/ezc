@@ -279,7 +279,7 @@ type_t *type_vector_new(type_t *of);
 type_t* type_structure_new(structure_t* s);
 type_t* type_optional_new(type_t* of);
 
-void type_print(FILE* output, const type_t* type);
+void type_print(FILE* output, const context_t* ctx, const type_t* type);
 
 bool types_are_equals(const type_t* a, const type_t* b);
 
@@ -304,7 +304,7 @@ extern type_t* type_string;
 symbol_t *symbol_new(const identifier_t *identifier, type_t *is);
 void symbol_delete(symbol_t *symbol);
 
-void symbol_print(FILE* output, const symbol_t* symbol);
+void symbol_print(FILE* output, const context_t* ctx, const symbol_t* symbol);
 
 bool symbol_is(const symbol_t* sym, const identifier_t* id);
 
@@ -316,7 +316,8 @@ bool structure_has_member(const structure_t* structure, const identifier_t* id);
 symbol_t* structure_find_member(const structure_t* structure,
                                 const identifier_t* id);
 
-void structure_print(FILE* output, const structure_t* structure);
+void structure_print(FILE* output, const context_t* ctx,
+                     const structure_t* structure);
 
 bool structure_is(const structure_t* structure, const identifier_t* id);
 
@@ -583,7 +584,8 @@ function_arg_t* function_arg_new(function_arg_modifier_t modifier,
 
 void function_arg_delete(function_arg_t* func_arg);
 
-void function_arg_print(FILE* output, const function_arg_t* arg);
+void function_arg_print(FILE* output, const context_t* ctx,
+                        const function_arg_t* arg);
 
 /**
  * (unused for now) Function signature (arguments & return type).
@@ -672,6 +674,7 @@ typedef struct program {
 
     vector_t    builtin_functions;  /* of function_t* */
     vector_t    builtin_procedures; /* of function_t* */
+    vector_t    builtin_structures; /* of structure_t* */
 } program_t;
 
 program_t* program_new(const identifier_t* id);
@@ -710,6 +713,11 @@ void program_add_builtin_procedure(program_t* prg, function_t* func);
 bool program_has_builtin_procedure(const program_t* prg, const identifier_t* id);
 function_t* program_find_builtin_procedure(program_t* prg,
                                            const identifier_t* id);
+
+void program_add_builtin_structure(program_t* prg, structure_t* func);
+bool program_has_builtin_structure(const program_t* prg, const identifier_t* id);
+structure_t* program_find_builtin_structure(program_t* prg,
+                                          const identifier_t* id);
 
 bool program_main_function_is_valid(const program_t* prg);
 

@@ -74,7 +74,7 @@ type_t* type_structure_new(structure_t* s) {
     return t;
 }
 
-void type_print(FILE* output, const type_t* type) {
+void type_print(FILE* output, const context_t* ctx, const type_t* type) {
     switch (type->type) {
       case TYPE_TYPE_BOOLEAN:
         fprintf(output, "bool");
@@ -102,17 +102,22 @@ void type_print(FILE* output, const type_t* type) {
 
       case TYPE_TYPE_OPTIONAL:
         fprintf(output, "ez::optional< ");
-        type_print(output, type->optional_type);
+        type_print(output, ctx, type->optional_type);
         fprintf(output, " >");
         break;
 
       case TYPE_TYPE_VECTOR:
         fprintf(output, "ez::vector< ");
-        type_print(output, type->vector_type);
+        type_print(output, ctx, type->vector_type);
         fprintf(output, " >");
         break;
 
       case TYPE_TYPE_STRUCTURE:
+        if (program_has_builtin_structure(ctx->program,
+                                          &type->structure_type->identifier))
+        {
+            fprintf(output, "ez::");
+        }
         fprintf(output, type->structure_type->identifier.value);
         break;
     }
@@ -227,8 +232,8 @@ void symbol_delete(symbol_t* symbol) {
     }
 }
 
-void symbol_print(FILE* output, const symbol_t* symbol) {
-    type_print(output, symbol->is);
+void symbol_print(FILE* output, const context_t* ctx, const symbol_t* symbol) {
+    type_print(output, ctx, symbol->is);
     fprintf(output, " %s ", symbol->identifier.value);
 }
 
@@ -265,11 +270,13 @@ void structure_add_member(structure_t* structure, symbol_t* member) {
     vector_push(&structure->members, member);
 }
 
-void structure_print(FILE* output, const structure_t* structure) {
+void structure_print(FILE* output, const context_t* ctx,
+                     const structure_t* structure)
+{
     fprintf(output, "struct %s {\n", structure->identifier.value);
     for (int i = 0; i < structure->members.size; i++) {
         fprintf(output, "    ");
-        symbol_print(output, structure->members.elements[i]);
+        symbol_print(output, ctx, structure->members.elements[i]);
         fprintf(output, ";\n");
     }
     fprintf(output, "};\n");

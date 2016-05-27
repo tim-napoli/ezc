@@ -24,3 +24,16 @@ builtin function get_timestamp() return integer
  */
 builtin function sqrt(in v is real) return real
 
+
+builtin structure File
+
+builtin procedure open_file(in path is string, in accessor is string, out file is File)
+
+builtin function is_file_open(in file is File) return boolean
+
+builtin procedure close_file(out file is File)
+
+builtin function read_line_from_file(inout file is File) return string
+
+builtin function is_file_over(in file is File) return boolean
+

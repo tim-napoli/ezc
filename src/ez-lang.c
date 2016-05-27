@@ -88,12 +88,13 @@ function_t* function_new(const identifier_t* id) {
     return f;
 }
 
-void function_arg_print(FILE* output, const function_arg_t* arg)
+void function_arg_print(FILE* output, const context_t* ctx,
+                        const function_arg_t* arg)
 {
     if (arg->modifier == FUNCTION_ARG_MODIFIER_IN) {
         fprintf(output, "const ");
     }
-    type_print(output, arg->symbol->is);
+    type_print(output, ctx, arg->symbol->is);
     fprintf(output, "&");
 
     fprintf(output, " %s", arg->symbol->identifier.value);
@@ -115,7 +116,7 @@ void function_print(FILE* output, const context_t* ctx,
                     const function_t* function)
 {
     if (function->return_type) {
-        type_print(output, function->return_type);
+        type_print(output, ctx, function->return_type);
         fprintf(output, " ");
     } else {
         fprintf(output, "void ");
@@ -124,7 +125,7 @@ void function_print(FILE* output, const context_t* ctx,
     fprintf(output, "%s(", function->identifier.value);
 
     for (int i = 0; i < function->args.size; i++) {
-        function_arg_print(output, function->args.elements[i]);
+        function_arg_print(output, ctx, function->args.elements[i]);
         if (i + 1 < function->args.size) {
             fprintf(output, ", ");
         }
@@ -133,7 +134,7 @@ void function_print(FILE* output, const context_t* ctx,
     fprintf(output, ") {\n");
 
     for (int i = 0; i < function->locals.size; i++) {
-        symbol_print(output, function->locals.elements[i]);
+        symbol_print(output, ctx, function->locals.elements[i]);
         fprintf(output, ";\n");
     }
 
@@ -141,9 +142,11 @@ void function_print(FILE* output, const context_t* ctx,
     fprintf(output, "}\n\n");
 }
 
-void function_prototype_print(FILE* output, const function_t* function) {
+void function_prototype_print(FILE* output, const context_t* ctx,
+                              const function_t* function)
+{
     if (function->return_type) {
-        type_print(output, function->return_type);
+        type_print(output, ctx, function->return_type);
         fprintf(output, " ");
     } else {
         fprintf(output, "void ");
@@ -152,7 +155,7 @@ void function_prototype_print(FILE* output, const function_t* function) {
     fprintf(output, "%s(", function->identifier.value);
 
     for (int i = 0; i < function->args.size; i++) {
-        function_arg_print(output, function->args.elements[i]);
+        function_arg_print(output, ctx, function->args.elements[i]);
         if (i + 1 < function->args.size) {
             fprintf(output, ", ");
         }
@@ -220,7 +223,7 @@ void constant_print(FILE* output, const context_t* ctx,
                     const constant_t* constant)
 {
     fprintf(output, "const ");
-    symbol_print(output, constant->symbol);
+    symbol_print(output, ctx, constant->symbol);
     fprintf(output, " = ");
     expression_print(output, ctx, constant->value);
     fprintf(output, ";\n");
@@ -244,6 +247,10 @@ program_t* program_new(const identifier_t* id) {
     vector_init(&prg->functions, 0);
     vector_init(&prg->procedures, 0);
 
+    vector_init(&prg->builtin_functions, 0);
+    vector_init(&prg->builtin_procedures, 0);
+    vector_init(&prg->builtin_structures, 0);
+
     return prg;
 }
 
@@ -256,6 +263,7 @@ void program_delete(program_t* prg) {
 
     vector_wipe(&prg->builtin_functions, (delete_func_t)&function_delete);
     vector_wipe(&prg->builtin_procedures, (delete_func_t)&function_delete);
+    vector_wipe(&prg->builtin_structures, (delete_func_t)&structure_delete);
 
     free(prg);
 }
@@ -277,15 +285,15 @@ void program_print(FILE* output, const program_t* prg) {
     };
 
     for (int i = 0; i < prg->structures.size; i++) {
-        structure_print(output, prg->structures.elements[i]);
+        structure_print(output, &ctx, prg->structures.elements[i]);
     }
     fprintf(output, "\n");
 
     for (int i = 0; i < prg->functions.size; i++) {
-        function_prototype_print(output, prg->functions.elements[i]);
+        function_prototype_print(output, &ctx, prg->functions.elements[i]);
     }
     for (int i = 0; i < prg->procedures.size; i++) {
-        function_prototype_print(output, prg->procedures.elements[i]);
+        function_prototype_print(output, &ctx, prg->procedures.elements[i]);
     }
     fprintf(output, "\n");
 
@@ -293,7 +301,7 @@ void program_print(FILE* output, const program_t* prg) {
         constant_print(output, &ctx, prg->constants.elements[i]);
     }
     for (int i = 0; i < prg->globals.size; i++) {
-        symbol_print(output, prg->globals.elements[i]);
+        symbol_print(output, &ctx, prg->globals.elements[i]);
         fprintf(output, ";\n");
     }
 
@@ -346,12 +354,21 @@ void program_add_structure(program_t* prg, structure_t* structure) {
 }
 
 bool program_has_structure(const program_t* prg, const identifier_t* id) {
-    return vector_contains(&prg->structures, id, (cmp_func_t)&structure_is);
+    return vector_contains(&prg->structures, id, (cmp_func_t)&structure_is)
+        || vector_contains(&prg->builtin_structures, id,
+                           (cmp_func_t)&structure_is);
 }
 
 structure_t* program_find_structure(const program_t* prg,
-                                    const identifier_t* id) {
-    return vector_find(&prg->structures, id, (cmp_func_t)&structure_is);
+                                    const identifier_t* id)
+{
+    structure_t* structure =
+                  vector_find(&prg->structures, id, (cmp_func_t)&structure_is);
+    if (!structure) {
+        structure = vector_find(&prg->builtin_structures, id,
+                                (cmp_func_t)&structure_is);
+    }
+    return structure;
 }
 
 void program_add_function(program_t* prg, function_t* function) {
@@ -410,6 +427,7 @@ function_t* program_find_builtin_function(program_t* prg,
     return vector_find(&prg->builtin_functions, id, (cmp_func_t)&function_is);
 }
 
+
 void program_add_builtin_procedure(program_t* prg, function_t* function) {
     vector_push(&prg->builtin_procedures, function);
 }
@@ -420,11 +438,30 @@ bool program_has_builtin_procedure(const program_t* prg, const identifier_t* id)
                            (cmp_func_t)&function_is);
 }
 
+
 function_t* program_find_builtin_procedure(program_t* prg,
                                           const identifier_t* id)
 {
     return vector_find(&prg->builtin_procedures, id, (cmp_func_t)&function_is);
 }
+
+
+void program_add_builtin_structure(program_t* prg, structure_t* structure) {
+    vector_push(&prg->builtin_structures, structure);
+}
+
+bool program_has_builtin_structure(const program_t* prg, const identifier_t* id)
+{
+    return vector_contains(&prg->builtin_structures, id,
+                           (cmp_func_t)&structure_is);
+}
+
+structure_t* program_find_builtin_structure(program_t* prg,
+                                          const identifier_t* id)
+{
+    return vector_find(&prg->builtin_structures, id, (cmp_func_t)&structure_is);
+}
+
 
 bool program_main_function_is_valid(const program_t* prg) {
     const function_t* func = vector_find(&prg->functions, &prg->identifier,
