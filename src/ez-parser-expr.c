@@ -154,7 +154,9 @@ static parser_status_t expression_in_parser(FILE* input, const context_t* ctx,
         if (!context_value_is_valid(ctx, &value)) {
             error_value_not_valid(input, ctx, &value);
         } else
-        if (!access_type_is_input(context_value_get_access_type(ctx, &value))) {
+        if (!access_type_is_input(
+            context_value_get_access_type(ctx, &value)
+        )) {
             error_bad_access_expr_value(input, &value);
         }
 

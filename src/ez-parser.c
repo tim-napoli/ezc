@@ -58,7 +58,8 @@ parser_status_t function_args_parser(FILE* input, const context_t* ctx,
     function_arg_t* arg = NULL;
     access_type_t access_type;
 
-    if (TRY(input, access_type_parser(input, NULL, &access_type)) == PARSER_SUCCESS)
+    if (TRY(input, access_type_parser(input, NULL, &access_type))
+        == PARSER_SUCCESS)
     {
         PARSE_ERR(space_parser(input, NULL, NULL),
                   "expected spaces");

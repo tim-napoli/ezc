@@ -253,7 +253,8 @@ bool context_affectation_is_valid(const context_t* ctx,
     if (!context_valref_is_valid(ctx, affectation->lvalue))
         return false;
 
-    return types_are_equivalent(context_valref_get_type(ctx, affectation->lvalue),
+    return types_are_equivalent(context_valref_get_type(ctx,
+                                                        affectation->lvalue),
                                 context_expression_get_type(ctx,
                                                      affectation->expression));
 }
@@ -299,12 +300,14 @@ static const type_t* _context_valref_get_type(const context_t* ctx,
     return type;
 }
 
-const type_t* context_valref_get_type(const context_t* ctx, const valref_t* valref)
+const type_t* context_valref_get_type(const context_t* ctx,
+                                      const valref_t* valref)
 {
     return _context_valref_get_type(ctx, valref, NULL);
 }
 
-const type_t* context_value_get_type(const context_t* ctx, const value_t* value) {
+const type_t* context_value_get_type(const context_t* ctx,
+                                     const value_t* value) {
     if (!value) {
         return NULL;
     }
