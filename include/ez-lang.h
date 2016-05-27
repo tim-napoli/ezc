@@ -83,6 +83,7 @@ typedef enum {
     VALUE_TYPE_INTEGER,
     VALUE_TYPE_NATURAL,
     VALUE_TYPE_BOOLEAN,
+    VALUE_TYPE_CHAR,
     VALUE_TYPE_VALREF,
 } value_type_t;
 
@@ -93,6 +94,7 @@ typedef enum {
 typedef struct value {
     value_type_t type;
     union {
+        char         character;
         char*        string;
         double       real;
         int          integer;

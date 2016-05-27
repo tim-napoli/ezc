@@ -19,3 +19,8 @@ builtin function integer_from_string(in str is string) return integer
  */
 builtin function get_timestamp() return integer
 
+/**
+ * Square root function.
+ */
+builtin function sqrt(in v is real) return real
+

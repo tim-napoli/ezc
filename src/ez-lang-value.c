@@ -154,6 +154,10 @@ void value_print(FILE* output, const context_t* ctx, const value_t* value) {
         fprintf(output, "\"%s\"", value->string);
         break;
 
+      case VALUE_TYPE_CHAR:
+        fprintf(output, "'%c'", value->character);
+        break;
+
       case VALUE_TYPE_REAL:
         fprintf(output, "%f", value->real);
         break;
@@ -180,6 +184,9 @@ const type_t* context_value_get_type(const context_t* ctx, const value_t* value)
     switch (value->type) {
       case VALUE_TYPE_STRING:
         return type_string;
+
+      case VALUE_TYPE_CHAR:
+        return type_char;
 
       case VALUE_TYPE_REAL:
         return type_real;

@@ -3,6 +3,7 @@
 
 #include <cstdlib>
 #include <ctime>
+#include <cmath>
 
 namespace ez {
 
@@ -20,6 +21,10 @@ int integer_from_string(const std::string& str) {
 
 int get_timestamp() {
     return time(NULL);
+}
+
+double sqrt(double v) {
+    return std::sqrt(v);
 }
 
 }

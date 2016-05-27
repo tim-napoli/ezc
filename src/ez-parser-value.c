@@ -3,6 +3,23 @@
 #include "ez-parser.h"
 #include "ez-lang-errors.h"
 
+parser_status_t character_parser(FILE* input, const void* args,
+                                 char* output)
+{
+    char chars[512];
+    char* chars_ptr = chars;
+
+    PARSE(char_parser(input, "'", NULL));
+    /*  TODO handling escaping */
+    PARSE_ERR(char_parser(input, NULL, &chars_ptr),
+              "couldn't parse character");
+    PARSE_ERR(char_parser(input, "'", NULL),
+              "unclosed character");
+
+    *output = chars[0];
+    return PARSER_SUCCESS;
+}
+
 parser_status_t string_parser(FILE* input, const void* args,
                               char** output)
 {
@@ -193,12 +210,18 @@ parser_status_t value_parser(FILE* input, const context_t* ctx,
         value->type = VALUE_TYPE_STRING;
         return PARSER_SUCCESS;
     } else
+    if (TRY(input, character_parser(input, NULL, &value->character))
+        == PARSER_SUCCESS)
+    {
+        value->type = VALUE_TYPE_CHAR;
+        return PARSER_SUCCESS;
+    } else
     if (TRY(input, real_parser(input, NULL, &value->real))
         == PARSER_SUCCESS)
     {
         value->type = VALUE_TYPE_REAL;
         return PARSER_SUCCESS;
-    }
+    } else
     if (TRY(input, natural_parser(input, NULL, &value->natural))
         == PARSER_SUCCESS)
     {
