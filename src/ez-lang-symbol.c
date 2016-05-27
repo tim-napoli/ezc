@@ -129,6 +129,17 @@ void type_print(FILE* output, const context_t* ctx, const type_t* type) {
         break;
 
       case TYPE_TYPE_FUNCTION:
+        fprintf(output, "std::function< ");
+        type_print(output, ctx, type->signature->return_type);
+        fprintf(output, "(");
+        for (int i = 0; i < type->signature->args_types.size; i++) {
+            /* TODO modifiers */
+            type_print(output, ctx, type->signature->args_types.elements[i]);
+            if (i + 1 < type->signature->args_types.size) {
+                fprintf(output, ", ");
+            }
+        }
+        fprintf(output, ") >");
         break;
     }
 }

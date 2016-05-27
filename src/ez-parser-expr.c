@@ -88,6 +88,64 @@ static parser_status_t arithmetic_op_parser(FILE* input, const void* args,
     return PARSER_FAILURE;
 }
 
+static parser_status_t lambda_parser(FILE* input, const context_t* ctx,
+                                     function_t** lambda)
+{
+    context_t sub_ctx = (context_t){
+        .program = ctx->program,
+        .function = NULL,
+    };
+
+    PARSE(word_parser(input, "lambda", NULL));
+    PARSE_ERR(space_parser(input, NULL, NULL),
+              "a space is expected after 'lambda' keyword");
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
+
+    PARSE_ERR(char_parser(input, "(", NULL),
+              "a '(' is expected after 'lambda' keyword");
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
+
+    identifier_t id = {.value = ""};
+    *lambda = function_new(&id);
+    sub_ctx.function = *lambda;
+
+    PARSE_ERR(function_args_parser(input, ctx, &(*lambda)->args),
+              "invalid lambda parameters");
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
+    PARSE_ERR(char_parser(input, ")", NULL),
+              "a ')' is expected after 'lambda' arguments");
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
+
+    PARSE_ERR(word_parser(input, "return", NULL),
+              "a lambda function must have a return type");
+    PARSE_ERR(space_parser(input, NULL, NULL),
+              "a space is expected after lambda return keyword");
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
+
+    PARSE_ERR(type_parser(input, &sub_ctx, &(*lambda)->return_type),
+              "invalid lambda return type");
+
+    PARSE_ERR(space_parser(input, NULL, NULL),
+              "a space is expected after lambda return type");
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
+
+    PARSE_ERR(word_parser(input, "is", NULL),
+              "a 'is' keyword is expected after lambda return type");
+    PARSE_ERR(space_parser(input, NULL, NULL),
+              "a space is expected after lambda 'is' keyword");
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
+
+    expression_t* return_expr = NULL;
+    instruction_t* instr = NULL;
+    PARSE_ERR(return_parser(input, &sub_ctx, &return_expr),
+              "a 'return' instruction is expected for lambda function");
+    instr = instruction_new(INSTRUCTION_TYPE_RETURN);
+    instr->expression = return_expr;
+    vector_push(&(*lambda)->instructions, instr);
+
+    return PARSER_SUCCESS;
+}
+
 static parser_status_t expression_in_parser(FILE* input, const context_t* ctx,
                                             expr_stacks_t* stacks);
 
@@ -127,6 +185,7 @@ static parser_status_t expression_in_parser(FILE* input, const context_t* ctx,
 {
     value_t value;
     char sub_err_msg[512];
+    function_t* lambda = NULL;
 
     if (TRY(input, char_parser(input, "(", NULL)) == PARSER_SUCCESS) {
         expression_t* subexpr = NULL;
@@ -147,6 +206,12 @@ static parser_status_t expression_in_parser(FILE* input, const context_t* ctx,
         stacks->operators[stacks->noperators++] = EXPRESSION_TYPE_BOOL_OP_NOT;
         SKIP_MANY(input, space_parser(input, NULL, NULL));
         PARSE(expression_in_parser(input, ctx, stacks));
+        return PARSER_SUCCESS;
+    } else
+    if (TRY(input, lambda_parser(input, ctx, &lambda)) == PARSER_SUCCESS) {
+        expression_t* expr = expression_new(EXPRESSION_TYPE_LAMBDA);
+        expr->lambda = lambda;
+        stacks->leaves[stacks->nleaves++] = expr;
         return PARSER_SUCCESS;
     } else
     if (TRY(input, value_parser(input, ctx, &value)) == PARSER_SUCCESS) {
@@ -206,6 +271,7 @@ static expression_t* expression_from_stack(expr_stacks_t* stacks)
     while (stacks->noperators > 0) {
         expression_type_t op = stacks->operators[--stacks->noperators];
 
+        /* TODO if lambda here, then error (a lambda must be alone in the expression) */
         if (op == EXPRESSION_TYPE_BOOL_OP_NOT) {
             expression_t* prev_expr = expr;
             expr = expression_new(op);

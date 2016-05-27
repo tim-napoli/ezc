@@ -1,0 +1,36 @@
+program lambda
+
+procedure sort(inout v is vector of integer, in f is function(integer, integer) return boolean)
+    local i is integer
+    local j is integer
+    local tmp is integer
+begin
+    for i in 0 .. v.size() - 1 do
+        for j in i + 1 .. v.size() do
+            if not f(v[i], v[j]) then
+                tmp = v[i]
+                v[i] = v[j]
+                v[j] = tmp
+            endif
+        endfor
+    endfor
+end
+
+function lambda(in args is vector of string) return integer
+    local v is vector of integer
+    local i is integer
+    local n is integer
+begin
+    for i in 0 .. 10 do
+        print "enter a number: "
+        read n
+        v.push(n)
+    endfor
+
+    sort(v, lambda (in x is integer, in y is integer) return boolean is return x < y)
+
+    print v, "\n"
+
+    return 0
+end
+

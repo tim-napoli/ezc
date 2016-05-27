@@ -199,6 +199,10 @@ bool context_expression_is_valid(const context_t* ctx, const expression_t* e,
 
     if (e->type == EXPRESSION_TYPE_VALUE) {
         return context_value_is_valid(ctx, &e->value, error_msg);
+    } else
+    if (e->type == EXPRESSION_TYPE_LAMBDA) {
+        /* XXX maube have some checks here... */
+        return true;
     }
 
     bool left = true;
@@ -364,19 +368,19 @@ static const type_t* _context_valref_get_type(const context_t* ctx,
         if (valref->is_funccall) {
             function_t* func = program_find_function(ctx->program,
                                                      &valref->identifier);
-            if (func) {
-                type = func->return_type;
-            }
-
             function_t* proc = program_find_procedure(ctx->program,
                                                       &valref->identifier);
-            if (proc) {
-                type = func->return_type;
-            }
-
             function_signature_t* lambda = context_find_lambda_function(ctx,
                                                 &valref->identifier);
-            type = lambda->return_type;
+
+            if (func) {
+                type = func->return_type;
+            } else
+            if (proc) {
+                type = proc->return_type;
+            } else {
+                type = lambda->return_type;
+            }
         } else {
             type = context_find_identifier_type(ctx, &valref->identifier);
         }
@@ -448,6 +452,8 @@ const type_t* context_expression_get_type(const context_t* ctx,
 
     if (expr->type == EXPRESSION_TYPE_VALUE) {
         return context_value_get_type(ctx, &expr->value);
+    } else if (expr->type == EXPRESSION_TYPE_LAMBDA) {
+        return function_get_type((function_t*)expr->lambda);
     } else if (expr->type >= EXPRESSION_TYPE_CMP_OP_EQUALS
            &&  expr->type <= EXPRESSION_TYPE_BOOL_OP_OR) {
         return type_boolean;

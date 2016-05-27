@@ -5,6 +5,7 @@
 
 int expression_type_predecence[EXPRESSION_TYPE_SIZE] = {
     [EXPRESSION_TYPE_VALUE] = 0,
+    [EXPRESSION_TYPE_LAMBDA] = 0,
 
     [EXPRESSION_TYPE_CMP_OP_EQUALS]             = 7,
     [EXPRESSION_TYPE_CMP_OP_DIFFERENT]          = 7,
@@ -50,6 +51,10 @@ void expression_delete(expression_t* expr) {
         value_wipe(&expr->value);
         break;
 
+      case EXPRESSION_TYPE_LAMBDA:
+        function_delete(expr->lambda);
+        break;
+
       default:
         expression_delete(expr->left);
         expression_delete(expr->right);
@@ -65,6 +70,7 @@ int expression_predecence(const expression_t* expr) {
 
 static char* expression_type_symbols[EXPRESSION_TYPE_SIZE] = {
     [EXPRESSION_TYPE_VALUE] = "",
+    [EXPRESSION_TYPE_LAMBDA] = "",
 
     [EXPRESSION_TYPE_CMP_OP_EQUALS]             = "==",
     [EXPRESSION_TYPE_CMP_OP_DIFFERENT]          = "!=",
@@ -84,6 +90,20 @@ static char* expression_type_symbols[EXPRESSION_TYPE_SIZE] = {
     [EXPRESSION_TYPE_ARITHMETIC_OP_MOD]         = "%",
 };
 
+void lambda_print(FILE* output, const context_t* ctx, const function_t* func)
+{
+    fprintf(output, "[](");
+    for (int i = 0; i < func->args.size; i++) {
+        function_arg_print(output, ctx, func->args.elements[i]);
+        if (i + 1 < func->args.size) {
+            fprintf(output, ", ");
+        }
+    }
+    fprintf(output, ") { ");
+    instruction_print(output, ctx, func->instructions.elements[0]);
+    fprintf(output, "}");
+}
+
 void expression_print(FILE* output, const context_t* ctx,
                       const expression_t* expr)
 {
@@ -93,6 +113,9 @@ void expression_print(FILE* output, const context_t* ctx,
 
     if (expr->type == EXPRESSION_TYPE_VALUE) {
         value_print(output, ctx, &expr->value);
+    } else
+    if (expr->type == EXPRESSION_TYPE_LAMBDA) {
+        lambda_print(output, ctx, expr->lambda);
     } else {
         if (expr->left) {
             fputc('(', output);

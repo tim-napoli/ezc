@@ -36,6 +36,7 @@ typedef struct structure structure_t;
 typedef struct type type_t;
 typedef struct context context_t;
 typedef struct expression expression_t;
+typedef struct function function_t;
 typedef struct function_signature function_signature_t;
 
 /* ---------------------------- values ------------------------------------- */
@@ -137,6 +138,7 @@ void value_print(FILE* output, const context_t* ctx, const value_t* value);
  */
 typedef enum {
     EXPRESSION_TYPE_VALUE,
+    EXPRESSION_TYPE_LAMBDA,
 
     EXPRESSION_TYPE_CMP_OP_EQUALS,
     EXPRESSION_TYPE_CMP_OP_DIFFERENT,
@@ -175,6 +177,7 @@ struct expression {
     expression_type_t type;
     union {
         value_t value;
+        function_t* lambda;
         struct {
             struct expression *left, *right;
         };
@@ -634,7 +637,7 @@ bool function_signature_is_equals(const function_signature_t* a,
 /**
  * Function data structure.
  */
-typedef struct function {
+struct function {
     identifier_t identifier;
 
     type_t* return_type;
@@ -642,7 +645,9 @@ typedef struct function {
     vector_t args;          /* of function_arg_t* */
     vector_t locals;        /* of symbol_t* */
     vector_t instructions;  /* of instruction_t* */
-} function_t;
+
+    type_t* function_type;
+};
 
 function_t* function_new(const identifier_t* id);
 
@@ -668,6 +673,10 @@ void function_set_return_type(function_t* func, type_t* return_type);
 void function_set_instructions(function_t* func, vector_t* instructions);
 
 bool function_is(const function_t* func, const identifier_t* id);
+
+function_signature_t* function_get_signature(const function_t* func);
+
+const type_t* function_get_type(function_t* func);
 
 /* ------------------------------ constants -------------------------------- */
 

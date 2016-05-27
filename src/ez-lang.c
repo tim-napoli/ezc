@@ -78,7 +78,7 @@ bool function_signature_is_equals(const function_signature_t* a,
 
     for (int i = 0; i < a->args_types.size; i++) {
         if (!types_are_equals(a->args_types.elements[i],
-                            b->args_types.elements[i]))
+                              b->args_types.elements[i]))
         {
             return false;
         }
@@ -100,6 +100,7 @@ function_t* function_new(const identifier_t* id) {
     vector_init(&f->instructions, 0);
 
     f->return_type = NULL;
+    f->function_type = NULL;
 
     return f;
 }
@@ -124,6 +125,10 @@ void function_delete(function_t* func) {
     vector_wipe(&func->args, (delete_func_t)&function_arg_delete);
     vector_wipe(&func->locals, (delete_func_t)&symbol_delete);
     vector_wipe(&func->instructions, (delete_func_t)&instruction_delete);
+
+    if (func->function_type) {
+        type_delete(func->function_type);
+    }
 
     free(func);
 }
@@ -227,6 +232,28 @@ bool function_is(const function_t* func, const identifier_t* id) {
     return strcmp(func->identifier.value, id->value) == 0;
 }
 
+function_signature_t* function_get_signature(const function_t* func) {
+    function_signature_t* signature = function_signature_new();
+
+    if (func->return_type) {
+        signature->return_type = type_copy(func->return_type);
+    }
+
+    for (int i = 0; i < func->args.size; i++) {
+        const function_arg_t* arg = func->args.elements[i];
+        vector_push(&signature->args_types, type_copy(arg->symbol->is));
+    }
+
+    return signature;
+}
+
+const type_t* function_get_type(function_t* func) {
+    if (func->function_type == NULL) {
+        func->function_type = type_function_new(function_get_signature(func));
+    }
+    return func->function_type;
+}
+
 constant_t* constant_new(symbol_t* symbol, expression_t* value) {
     constant_t* constant = malloc(sizeof(constant_t));
     if (!constant) {
@@ -299,6 +326,7 @@ void program_print(FILE* output, const program_t* prg) {
                     "#include <string>\n"
                     "#include <ctime>\n"
                     "#include <cstdlib>\n"
+                    "#include <functional>\n"
                     "#include \"ez/vector.hpp\"\n"
                     "#include \"ez/optional.hpp\"\n"
                     "#include \"ez/functions.hpp\"\n"
