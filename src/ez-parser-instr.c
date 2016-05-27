@@ -16,8 +16,6 @@ parser_status_t print_parser(FILE* input, const context_t* ctx,
 
     PARSE(parameters_parser(input, ctx, &output));
 
-    PARSE(end_of_line_parser(input, NULL, NULL));
-
     return PARSER_SUCCESS;
 }
 
@@ -41,9 +39,6 @@ parser_status_t read_parser(FILE* input, const context_t* ctx,
         error_valref_not_valid(input, ctx, *valref, suberr);
     }
 
-    PARSE_ERR(end_of_line_parser(input, NULL, NULL),
-              "a new line must follow the 'read' line");
-
     return PARSER_SUCCESS;
 }
 
@@ -59,8 +54,6 @@ parser_status_t return_parser(FILE* input, const context_t* ctx,
 
     PARSE_ERR(expression_parser(input, ctx, expression),
               "bad return expression");
-
-    PARSE(end_of_line_parser(input, NULL, NULL));
 
     return PARSER_SUCCESS;
 }
@@ -153,9 +146,6 @@ parser_status_t if_parser(FILE* input, const context_t* ctx,
     PARSE_ERR(word_parser(input, "endif", NULL),
               "a 'if' must be closed with the 'endif' keyword");
 
-    PARSE_ERR(end_of_line_parser(input, NULL, NULL),
-              "a new line must follow the 'endif' keyword");
-
     return PARSER_SUCCESS;
 }
 
@@ -220,8 +210,6 @@ parser_status_t while_parser(FILE* input, const context_t* ctx,
     PARSE_ERR(word_parser(input, "endwhile", NULL),
               "a 'endwhile' keyword is expected to close a 'while' block");
 
-    PARSE_ERR(end_of_line_parser(input, NULL, NULL),
-              "a new line must follow the 'endwhile' keyword");
     return PARSER_SUCCESS;
 }
 
@@ -270,9 +258,6 @@ parser_status_t for_parser(FILE* input, const context_t* ctx,
     PARSE_ERR(word_parser(input, "endfor", NULL),
               "a 'endfor' keyword is expected to close a 'for' block");
 
-    PARSE_ERR(end_of_line_parser(input, NULL, NULL),
-              "a new line must follow the 'endfor' keyword");
-
     return PARSER_SUCCESS;
 }
 
@@ -300,9 +285,6 @@ parser_status_t loop_parser(FILE* input, const context_t* ctx,
 
     PARSE_ERR(expression_parser(input, ctx, &(*loop_instr)->coundition), // XXX
               "a valid expression is expected after the 'until' keyword");
-
-    PARSE_ERR(end_of_line_parser(input, NULL, NULL),
-              "a new line must follow the 'until' expression");
 
     return PARSER_SUCCESS;
 }
@@ -377,9 +359,6 @@ parser_status_t affectation_parser(FILE* input, const context_t* ctx,
         error_affectation_not_valid(input, suberr);
     }
 
-    PARSE_ERR(end_of_line_parser(input, NULL, NULL),
-              "a new line must follow affaction's expression");
-
     return PARSER_SUCCESS;
 }
 
@@ -441,9 +420,6 @@ parser_status_t instruction_parser(FILE* input, const context_t* ctx,
         *instruction = instruction_new(INSTRUCTION_TYPE_EXPRESSION);
         (*instruction)->expression = expression; // XXX
 
-        PARSE_ERR(end_of_line_parser(input, NULL, NULL),
-                  "a new line must follow each instructions");
-
         return PARSER_SUCCESS;
     }
 
@@ -457,6 +433,8 @@ parser_status_t instructions_parser(FILE* input, const context_t* ctx,
 
     while (TRY(input, instruction_parser(input, ctx, &instr))
           == PARSER_SUCCESS) {
+        PARSE_ERR(end_of_line_parser(input, NULL, NULL),
+                  "a new line must follow each instruction");
         vector_push(instructions, instr);
     }
 
