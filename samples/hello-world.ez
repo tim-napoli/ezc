@@ -4,5 +4,6 @@ program hello_world
 function hello_world(in args is vector of string) return integer
 begin
     print "Hello, world\n"
+    return 0
 end
 

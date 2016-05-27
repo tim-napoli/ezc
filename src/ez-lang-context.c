@@ -62,7 +62,8 @@ bool context_has_function(const context_t* ctx, const identifier_t* id) {
 
 static bool _context_valref_is_valid(const context_t* ctx,
                                      const valref_t* valref,
-                                     const type_t* type)
+                                     const type_t* type,
+                                     char* error_msg)
 {
     if (!valref) {
         return true;
@@ -70,6 +71,8 @@ static bool _context_valref_is_valid(const context_t* ctx,
 
     if (!type) {
         if (!context_has_identifier(ctx, &valref->identifier)) {
+            sprintf(error_msg, "identifier '%s' doesn't exist",
+                    valref->identifier.value);
             return false;
         }
 
@@ -80,6 +83,8 @@ static bool _context_valref_is_valid(const context_t* ctx,
                 func = program_find_procedure(ctx->program,
                                               &valref->identifier);
                 if (!func) {
+                    sprintf(error_msg, "'%s' is not a function or a procedure",
+                            valref->identifier.value);
                     return false;
                 }
             }
@@ -87,46 +92,62 @@ static bool _context_valref_is_valid(const context_t* ctx,
         } else {
             type = context_find_identifier_type(ctx, &valref->identifier);
         }
-        return _context_valref_is_valid(ctx, valref->next, type);
+        return _context_valref_is_valid(ctx, valref->next, type, error_msg);
     } else {
         if (valref->is_funccall) {
             if (type->type == TYPE_TYPE_VECTOR) {
                 if (!vector_function_exists(&valref->identifier)) {
+                    sprintf(error_msg, "vector has no method called '%s'",
+                            valref->identifier.value);
                     return false;
                 }
                 if (!vector_function_call_is_valid(ctx, valref, type))
                 {
+                    sprintf(error_msg, "invalid vector function '%s' call",
+                            valref->identifier.value);
                     return false;
                 }
                 type = vector_function_get_type(valref, type);
                 if (!type && valref->next) {
+                    sprintf(error_msg, "trying to access member of something "
+                                       "that is not a structure or an object");
                     return false;
                 }
-                return _context_valref_is_valid(ctx, valref->next, type);
+                return _context_valref_is_valid(ctx, valref->next, type,
+                                                error_msg);
             } else
             if (type->type == TYPE_TYPE_OPTIONAL) {
                 if (!optional_function_exists(&valref->identifier)) {
+                    sprintf(error_msg, "optional has no method called '%s'",
+                            valref->identifier.value);
                     return false;
                 }
                 if (!optional_function_call_is_valid(ctx, valref, type))
                 {
+                    sprintf(error_msg, "invalid vector function '%s' call",
+                            valref->identifier.value);
                     return false;
                 }
                 type = optional_function_get_type(valref, type);
                 /* XXX what if type is not NULL but primitive ? */
                 if (!type && valref->next) {
+                    sprintf(error_msg, "trying to access member of something "
+                                       "that is not a structure or an object");
                     return false;
                 }
-                return _context_valref_is_valid(ctx, valref->next, type);
+                return _context_valref_is_valid(ctx, valref->next, type,
+                                                error_msg);
             }
             return false;
         } else {
             if (type->type != TYPE_TYPE_STRUCTURE) {
+                sprintf(error_msg, "trying to access member of something "
+                                   "that is not a structure or an object");
                 return false;
             }
 
             structure_t* structure = type->structure_type;
-
+            /* XXX not sure this could happen */
             if (!structure) {
                 return false;
             }
@@ -135,46 +156,62 @@ static bool _context_valref_is_valid(const context_t* ctx,
                                                      &valref->identifier);
 
             if (!member) {
+                sprintf(error_msg, "structure '%s' has no member called '%s'",
+                        structure->identifier.value, valref->identifier.value);
                 return false;
             }
 
-            return _context_valref_is_valid(ctx, valref->next, member->is);
+            return _context_valref_is_valid(ctx, valref->next, member->is,
+                                            error_msg);
         }
     }
 
     return true;
 }
 
-bool context_valref_is_valid(const context_t* ctx, const valref_t* valref) {
-    return _context_valref_is_valid(ctx, valref, NULL);
+bool context_valref_is_valid(const context_t* ctx, const valref_t* valref,
+                             char* error_msg)
+{
+    return _context_valref_is_valid(ctx, valref, NULL, error_msg);
 }
 
-bool context_value_is_valid(const context_t* ctx, const value_t* value) {
+bool context_value_is_valid(const context_t* ctx, const value_t* value,
+                            char* error_msg)
+{
     if (value->type == VALUE_TYPE_VALREF) {
-        return context_valref_is_valid(ctx, value->valref);
+        return context_valref_is_valid(ctx, value->valref, error_msg);
     }
 
     return true;
 }
 
-bool context_expression_is_valid(const context_t* ctx, const expression_t* e) {
+bool context_expression_is_valid(const context_t* ctx, const expression_t* e,
+                                 char* error_msg)
+{
 
     if (e->type == EXPRESSION_TYPE_VALUE) {
-        return context_value_is_valid(ctx, &e->value);
+        return context_value_is_valid(ctx, &e->value, error_msg);
     }
 
     bool left = true;
     bool right = true;
+    char err_msg_left[512];
+    char err_msg_right[512];
 
     if (e->left) {
-        left = context_expression_is_valid(ctx, e->left);
+        left = context_expression_is_valid(ctx, e->left, err_msg_left);
     }
 
     if (e->right) {
-        right = context_expression_is_valid(ctx, e->right);
+        right = context_expression_is_valid(ctx, e->right, err_msg_right);
     }
 
-    if (!left || !right) {
+    if (!left) {
+        sprintf(error_msg, err_msg_left);
+        return false;
+    } else
+    if (!right) {
+        sprintf(error_msg, err_msg_right);
         return false;
     }
 
@@ -190,6 +227,7 @@ bool context_expression_is_valid(const context_t* ctx, const expression_t* e) {
     }
 
     if (ltype && !types_are_equivalent(ltype, rtype)) {
+        sprintf(error_msg, "types are not equivalent");
         return false;
     }
 
@@ -203,60 +241,107 @@ bool context_expression_is_valid(const context_t* ctx, const expression_t* e) {
     ||  e->type == EXPRESSION_TYPE_CMP_OP_LOWER
     ||  e->type == EXPRESSION_TYPE_CMP_OP_GREATER)
     {
-        return type_is_number(ltype);
+        if (!type_is_number(ltype)) {
+            sprintf(error_msg, "comparing something that is not a number");
+            return false;
+        }
+        return true;
     }
 
     if (e->type == EXPRESSION_TYPE_BOOL_OP_AND
     ||  e->type == EXPRESSION_TYPE_BOOL_OP_OR
     ||  e->type == EXPRESSION_TYPE_BOOL_OP_NOT) {
-        return rtype->type == TYPE_TYPE_BOOLEAN;
+        if (rtype->type != TYPE_TYPE_BOOLEAN) {
+            sprintf(error_msg, "'and', 'or' or 'not' with something that is "
+                               "not a boolean expression");
+            return false;
+        }
+        return true;
     }
 
     if (e->type == EXPRESSION_TYPE_ARITHMETIC_OP_PLUS) {
-        return type_is_number(ltype) || ltype->type == TYPE_TYPE_STRING;
+        if (!type_is_number(ltype) && ltype->type != TYPE_TYPE_STRING) {
+            sprintf(error_msg, "operator '+' could only be used with strings "
+                               "and numbers");
+            return false;
+        }
+        return true;
     }
 
     if (e->type == EXPRESSION_TYPE_ARITHMETIC_OP_MINUS
     ||  e->type == EXPRESSION_TYPE_ARITHMETIC_OP_MUL
     ||  e->type == EXPRESSION_TYPE_ARITHMETIC_OP_DIV) {
-        return type_is_number(ltype);
+        if (!type_is_number(ltype)) {
+            sprintf(error_msg, "'*', '-' and '/' operators are only usable "
+                               "between numbers");
+            return false;
+        }
+        return true;
     }
 
     if (e->type == EXPRESSION_TYPE_ARITHMETIC_OP_MOD)
     {
-        return type_is_integer(ltype) && type_is_integer(rtype);
+        if (!type_is_integer(ltype) || !type_is_integer(rtype)) {
+            sprintf(error_msg, "'%%' is only usable with integers.");
+            return false;
+        }
+        return true;
     }
 
+    sprintf(error_msg, "the expression is invalid");
     return false;
 }
 
 bool context_parameters_are_valid(const context_t* ctx,
-                                  const parameters_t* p) {
-    bool is_valid = true;
+                                  const parameters_t* p,
+                                  char* error_msg)
+{
+    char expr_err_msg[512];
 
     for (size_t i = 0; i < p->parameters.size; i++) {
-        is_valid = is_valid &&
-                    context_expression_is_valid(ctx,
-                                                vector_get(&p->parameters, i));
+        if (!context_expression_is_valid(ctx, vector_get(&p->parameters, i),
+                                         expr_err_msg))
+        {
+            sprintf(error_msg, "invalid parameter '%zu': %s",
+                                i, expr_err_msg);
+            return false;
+        }
     }
 
-    return is_valid;
+    return true;
 }
 
 bool context_affectation_is_valid(const context_t* ctx,
-                                  const affectation_instr_t* affectation)
+                                  const affectation_instr_t* affectation,
+                                  char* error_msg)
 {
+    char sub_err_msg[512];
+
     // NOTE : We must RE-check the expression ...
-    if (!context_expression_is_valid(ctx, affectation->expression))
+    if (!context_expression_is_valid(ctx, affectation->expression,
+        sub_err_msg))
+    {
+        sprintf(error_msg, "invalid affectation expression : %s",
+                           sub_err_msg);
         return false;
+    }
 
-    if (!context_valref_is_valid(ctx, affectation->lvalue))
+    if (!context_valref_is_valid(ctx, affectation->lvalue, sub_err_msg)) {
+        sprintf(error_msg, "invalid affectation left-value : %s",
+                           sub_err_msg);
         return false;
+    }
 
-    return types_are_equivalent(context_valref_get_type(ctx,
-                                                        affectation->lvalue),
-                                context_expression_get_type(ctx,
-                                                     affectation->expression));
+    if (!types_are_equivalent(
+                context_valref_get_type(ctx, affectation->lvalue),
+                context_expression_get_type(ctx, affectation->expression)))
+    {
+        /* TODO get_type_name(type) */
+        sprintf(error_msg, "expression has not the same type the left-value");
+        return false;
+    }
+
+    return true;
 }
 
 static const type_t* _context_valref_get_type(const context_t* ctx,
@@ -313,6 +398,9 @@ const type_t* context_value_get_type(const context_t* ctx,
     }
 
     switch (value->type) {
+      case VALUE_TYPE_CHAR:
+        return type_char;
+
       case VALUE_TYPE_STRING:
         return type_string;
 

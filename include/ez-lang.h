@@ -748,16 +748,21 @@ const type_t* context_valref_get_type(const context_t* ctx, const valref_t* valr
 
 bool context_has_identifier(const context_t* ctx, const identifier_t* id);
 
-bool context_valref_is_valid(const context_t* ctx, const valref_t* valref);
+bool context_valref_is_valid(const context_t* ctx, const valref_t* valref,
+                             char* error_msg);
 
-bool context_value_is_valid(const context_t* ctx, const value_t* value);
+bool context_value_is_valid(const context_t* ctx, const value_t* value,
+                            char* error_msg);
 
-bool context_expression_is_valid(const context_t* ctx, const expression_t* e);
+bool context_expression_is_valid(const context_t* ctx, const expression_t* e,
+                                 char* error_msg);
 
-bool context_parameters_are_valid(const context_t* ctx, const parameters_t* p);
+bool context_parameters_are_valid(const context_t* ctx, const parameters_t* p,
+                                  char* error_msg);
 
 bool context_affectation_is_valid(const context_t* ctx,
-                                  const affectation_instr_t* affectation);
+                                  const affectation_instr_t* affectation,
+                                  char* error_msg);
 
 const type_t* context_find_identifier_type(const context_t* ctx,
                                            const identifier_t* id);

@@ -34,6 +34,14 @@ void error_valref_not_found(FILE* input, const context_t* ctx,
     fprintf(stderr, " not found in this context\n");
 }
 
+void error_valref_not_valid(FILE* input, const context_t* ctx,
+                            const valref_t* valref, const char* suberr) {
+    error_print(input);
+    fprintf(stderr, "valref ");
+    valref_print(stderr, ctx, valref);
+    fprintf(stderr, " is not valid: %s\n", suberr);
+}
+
 void error_no_main_function(const identifier_t* id) {
     fprintf(stderr, "missing main function "
                     "'function %s(in args is vector of string) : integer'\n",
@@ -47,12 +55,12 @@ void error_invalid_main_function(const identifier_t* id) {
 }
 
 void error_expression_not_valid(FILE* input, const context_t* ctx,
-                                const expression_t* expr)
+                                const expression_t* expr, const char* suberr)
 {
     error_print(input);
     fprintf(stderr, "expression ");
     expression_print(stderr, ctx, expr);
-    fprintf(stderr, " is not valid in this context\n");
+    fprintf(stderr, " is not valid: %s\n", suberr);
 }
 
 void error_parameters_not_valid(FILE* input, const context_t* ctx,
@@ -65,12 +73,12 @@ void error_parameters_not_valid(FILE* input, const context_t* ctx,
 };
 
 void error_value_not_valid(FILE* input, const context_t* ctx,
-                           const value_t* value)
+                           const value_t* value, const char* suberr)
 {
     error_print(input);
     fprintf(stderr, "value ");
     value_print(stderr, ctx, value);
-    fprintf(stderr, " is not valid in this context\n");
+    fprintf(stderr, " is not valid: %s\n", suberr);
 }
 
 void error_decleration_not_valid(FILE* input) {
@@ -79,9 +87,9 @@ void error_decleration_not_valid(FILE* input) {
 
 }
 
-void error_affectation_not_valid(FILE* input) {
+void error_affectation_not_valid(FILE* input, const char* suberr) {
     error_print(input);
-    fprintf(stderr, "affectation is not valid (bad casting)\n");
+    fprintf(stderr, "affectation is not valid: %s\n", suberr);
 }
 
 void error_bad_access_left_value(FILE* input, const valref_t* v) {

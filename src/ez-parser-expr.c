@@ -126,6 +126,7 @@ static parser_status_t expression_in_parser(FILE* input, const context_t* ctx,
                                             expr_stacks_t* stacks)
 {
     value_t value;
+    char sub_err_msg[512];
 
     if (TRY(input, char_parser(input, "(", NULL)) == PARSER_SUCCESS) {
         expression_t* subexpr = NULL;
@@ -151,12 +152,11 @@ static parser_status_t expression_in_parser(FILE* input, const context_t* ctx,
     if (TRY(input, value_parser(input, ctx, &value)) == PARSER_SUCCESS) {
 
         /* NOTE CHECK */
-        if (!context_value_is_valid(ctx, &value)) {
-            error_value_not_valid(input, ctx, &value);
+        if (!context_value_is_valid(ctx, &value, sub_err_msg)) {
+            error_value_not_valid(input, ctx, &value, sub_err_msg);
         } else
-        if (!access_type_is_input(
-            context_value_get_access_type(ctx, &value)
-        )) {
+        if (!access_type_is_input(context_value_get_access_type(ctx, &value)))
+        {
             error_bad_access_expr_value(input, &value);
         }
 
@@ -237,6 +237,7 @@ static expression_t* expression_from_stack(expr_stacks_t* stacks)
 parser_status_t expression_parser(FILE* input, const context_t* ctx,
                                   expression_t** expression)
 {
+    char sub_err_msg[512];
     expr_stacks_t stacks = {
         .nleaves = 0,
         .noperators = 0
@@ -246,8 +247,8 @@ parser_status_t expression_parser(FILE* input, const context_t* ctx,
     *expression = expression_from_stack(&stacks);
 
     /* NOTE Check */
-    if (!context_expression_is_valid(ctx, *expression)) {
-        error_expression_not_valid(input, ctx, *expression);
+    if (!context_expression_is_valid(ctx, *expression, sub_err_msg)) {
+        error_expression_not_valid(input, ctx, *expression, sub_err_msg);
     }
 
     return PARSER_SUCCESS;

@@ -156,8 +156,6 @@ parser_status_t type_parser(FILE* input, const context_t* ctx,
         structure_t* structure = context_find_structure(ctx, &structure_id);
 
         if (structure == NULL) {
-            error_identifier_not_found(input, &structure_id);
-
             return PARSER_FAILURE;
         }
 

@@ -1,9 +1,7 @@
 program prime_numbers
 
-constant MAX_PRIMES is integer = 20
-
 function is_prime(in x is integer, in v is vector of integer) return boolean
-local i is integer
+    local i is integer
 begin
     for i in 0 .. v.size() do
         on x % v[i] == 0 do return false
@@ -26,16 +24,28 @@ begin
 end
 
 function prime_numbers(in args is vector of string) return integer
-local v is vector of integer
-local n is integer
+    local primes is vector of integer
+    local current_prime is integer
+    local number_of_primes is integer
 begin
-  n = 2
-  while v.size() < integer_from_string(args[1]) do
-    on is_prime(n, v) do v.push(n)
-    n = n + 1
-  endwhile
-  print "the first ", MAX_PRIMES, " numbers are ", v
-  print "their average is ", average(v)
+    primes.push(2)
+    current_prime = 3
+
+    // Get the number of primes to fetch.
+    if args.size() > 1 then
+        number_of_primes = integer_from_string(args[1])
+    else
+        print "user defined"
+        number_of_primes = 20
+    endif
+
+    while primes.size() < number_of_primes do
+        on is_prime(current_prime, primes) do primes.push(current_prime)
+        current_prime = current_prime + 2
+    endwhile
+
+    print "The first ", number_of_primes, " prime numbers are ", primes, "\n"
+    print "Their average is ", average(primes), "\n"
 
     return 0
 end

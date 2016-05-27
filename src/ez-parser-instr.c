@@ -24,6 +24,8 @@ parser_status_t print_parser(FILE* input, const context_t* ctx,
 parser_status_t read_parser(FILE* input, const context_t* ctx,
                             valref_t** valref)
 {
+    char suberr[512];
+
     PARSE(word_parser(input, "read", NULL));
 
     PARSE_ERR(space_parser(input, NULL, NULL),
@@ -34,8 +36,9 @@ parser_status_t read_parser(FILE* input, const context_t* ctx,
               "a single value reference must follow the 'read' keyword");
 
     /* NOTE Check */
-    if (!context_valref_is_valid(ctx, *valref)) {
-        error_valref_not_found(input, ctx, *valref);
+    /* TODO check accessibility */
+    if (!context_valref_is_valid(ctx, *valref, suberr)) {
+        error_valref_not_valid(input, ctx, *valref, suberr);
     }
 
     PARSE_ERR(end_of_line_parser(input, NULL, NULL),
@@ -345,6 +348,7 @@ parser_status_t flowcontrol_parser(FILE* input, const context_t* ctx,
 parser_status_t affectation_parser(FILE* input, const context_t* ctx,
                                    affectation_instr_t* affectation_instr)
 {
+    char suberr[512];
 
     PARSE(valref_parser(input, ctx, &affectation_instr->lvalue)); // XXX
 
@@ -353,12 +357,12 @@ parser_status_t affectation_parser(FILE* input, const context_t* ctx,
     PARSE(char_parser(input, "=", NULL));
 
     // NOTE Check valref validity and access type
-    if (!context_valref_is_valid(ctx, affectation_instr->lvalue)) { // XXX
-        error_valref_not_found(input, ctx, affectation_instr->lvalue); // XXX
+    if (!context_valref_is_valid(ctx, affectation_instr->lvalue, suberr)) { // XXX
+        error_valref_not_valid(input, ctx, affectation_instr->lvalue, suberr); // XXX
     } else
-    if (!access_type_is_output(context_valref_get_access_type(ctx,
-                                                     affectation_instr->lvalue)
-    )) {
+    if (!access_type_is_output(
+            context_valref_get_access_type(ctx, affectation_instr->lvalue)))
+    {
         error_bad_access_left_value(input, affectation_instr->lvalue);
     }
 
@@ -369,8 +373,8 @@ parser_status_t affectation_parser(FILE* input, const context_t* ctx,
               "a valid expression must be provided after an affectation '='");
 
     // NOTE Check types equivalence
-    if (!context_affectation_is_valid(ctx, affectation_instr)) {
-        error_affectation_not_valid(input);
+    if (!context_affectation_is_valid(ctx, affectation_instr, suberr)) {
+        error_affectation_not_valid(input, suberr);
     }
 
     PARSE_ERR(end_of_line_parser(input, NULL, NULL),
