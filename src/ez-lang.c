@@ -253,6 +253,10 @@ void program_delete(program_t* prg) {
     vector_wipe(&prg->structures, (delete_func_t)&structure_delete);
     vector_wipe(&prg->functions, (delete_func_t)&function_delete);
     vector_wipe(&prg->procedures, (delete_func_t)&function_delete);
+
+    vector_wipe(&prg->builtin_functions, (delete_func_t)&function_delete);
+    vector_wipe(&prg->builtin_procedures, (delete_func_t)&function_delete);
+
     free(prg);
 }
 
