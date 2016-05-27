@@ -801,6 +801,9 @@ access_type_t context_value_get_access_type(const context_t* ctx,
 access_type_t context_valref_get_access_type(const context_t* ctx,
                                                  const valref_t* v);
 
+function_signature_t* context_find_lambda_function(const context_t* ctx,
+                                                   const identifier_t* id);
+
 /* ------------------------ Language builtins ------------------------------ */
 
 #define EZ_BUILTINS_FILE    "ez-builtins.ez"

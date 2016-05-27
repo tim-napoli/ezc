@@ -79,16 +79,24 @@ static bool _context_valref_is_valid(const context_t* ctx,
         if (valref->is_funccall) {
             function_t* func = program_find_function(ctx->program,
                                                      &valref->identifier);
-            if (!func) {
-                func = program_find_procedure(ctx->program,
-                                              &valref->identifier);
-                if (!func) {
-                    sprintf(error_msg, "'%s' is not a function or a procedure",
-                            valref->identifier.value);
-                    return false;
-                }
+            function_t* proc = program_find_procedure(ctx->program,
+                                                      &valref->identifier);
+            function_signature_t* lambda = context_find_lambda_function(ctx, &valref->identifier);
+
+            if (!func && !proc && !lambda) {
+                sprintf(error_msg, "'%s' is not a function or a procedure",
+                        valref->identifier.value);
+                return false;
+            } else if (func) {
+                type = func->return_type;
+            } else if (proc) {
+                type = proc->return_type;
+            } else if (lambda) {
+                type = lambda->return_type;
             }
-            type = func->return_type;
+
+            /* TODO check arguments match function signature */
+
         } else {
             type = context_find_identifier_type(ctx, &valref->identifier);
         }
@@ -356,11 +364,19 @@ static const type_t* _context_valref_get_type(const context_t* ctx,
         if (valref->is_funccall) {
             function_t* func = program_find_function(ctx->program,
                                                      &valref->identifier);
-            if (!func) {
-                func = program_find_procedure(ctx->program,
-                                              &valref->identifier);
+            if (func) {
+                type = func->return_type;
             }
-            type = func->return_type;
+
+            function_t* proc = program_find_procedure(ctx->program,
+                                                      &valref->identifier);
+            if (proc) {
+                type = func->return_type;
+            }
+
+            function_signature_t* lambda = context_find_lambda_function(ctx,
+                                                &valref->identifier);
+            type = lambda->return_type;
         } else {
             type = context_find_identifier_type(ctx, &valref->identifier);
         }
@@ -498,3 +514,27 @@ access_type_t context_valref_get_access_type(const context_t* ctx,
 
     return ACCESS_TYPE_INPUT;
 }
+
+function_signature_t* context_find_lambda_function(const context_t* ctx,
+                                                   const identifier_t* id)
+{
+    if (ctx->function) {
+        function_arg_t* arg = function_find_arg(ctx->function, id);
+        if (arg && arg->symbol->is->type == TYPE_TYPE_FUNCTION) {
+            return arg->symbol->is->signature;
+        }
+
+        symbol_t* sym = function_find_local(ctx->function, id);
+        if (sym && sym->is->type == TYPE_TYPE_FUNCTION) {
+            return sym->is->signature;
+        }
+    }
+
+    symbol_t* sym = program_find_global(ctx->program, id);
+    if (sym && sym->is->type == TYPE_TYPE_FUNCTION) {
+        return sym->is->signature;
+    }
+
+    return NULL;
+}
+
