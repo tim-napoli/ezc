@@ -1,0 +1,120 @@
+
+                                 THE EZ LANGUAGE
+
+ INTRODUCTION
+
+ The EZ language is a simple language inteded to permits beginners in computer
+ science to learn basic programmation concepts.
+
+ This document is intended for readers that already have knowledge in computer
+ programming. It is not a beginner guide.
+
+
+ BASIC PROGRAM
+
+ The most basic program is surely the "Hello world" one. Here is the source
+ code of such program written using the EZ language :
+
+        ----
+        program hello_world
+
+        function hello_world(in args is vector of string) return integer
+        begin
+            print "Hello, world !"
+            return 0
+        end
+        ----
+
+ This program is composed by a first program header "program hello_world".
+ Program's header permits to indicates to the compiler the program's name. Here
+ it is "hello_world".
+ This implies that the main function of the program is called "hello_world".
+
+ Next come the function "hello_world" definition. As you can see, a function
+ is declared using the "function" EZ keyword, have a list of parameters (or
+ arguments), and a type of returned value (a function must return a value).
+ The list of parameter is contained between '(' and ')' after function's name.
+
+ Here, there is only one parameter "args" having type "vector of string" (in
+ EZ, vector is a type for dynamic arrays). The "in" before "args" is called
+ a modifier, and "in" (for "input") means that "args" (and "args" values)
+ couldn't be modified by the "hello_world" function.
+
+ The function instructions are contained between "begin" and "end" keywords
+ following the function prototype.
+
+ Here, only one instruction, "print "Hellow, world !"" exists. The print
+ instruction shows on the standard output the following list of parameters.
+
+ USING THE COMPILER
+
+ The EZ (ezc) compiler simply translate EZ source code into C++ source code.
+ The generated source code can be next compiled into program using a C++
+ compiler.
+
+ For example, one could do :
+    ezc hello-world.ez hello-world.cpp
+    g++ hello-world.cpp -o hello-world
+
+ Or simpler (but you will not see ezc errors...):
+    ezc hello-world.ez | g++ -o hello-world -xc++ -
+
+
+ EZ LANGUAGE FEATURES
+
+ We will present ez language features using common examples.
+
+    FIBONACCI
+
+    The fibonacci program introduces recursivity and program arguments
+    handling.
+
+    Notates that a special function "integer_from_string" is used.
+    A list of EZ built-in functions is avalaible in the annexe at the end of
+    this document.
+    Additionaly, we use the special notation '[<value>]' to access the second
+    element of the `args` vector.
+    The first element of the "args" vector of the main function is ever
+    the program name, like in C.
+
+    We also use a local variable "n" to the "fibonacci_number" function to
+    store the starting fibonacci number we are computing.
+    A function can have multiple locals, all declared between the function
+    prototype and the following "begin" keyword.
+    A local is ever declared "local <variable name> is <type> <end of line>"
+
+    ----
+    program fibonacci_number
+
+    function fibonacci(in n is natural) return natural
+    begin
+        on n < 2 do return 1
+        return fibonacci(n) + fibonacci(n - 1)
+    end
+
+    function fibonacci_number(in args is vector of string) : integer
+        local n is natural
+    begin
+        if args.size() == 2 then
+            n = integer_from_string(args[1])
+        else
+            print "Enter a number : "
+            read n
+        endif
+
+        print "fibonacci(", n, ") = ", fibonacci(n)
+    end
+    ----
+
+
+    PRIME NUMBER SEARCH
+
+    This program shows different EZ elements:
+
+
+ ANNEXE
+
+    EZ BUILTIN FUNCTIONS
+
+        function integer_from_string(in str is string) : integer
+
