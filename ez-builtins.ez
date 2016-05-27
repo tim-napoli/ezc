@@ -1,3 +1,21 @@
 
+/**
+ * Generate a random number between `start` and `stop`.
+ */
 builtin function random(in start is integer, in stop is integer) return integer
+
+/**
+ * Set the random seed used by the `random` function.
+ */
+builtin procedure set_random_seed(in seed is integer)
+
+/**
+ * Read an integer from a string.
+ */
+builtin function integer_from_string(in str is string) return integer
+
+/**
+ * Get the current timestamp.
+ */
+builtin function get_timestamp() return integer
 

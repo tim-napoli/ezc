@@ -535,10 +535,6 @@ parser_status_t builtin_procedure_parser(FILE* input, context_t* ctx,
 
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
-    PARSE_ERR(word_parser(input, "return", NULL), "missing 'return'");
-
-    SKIP_MANY(input, space_parser(input, NULL, NULL));
-
     PARSE_ERR(end_of_line_parser(input, NULL, NULL),
               "a new line is expected after a function head builtin");
 

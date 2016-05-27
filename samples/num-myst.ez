@@ -7,6 +7,8 @@ function mysterious_number(in args is vector of string) return integer
     local mysterious_num is integer
     local try_number is integer
 begin
+    set_random_seed(get_timestamp())
+
     user_number = 0
     mysterious_num = random(0, MAX_NUM)
     try_number = 0
