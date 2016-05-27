@@ -25,10 +25,11 @@ void error_identifier_not_found(FILE* input, const identifier_t* id) {
     fprintf(stderr, "identifier %s not found in this context\n", id->value);
 }
 
-void error_valref_not_found(FILE* input, const valref_t* valref) {
+void error_valref_not_found(FILE* input, const context_t* ctx,
+                            const valref_t* valref) {
     error_print(input);
     fprintf(stderr, "valref ");
-    valref_print(stderr, valref);
+    valref_print(stderr, ctx, valref);
     fprintf(stderr, " not found in this context\n");
 }
 
@@ -44,34 +45,41 @@ void error_invalid_main_function(const identifier_t* id) {
             id->value);
 }
 
-void error_expression_not_valid(FILE* input, const expression_t* expr) {
+void error_expression_not_valid(FILE* input, const context_t* ctx,
+                                const expression_t* expr)
+{
     error_print(input);
     fprintf(stderr, "expression ");
-    expression_print(stderr, expr);
+    expression_print(stderr, ctx, expr);
     fprintf(stderr, " is not valid in this context\n");
 }
 
-void error_parameters_not_valid(FILE* input, const parameters_t* parameters) {
+void error_parameters_not_valid(FILE* input, const context_t* ctx,
+                                const parameters_t* parameters)
+{
     error_print(input);
     fprintf(stderr, "parameters \n");
-    parameters_print(stderr, parameters);
+    parameters_print(stderr, ctx, parameters);
     fprintf(stderr, " are not valid in this context\n");
 };
 
 void error_affectation_not_valid(FILE* input,
+                                 const context_t* ctx,
                                  const affectation_instr_t* affectation) {
     error_print(input);
     fprintf(stderr, "affectaton ");
-    valref_print(stderr, affectation->lvalue);
+    valref_print(stderr, ctx, affectation->lvalue);
     fprintf(stderr, " = ");
-    expression_print(stderr, affectation->expression);
+    expression_print(stderr, ctx, affectation->expression);
     fprintf(stderr, " is not valid in this context\n");
 }
 
-void error_value_not_valid(FILE* input, const value_t* value) {
+void error_value_not_valid(FILE* input, const context_t* ctx,
+                           const value_t* value)
+{
     error_print(input);
     fprintf(stderr, "value ");
-    value_print(stderr, value);
+    value_print(stderr, ctx, value);
     fprintf(stderr, " is not valid in this context\n");
 }
 

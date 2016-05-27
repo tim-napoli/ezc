@@ -33,7 +33,7 @@ parser_status_t read_parser(FILE* input, const context_t* ctx,
               "a single value reference must follow the 'read' keyword");
 
     if (!context_valref_is_valid(ctx, *valref)) {
-        error_valref_not_found(input, *valref);
+        error_valref_not_found(input, ctx, *valref);
     }
 
     PARSE_ERR(end_of_line_parser(input, NULL, NULL),
@@ -347,7 +347,7 @@ parser_status_t affectation_parser(FILE* input, const context_t* ctx,
     PARSE(char_parser(input, "=", NULL));
 
     if (!context_valref_is_valid(ctx, affectation_instr->lvalue)) { // XXX
-        error_valref_not_found(input, affectation_instr->lvalue); // XXX
+        error_valref_not_found(input, ctx, affectation_instr->lvalue); // XXX
     }
 
     SKIP_MANY(input, space_parser(input, NULL, NULL));
@@ -393,7 +393,7 @@ parser_status_t instruction_parser(FILE* input, const context_t* ctx,
         memcpy(&(*instruction)->parameters, &parameters, sizeof(parameters_t)); // XXX XXX
 
         if (!context_parameters_is_valid(ctx, &parameters)) {
-            error_parameters_not_valid(input, &parameters);
+            error_parameters_not_valid(input, ctx, &parameters);
         }
 
         return PARSER_SUCCESS;

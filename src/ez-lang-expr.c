@@ -84,28 +84,30 @@ static char* expression_type_symbols[EXPRESSION_TYPE_SIZE] = {
     [EXPRESSION_TYPE_ARITHMETIC_OP_MOD]         = "%",
 };
 
-void expression_print(FILE* output, const expression_t* expr) {
+void expression_print(FILE* output, const context_t* ctx,
+                      const expression_t* expr)
+{
     if (!expr) {
         return;
     }
 
     if (expr->type == EXPRESSION_TYPE_VALUE) {
-        value_print(output, &expr->value);
+        value_print(output, ctx, &expr->value);
     } else {
         if (expr->left) {
             fputc('(', output);
-            expression_print(output, expr->left);
+            expression_print(output, ctx, expr->left);
             fputc(')', output);
         }
 
         fprintf(output, " %s ", expression_type_symbols[expr->type]);
         if (expr->type == EXPRESSION_TYPE_VALUE) {
-            value_print(output, &expr->value);
+            value_print(output, ctx, &expr->value);
         }
 
         if (expr->right) {
             fputc('(', output);
-            expression_print(output, expr->right);
+            expression_print(output, ctx, expr->right);
             fputc(')', output);
         }
     }
@@ -120,14 +122,14 @@ const type_t* expression_get_type(const context_t* ctx,
         return type_boolean;
     }
 
-    const type_t* left_type = expression_get_type(ctx, expr->left);
-    const type_t* right_type = expression_get_type(ctx, expr->right);
-
     if (expr->type >= EXPRESSION_TYPE_CMP_OP_EQUALS
     &&  expr->type <= EXPRESSION_TYPE_BOOL_OP_OR)
     {
         return type_boolean;
     }
+
+    const type_t* left_type = expression_get_type(ctx, expr->left);
+    const type_t* right_type = expression_get_type(ctx, expr->right);
 
     /* Arithmetic operator :
      * if we have only naturals, return naturals,

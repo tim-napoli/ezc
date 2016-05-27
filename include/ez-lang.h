@@ -39,7 +39,8 @@ void parameters_add(parameters_t* params, expression_t* expr);
 
 void parameters_wipe(parameters_t* params);
 
-void parameters_print(FILE* output, const parameters_t* params);
+void parameters_print(FILE* output, const context_t* ctx,
+                      const parameters_t* params);
 
 /**
  * A valref (read 'Value Reference') is a special kind of value meaning
@@ -59,6 +60,7 @@ typedef struct valref {
     identifier_t  identifier;
 
     bool         is_funccall;
+    bool         is_builtin;
     parameters_t parameters;
 
     struct valref* next;
@@ -68,7 +70,7 @@ valref_t* valref_new(const identifier_t* identifier);
 
 void valref_delete(valref_t* valref);
 
-void valref_print(FILE* output, const valref_t* value);
+void valref_print(FILE* output, const context_t* ctx, const valref_t* value);
 
 const type_t* valref_get_type(const context_t* ctx, const valref_t* valref);
 
@@ -110,7 +112,7 @@ void valref_set_is_funccall(valref_t* v, bool is_funccall);
 void valref_set_has_indexing(valref_t* v, bool has_indexing);
 void valref_add_index(valref_t* v, expression_t* index);
 
-void value_print(FILE* output, const value_t* value);
+void value_print(FILE* output, const context_t* ctx, const value_t* value);
 
 const type_t* value_get_type(const context_t* ctx, const value_t* value);
 
@@ -171,7 +173,8 @@ void expression_delete(expression_t* expr);
 
 int expression_predecence(const expression_t* expr);
 
-void expression_print(FILE* output, const expression_t* expr);
+void expression_print(FILE* output, const context_t* ctx,
+                      const expression_t* expr);
 
 const type_t* expression_get_type(const context_t* ctx,
                                   const expression_t* expr);
@@ -338,7 +341,8 @@ elsif_instr_t* elsif_instr_new(expression_t* coundition);
 
 void elsif_instr_delete(elsif_instr_t* elsif);
 
-void elsif_instr_print(FILE* output, const elsif_instr_t* elsif);
+void elsif_instr_print(FILE* output, const context_t* ctx,
+                       const elsif_instr_t* elsif);
 
 /**
  * The classical computer-programming `if` instruction.
@@ -357,7 +361,8 @@ if_instr_t* if_instr_new(expression_t* coundition);
 
 void if_instr_delete(if_instr_t* if_instr);
 
-void if_instr_print(FILE* output, const if_instr_t* if_instr);
+void if_instr_print(FILE* output, const context_t* ctx,
+                    const if_instr_t* if_instr);
 
 /**
  * In EZ, a loop is a flowcontrol instruction that will loop `instructions`
@@ -373,7 +378,8 @@ loop_instr_t* loop_instr_new(expression_t* coundition);
 
 void loop_instr_delete(loop_instr_t* loop);
 
-void loop_instr_print(FILE* output, const loop_instr_t* loop_instr);
+void loop_instr_print(FILE* output, const context_t* ctx,
+                      const loop_instr_t* loop_instr);
 
 /**
  * In EZ, a while is a flowcontrol instruction that will loop `instructions`
@@ -389,7 +395,8 @@ while_instr_t* while_instr_new(expression_t* coundition);
 
 void while_instr_delete(while_instr_t* while_instr);
 
-void while_instr_print(FILE* output, const while_instr_t* while_instr);
+void while_instr_print(FILE* output, const context_t* ctx,
+                       const while_instr_t* while_instr);
 
 /**
  * A `on` instruction is like a `if` without `elsif` or `else` part, and
@@ -404,7 +411,8 @@ on_instr_t* on_instr_new(expression_t* coundition);
 
 void on_instr_delete(on_instr_t* on_instr);
 
-void on_instr_print(FILE* output, const on_instr_t* on_instr);
+void on_instr_print(FILE* output, const context_t* ctx,
+                    const on_instr_t* on_instr);
 
 typedef struct range {
     expression_t* from;
@@ -431,7 +439,8 @@ void range_set_to(range_t* range, expression_t* to);
 
 void for_instr_delete(for_instr_t* for_instr);
 
-void for_instr_print(FILE* output, const for_instr_t* for_instr);
+void for_instr_print(FILE* output, const context_t* ctx,
+                     const for_instr_t* for_instr);
 
 /**
  * Different kinds of flowcontrol instructions (see above for description of
@@ -462,7 +471,8 @@ typedef struct flowcontrol {
 
 void flowcontrol_wipe(flowcontrol_t* fc);
 
-void flowcontrol_print(FILE* output, const flowcontrol_t* fc_instr);
+void flowcontrol_print(FILE* output, const context_t* ctx,
+                       const flowcontrol_t* fc_instr);
 
 /**
  * An affectation instruction is used to affect the value of an expression
@@ -475,7 +485,8 @@ typedef struct affectation_instr {
 
 void affectation_instr_wipe(affectation_instr_t* affectation);
 
-void affectation_instr_print(FILE* output, const affectation_instr_t* aff);
+void affectation_instr_print(FILE* output, const context_t* ctx,
+                             const affectation_instr_t* aff);
 
 /**
  * Different types of instructions the EZ language know.
@@ -532,9 +543,11 @@ instruction_t* instruction_new(instruction_type_t type);
 
 void instruction_delete(instruction_t* instr);
 
-void instruction_print(FILE* output, const instruction_t* instr);
+void instruction_print(FILE* output, const context_t* ctx,
+                       const instruction_t* instr);
 
-void instructions_print(FILE* output, const vector_t* instrs);
+void instructions_print(FILE* output, const context_t* ctx,
+                        const vector_t* instrs);
 
 /* ------------------------------ functions -------------------------------- */
 
@@ -610,7 +623,8 @@ function_t* function_new(const identifier_t* id);
 
 void function_delete(function_t* function);
 
-void function_print(FILE* output, const function_t* function);
+void function_print(FILE* output, const context_t* ctx,
+                    const function_t* function);
 
 void function_set_args(function_t* func, vector_t* args);
 bool function_has_arg(const function_t* func, const identifier_t* arg);
@@ -642,7 +656,8 @@ constant_t* constant_new(symbol_t* symbol, expression_t* value);
 
 void constant_delete(constant_t* constant);
 
-void constant_print(FILE* output, const constant_t* constant);
+void constant_print(FILE* output, const context_t* ctx,
+                    const constant_t* constant);
 
 bool constant_is(const constant_t* constant, const identifier_t* id);
 
@@ -657,7 +672,8 @@ typedef struct program {
     vector_t    functions;  /* of function_t* */
     vector_t    procedures; /* of function_t* */
 
-    vector_t    builtin_functions; /* of function_t* */
+    vector_t    builtin_functions;  /* of function_t* */
+    vector_t    builtin_procedures; /* of function_t* */
 } program_t;
 
 program_t* program_new(const identifier_t* id);
@@ -681,11 +697,21 @@ structure_t* program_find_structure(const program_t* prg,
 
 void program_add_function(program_t* prg, function_t* function);
 bool program_has_function(const program_t* prg, const identifier_t* id);
-function_t* program_find_function(const program_t* prg, const identifier_t* id);
+function_t* program_find_function(program_t* prg, const identifier_t* id);
 
 void program_add_procedure(program_t* prg, function_t* procedure);
 bool program_has_procedure(const program_t* prg, const identifier_t* id);
-function_t* program_find_procedure(const program_t* prg, const identifier_t* id);
+function_t* program_find_procedure(program_t* prg, const identifier_t* id);
+
+void program_add_builtin_function(program_t* prg, function_t* func);
+bool program_has_builtin_function(const program_t* prg, const identifier_t* id);
+function_t* program_find_builtin_function(program_t* prg,
+                                          const identifier_t* id);
+
+void program_add_builtin_procedure(program_t* prg, function_t* func);
+bool program_has_builtin_procedure(const program_t* prg, const identifier_t* id);
+function_t* program_find_builtin_procedure(program_t* prg,
+                                           const identifier_t* id);
 
 bool program_main_function_is_valid(const program_t* prg);
 
@@ -724,6 +750,7 @@ const type_t* context_find_identifier_type(const context_t* ctx,
 
 /* ------------------------ Language builtins ------------------------------ */
 
+#define EZ_BUILTINS_FILE    "ez-builtins.ez"
 
 bool vector_function_exists(const identifier_t* id);
 

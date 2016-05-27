@@ -16,9 +16,11 @@ void parameters_add(parameters_t* params, expression_t* expr) {
     vector_push(&params->parameters, expr);
 }
 
-void parameters_print(FILE* output, const parameters_t* params) {
+void parameters_print(FILE* output, const context_t* ctx,
+                      const parameters_t* params)
+{
     for (int i = 0; i < params->parameters.size; i++) {
-        expression_print(output, params->parameters.elements[i]);
+        expression_print(output, ctx, params->parameters.elements[i]);
         if (i + 1 < params->parameters.size) {
             fprintf(output, ", ");
         }
@@ -64,18 +66,24 @@ void valref_set_is_funccall(valref_t* v, bool is_funccall) {
     v->is_funccall = is_funccall;
 }
 
-void valref_print(FILE* output, const valref_t* value) {
+void valref_print(FILE* output, const context_t* ctx, const valref_t* value) {
+    if (program_has_builtin_function(ctx->program, &value->identifier)
+    ||  program_has_builtin_procedure(ctx->program, &value->identifier))
+    {
+        fprintf(output, "ez::");
+    }
+
     fprintf(output, "%s", value->identifier.value);
 
     if (value->is_funccall) {
         fprintf(output, "(");
-        parameters_print(output, &value->parameters);
+        parameters_print(output, ctx, &value->parameters);
         fprintf(output, ")");
     }
 
     if (value->next) {
         fprintf(output, ".");
-        valref_print(output, value->next);
+        valref_print(output, ctx, value->next);
     }
 }
 
@@ -136,7 +144,7 @@ void value_wipe(value_t* value) {
     }
 }
 
-void value_print(FILE* output, const value_t* value) {
+void value_print(FILE* output, const context_t* ctx, const value_t* value) {
     switch (value->type) {
       case VALUE_TYPE_STRING:
         fprintf(output, "\"%s\"", value->string);
@@ -159,7 +167,7 @@ void value_print(FILE* output, const value_t* value) {
         break;
 
       case VALUE_TYPE_VALREF:
-        valref_print(output, value->valref);
+        valref_print(output, ctx, value->valref);
         break;
     }
 }

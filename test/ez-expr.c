@@ -16,7 +16,7 @@ int main(int argc, char** argv) {
     if (expression_parser(f, NULL, &expr) != PARSER_SUCCESS) {
         printf("invalid expression\n");
     } else {
-        expression_print(stdout, expr);
+        expression_print(stdout, NULL, expr);
         printf("\n");
         expression_delete(expr);
     }

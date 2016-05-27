@@ -88,7 +88,8 @@ function_t* function_new(const identifier_t* id) {
     return f;
 }
 
-void function_arg_print(FILE* output, const function_arg_t* arg) {
+void function_arg_print(FILE* output, const function_arg_t* arg)
+{
     if (arg->modifier == FUNCTION_ARG_MODIFIER_IN) {
         fprintf(output, "const ");
     }
@@ -110,7 +111,9 @@ void function_delete(function_t* func) {
     free(func);
 }
 
-void function_print(FILE* output, const function_t* function) {
+void function_print(FILE* output, const context_t* ctx,
+                    const function_t* function)
+{
     if (function->return_type) {
         type_print(output, function->return_type);
         fprintf(output, " ");
@@ -134,7 +137,7 @@ void function_print(FILE* output, const function_t* function) {
         fprintf(output, ";\n");
     }
 
-    instructions_print(output, &function->instructions);
+    instructions_print(output, ctx, &function->instructions);
     fprintf(output, "}\n\n");
 }
 
@@ -212,11 +215,13 @@ void constant_delete(constant_t* constant) {
     expression_delete(constant->value);
 }
 
-void constant_print(FILE* output, const constant_t* constant) {
+void constant_print(FILE* output, const context_t* ctx,
+                    const constant_t* constant)
+{
     fprintf(output, "const ");
     symbol_print(output, constant->symbol);
     fprintf(output, " = ");
-    expression_print(output, constant->value);
+    expression_print(output, ctx, constant->value);
     fprintf(output, ";\n");
 }
 
@@ -257,8 +262,14 @@ void program_print(FILE* output, const program_t* prg) {
                     "#include <cstdlib>\n"
                     "#include \"ez/vector.hpp\"\n"
                     "#include \"ez/optional.hpp\"\n"
+                    "#include \"ez/functions.hpp\"\n"
                     "\n"
     );
+
+    const context_t ctx = (context_t){
+        .program = (program_t*)prg,
+        .function = NULL
+    };
 
     for (int i = 0; i < prg->structures.size; i++) {
         structure_print(output, prg->structures.elements[i]);
@@ -274,7 +285,7 @@ void program_print(FILE* output, const program_t* prg) {
     fprintf(output, "\n");
 
     for (int i = 0; i < prg->constants.size; i++) {
-        constant_print(output, prg->constants.elements[i]);
+        constant_print(output, &ctx, prg->constants.elements[i]);
     }
     for (int i = 0; i < prg->globals.size; i++) {
         symbol_print(output, prg->globals.elements[i]);
@@ -282,10 +293,10 @@ void program_print(FILE* output, const program_t* prg) {
     }
 
     for (int i = 0; i < prg->functions.size; i++) {
-        function_print(output, prg->functions.elements[i]);
+        function_print(output, &ctx, prg->functions.elements[i]);
     }
     for (int i = 0; i < prg->procedures.size; i++) {
-        function_print(output, prg->procedures.elements[i]);
+        function_print(output, &ctx, prg->procedures.elements[i]);
     }
 
     fprintf(output, "int main(int argc, char** argv) {\n"
@@ -342,13 +353,20 @@ void program_add_function(program_t* prg, function_t* function) {
 }
 
 bool program_has_function(const program_t* prg, const identifier_t* id) {
-    return vector_contains(&prg->functions, id, (cmp_func_t)&function_is);
+    return vector_contains(&prg->functions, id, (cmp_func_t)&function_is)
+        || program_has_builtin_function(prg, id);
 }
 
-function_t* program_find_function(const program_t* prg,
+function_t* program_find_function(program_t* prg,
                                   const identifier_t* id)
 {
-    return vector_find(&prg->functions, id, (cmp_func_t)&function_is);
+    function_t* func = vector_find(&prg->functions, id,
+                                   (cmp_func_t)&function_is);
+    if (!func) {
+        func = program_find_builtin_function(prg, id);
+    }
+
+    return func;
 }
 
 void program_add_procedure(program_t* prg, function_t* procedure) {
@@ -356,12 +374,50 @@ void program_add_procedure(program_t* prg, function_t* procedure) {
 }
 
 bool program_has_procedure(const program_t* prg, const identifier_t* id) {
-    return vector_contains(&prg->procedures, id, (cmp_func_t)&function_is);
+    return vector_contains(&prg->procedures, id, (cmp_func_t)&function_is)
+        || program_has_builtin_procedure(prg, id);
 }
 
-function_t* program_find_procedure(const program_t* prg, const identifier_t* id)
+function_t* program_find_procedure(program_t* prg, const identifier_t* id)
 {
-    return vector_find(&prg->procedures, id, (cmp_func_t)&function_is);
+    function_t* func = vector_find(&prg->procedures, id,
+                                   (cmp_func_t)&function_is);
+    if (!func) {
+        func = program_find_builtin_procedure(prg, id);
+    }
+    return func;
+}
+
+void program_add_builtin_function(program_t* prg, function_t* function) {
+    vector_push(&prg->builtin_functions, function);
+}
+
+bool program_has_builtin_function(const program_t* prg, const identifier_t* id)
+{
+    return vector_contains(&prg->builtin_functions, id,
+                           (cmp_func_t)&function_is);
+}
+
+function_t* program_find_builtin_function(program_t* prg,
+                                          const identifier_t* id)
+{
+    return vector_find(&prg->builtin_functions, id, (cmp_func_t)&function_is);
+}
+
+void program_add_builtin_procedure(program_t* prg, function_t* function) {
+    vector_push(&prg->builtin_procedures, function);
+}
+
+bool program_has_builtin_procedure(const program_t* prg, const identifier_t* id)
+{
+    return vector_contains(&prg->builtin_procedures, id,
+                           (cmp_func_t)&function_is);
+}
+
+function_t* program_find_builtin_procedure(program_t* prg,
+                                          const identifier_t* id)
+{
+    return vector_find(&prg->builtin_procedures, id, (cmp_func_t)&function_is);
 }
 
 bool program_main_function_is_valid(const program_t* prg) {

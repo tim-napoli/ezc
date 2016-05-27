@@ -150,7 +150,7 @@ static parser_status_t expression_in_parser(FILE* input, const context_t* ctx,
     if (TRY(input, value_parser(input, ctx, &value)) == PARSER_SUCCESS) {
 
         if (!context_value_is_valid(ctx, &value)) {
-            error_value_not_valid(input, &value);
+            error_value_not_valid(input, ctx, &value);
         }
 
         SKIP_MANY(input, space_parser(input, NULL, NULL));

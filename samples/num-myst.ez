@@ -4,25 +4,25 @@ constant MAX_NUM is integer = 1000
 
 function mysterious_number(in args is vector of string) return integer
     local user_number is integer
-    local mysterious_number is integer
+    local mysterious_num is integer
     local try_number is integer
 begin
     user_number = 0
-    mysterious_number = rand() % MAX_NUM
+    mysterious_num = random(0, MAX_NUM)
     try_number = 0
 
     loop
         print "enter a number: "
         read user_number
-        if user_number < mysterious_number then
-            print "greater\n"
-        elsif user_number > mysterious_number then
-            print "lower\n"
+        if user_number < mysterious_num then
+            print "greater"
+        elsif user_number > mysterious_num then
+            print "lower"
         endif
         try_number = try_number + 1
-    until user_number != mysterious_number
+    until user_number != mysterious_num
 
-    print "won using ", try_number, " tries\n"
+    print "won using ", try_number, " tries"
 
     return 0
 end

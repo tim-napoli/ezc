@@ -13,6 +13,7 @@ include_directories("${PROJECT_SOURCE_DIR}/include")
 
 file(COPY samples DESTINATION .)
 file(COPY ez DESTINATION .)
+file(COPY ez-builtins.ez DESTINATION .)
 
 add_library(parser STATIC
             src/parser.c)

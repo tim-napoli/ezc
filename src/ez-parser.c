@@ -133,6 +133,7 @@ parser_status_t function_parser(FILE* input, context_t* ctx,
 
     PARSE_ERR(char_parser(input, "(", NULL), "missing '('");
 
+    /* TODO args = &(*function)->args */
     vector_t* args = vector_new(0);
 
     PARSE(function_args_parser(input, ctx, args));
@@ -449,6 +450,129 @@ parser_status_t entity_parser(FILE* input, context_t* ctx,
     return PARSER_FAILURE;
 }
 
+parser_status_t builtin_function_parser(FILE* input, context_t* ctx,
+                                        function_t** function)
+{
+    identifier_t function_id;
+
+    SKIP_MANY(input, comment_or_empty_parser(input, NULL, NULL));
+
+    PARSE(word_parser(input, "builtin", NULL));
+    PARSE_ERR(space_parser(input, NULL, NULL),
+              "a space is expceted after the 'builtin' keyword");
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
+
+    PARSE(word_parser(input, "function", NULL));
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
+
+    PARSE_ERR(identifier_parser(input, NULL, &function_id),
+              "a builtin function must have a valid identifier");
+
+    *function = function_new(&function_id);
+
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
+
+    PARSE_ERR(char_parser(input, "(", NULL), "missing '('");
+
+    PARSE_ERR(function_args_parser(input, ctx, &(*function)->args),
+              "invalid builtin function arguments");
+
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
+
+    PARSE_ERR(char_parser(input, ")", NULL), "missing ')'");
+
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
+
+    PARSE_ERR(word_parser(input, "return", NULL), "missing 'return'");
+
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
+
+    type_t* return_type = NULL;
+
+    PARSE_ERR(type_parser(input, ctx, &return_type),
+              "unknown return type");
+
+    function_set_return_type(*function, return_type);
+
+    PARSE_ERR(end_of_line_parser(input, NULL, NULL),
+              "a new line is expected after a function head builtin");
+
+    program_add_builtin_function(ctx->program, *function);
+
+    return PARSER_SUCCESS;
+}
+
+parser_status_t builtin_procedure_parser(FILE* input, context_t* ctx,
+                                         function_t** function)
+{
+    identifier_t function_id;
+
+    SKIP_MANY(input, comment_or_empty_parser(input, NULL, NULL));
+
+    PARSE(word_parser(input, "builtin", NULL));
+    PARSE_ERR(space_parser(input, NULL, NULL),
+              "a space is expceted after the 'builtin' keyword");
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
+
+    PARSE(word_parser(input, "procedure", NULL));
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
+
+    PARSE_ERR(identifier_parser(input, NULL, &function_id),
+              "a builtin procedure must have a valid identifier");
+
+    *function = function_new(&function_id);
+
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
+
+    PARSE_ERR(char_parser(input, "(", NULL), "missing '('");
+
+    PARSE_ERR(function_args_parser(input, ctx, &(*function)->args),
+              "invalid builtin procedure arguments");
+
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
+
+    PARSE_ERR(char_parser(input, ")", NULL), "missing ')'");
+
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
+
+    PARSE_ERR(word_parser(input, "return", NULL), "missing 'return'");
+
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
+
+    PARSE_ERR(end_of_line_parser(input, NULL, NULL),
+              "a new line is expected after a function head builtin");
+
+    program_add_builtin_procedure(ctx->program, *function);
+
+    return PARSER_SUCCESS;
+}
+
+parser_status_t builtins_parser(context_t* ctx, program_t** prg)
+{
+    FILE* f = fopen(EZ_BUILTINS_FILE, "r");
+    if (f == NULL) {
+        fprintf(stderr, "couldn't find EZ builtin file \"%s\"\n",
+                 EZ_BUILTINS_FILE);
+        return PARSER_FATAL;
+    }
+
+    function_t* func = NULL;
+    parser_status_t status;
+
+    do {
+        status = PARSER_FAILURE;
+        if (TRY(f, builtin_function_parser(f, ctx, &func)) == PARSER_SUCCESS) {
+            status = PARSER_SUCCESS;
+        } else
+        if (TRY(f, builtin_procedure_parser(f, ctx, &func)) == PARSER_SUCCESS) {
+            status = PARSER_SUCCESS;
+        }
+    } while (status != PARSER_FAILURE);
+
+    fclose(f);
+    return PARSER_SUCCESS;
+}
+
 parser_status_t program_parser(FILE* input,
                                context_t* ctx,
                                program_t** program)
@@ -460,12 +584,14 @@ parser_status_t program_parser(FILE* input,
     PARSE(header_parser(input, NULL, &program_id));
 
     *program = program_new(&program_id);
-
     context_set_program(ctx, *program);
-    identifier_t prg_id = context_get_program_identifier(ctx);
+
+    PARSE_ERR(builtins_parser(ctx, program),
+              "couldn't load builtin file");
 
     SKIP_MANY(input, comment_or_empty_parser(input, NULL, NULL));
 
+    identifier_t prg_id = context_get_program_identifier(ctx);
     while (TRY(input, end_of_file_parser(input, NULL, NULL)) == PARSER_FAILURE
         && entity_parser(input, ctx, *program) == PARSER_SUCCESS) {}
 
