@@ -116,18 +116,20 @@ static parser_status_t lambda_parser(FILE* input, const context_t* ctx,
               "a ')' is expected after 'lambda' arguments");
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
-    PARSE_ERR(word_parser(input, "return", NULL),
-              "a lambda function must have a return type");
-    PARSE_ERR(space_parser(input, NULL, NULL),
-              "a space is expected after lambda return keyword");
-    SKIP_MANY(input, space_parser(input, NULL, NULL));
+    /* Optional return type */
+    if (TRY(input, word_parser(input, "return", NULL)) == PARSER_SUCCESS) {
+        PARSE_ERR(space_parser(input, NULL, NULL),
+                  "a space is expected after lambda return keyword");
+        SKIP_MANY(input, space_parser(input, NULL, NULL));
 
-    PARSE_ERR(type_parser(input, &sub_ctx, &(*lambda)->return_type),
-              "invalid lambda return type");
+        PARSE_ERR(type_parser(input, &sub_ctx, &(*lambda)->return_type),
+                  "invalid lambda return type");
 
-    PARSE_ERR(space_parser(input, NULL, NULL),
-              "a space is expected after lambda return type");
-    SKIP_MANY(input, space_parser(input, NULL, NULL));
+        PARSE_ERR(space_parser(input, NULL, NULL),
+                  "a space is expected after lambda return type");
+        SKIP_MANY(input, space_parser(input, NULL, NULL));
+
+    }
 
     PARSE_ERR(word_parser(input, "is", NULL),
               "a 'is' keyword is expected after lambda return type");
