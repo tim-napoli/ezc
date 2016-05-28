@@ -598,6 +598,8 @@ typedef enum {
     ACCESS_TYPE_INPUT_OUTPUT,
 } access_type_t;
 
+const char* access_type_print_ez(access_type_t at, char* buf);
+
 /**
  * Function argument.
  */
@@ -620,6 +622,7 @@ void function_arg_print(FILE* output, const context_t* ctx,
 struct function_signature {
     type_t*     return_type;
     vector_t    args_types;     /* of type_t* */
+    vector_t    args_access;    /* of access_type_t */
 };
 
 void function_signature_init(function_signature_t* signature);

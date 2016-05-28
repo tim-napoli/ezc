@@ -97,12 +97,21 @@ parser_status_t function_signature_parser(FILE* input, const context_t* ctx,
                                           function_signature_t** signature)
 {
     type_t* type = NULL;
+    access_type_t access_type;
 
     PARSE(char_parser(input, "(", NULL));
 
     *signature = function_signature_new();
-    while (TRY(input, type_parser(input, ctx, &type)) == PARSER_SUCCESS) {
+
+    while (TRY(input, access_type_parser(input, ctx, &access_type))
+           == PARSER_SUCCESS)
+    {
+        PARSE_ERR(char_parser(input, " ", NULL),
+                  "a space is required after access type");
+        PARSE_ERR(type_parser(input, ctx, &type),
+                  "invalid type");
         vector_push(&(*signature)->args_types, type);
+        vector_push(&(*signature)->args_access, (void*)access_type);
         SKIP_MANY(input, space_parser(input, NULL, NULL));
         if (TRY(input, char_parser(input, ",", NULL)) == PARSER_SUCCESS) {
             SKIP_MANY(input, space_parser(input, NULL, NULL));

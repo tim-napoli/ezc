@@ -1,6 +1,6 @@
 program lambda
 
-procedure sort(inout v is vector of integer, in f is function(integer, integer) return boolean)
+procedure sort(inout v is vector of integer, in f is function(in integer, in integer) return boolean)
     local i is integer
     local j is integer
     local tmp is integer
@@ -16,7 +16,7 @@ begin
     endfor
 end
 
-procedure vector_map(inout v is vector of integer, in f is function(integer))
+procedure vector_map(inout v is vector of integer, in f is function(inout integer))
     local i is integer
 begin
     for i in 0 .. v.size() do

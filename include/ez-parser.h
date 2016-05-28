@@ -123,6 +123,9 @@ parser_status_t entity_parser(FILE* input,
                                context_t* ctx,
                                program_t* prg);
 
+parser_status_t access_type_parser(FILE* input, const void* args,
+                                access_type_t* access_type);
+
 parser_status_t function_args_parser(FILE* input, const context_t* ctx,
                                      vector_t* vector);
 

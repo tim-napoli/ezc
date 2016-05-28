@@ -31,6 +31,7 @@ bool function_arg_is(const function_arg_t* arg, const identifier_t* id) {
 void function_signature_init(function_signature_t* signature) {
     signature->return_type = NULL;
     vector_init(&signature->args_types, 0);
+    vector_init(&signature->args_access, 0);
 }
 
 function_signature_t* function_signature_new(void) {
@@ -51,6 +52,8 @@ function_signature_copy(const function_signature_t* signature)
     for (int i = 0; i < signature->args_types.size; i++) {
         vector_push(&copy->args_types,
                     type_copy(signature->args_types.elements[i]));
+        vector_push(&copy->args_access,
+                    (void*)signature->args_access.elements[i]);
     }
     if (signature->return_type) {
         copy->return_type = type_copy(signature->return_type);
@@ -64,6 +67,7 @@ void function_signature_wipe(function_signature_t* signature) {
         type_delete(signature->return_type);
     }
     vector_wipe(&signature->args_types, (delete_func_t)&type_delete);
+    vector_wipe(&signature->args_access, NULL);
 }
 
 bool function_signature_is_equals(const function_signature_t* a,
@@ -82,9 +86,32 @@ bool function_signature_is_equals(const function_signature_t* a,
         {
             return false;
         }
+
+        access_type_t a_at = (access_type_t)a->args_access.elements[i];
+        access_type_t b_at = (access_type_t)b->args_access.elements[i];
+        if (a_at != b_at) {
+            return false;
+        }
     }
 
     return true;
+}
+
+const char* access_type_print_ez(access_type_t at, char* buf) {
+    switch (at) {
+      case ACCESS_TYPE_INPUT:
+        strcat(buf, "in");
+        break;
+
+      case ACCESS_TYPE_OUTPUT:
+        strcat(buf, "out");
+        break;
+
+      case ACCESS_TYPE_INPUT_OUTPUT:
+        strcat(buf, "inout");
+        break;
+    }
+    return buf;
 }
 
 const char* function_signature_print_ez(const function_signature_t* signature,
@@ -92,6 +119,9 @@ const char* function_signature_print_ez(const function_signature_t* signature,
 {
     strcat(buf, "(");
     for (int i = 0; i < signature->args_types.size; i++) {
+        access_type_print_ez((access_type_t)signature->args_access.elements[i],
+                             buf);
+        strcat(buf, " ");
         type_print_ez(signature->args_types.elements[i], buf);
         if (i + 1 < signature->args_types.size) {
             strcat(buf, ", ");
@@ -262,6 +292,7 @@ function_signature_t* function_get_signature(const function_t* func) {
     for (int i = 0; i < func->args.size; i++) {
         const function_arg_t* arg = func->args.elements[i];
         vector_push(&signature->args_types, type_copy(arg->symbol->is));
+        vector_push(&signature->args_access, (void*)arg->access_type);
     }
 
     return signature;

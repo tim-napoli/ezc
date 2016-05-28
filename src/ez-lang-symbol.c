@@ -138,8 +138,17 @@ void type_print(FILE* output, const context_t* ctx, const type_t* type) {
         type_print(output, ctx, type->signature->return_type);
         fprintf(output, "(");
         for (int i = 0; i < type->signature->args_types.size; i++) {
-            /* TODO modifiers */
+            access_type_t at =
+                (access_type_t)type->signature->args_access.elements[i];
+            if (at == ACCESS_TYPE_INPUT) {
+                fprintf(output, "const ");
+            }
+
             type_print(output, ctx, type->signature->args_types.elements[i]);
+            if (at == ACCESS_TYPE_OUTPUT || at == ACCESS_TYPE_INPUT_OUTPUT) {
+                fprintf(output, "&");
+            }
+
             if (i + 1 < type->signature->args_types.size) {
                 fprintf(output, ", ");
             }

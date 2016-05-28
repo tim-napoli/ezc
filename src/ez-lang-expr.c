@@ -92,7 +92,7 @@ static char* expression_type_symbols[EXPRESSION_TYPE_SIZE] = {
 
 void lambda_print(FILE* output, const context_t* ctx, const function_t* func)
 {
-    fprintf(output, "[](");
+    fprintf(output, "[&](");
     for (int i = 0; i < func->args.size; i++) {
         function_arg_print(output, ctx, func->args.elements[i]);
         if (i + 1 < func->args.size) {
