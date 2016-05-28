@@ -315,6 +315,8 @@ bool type_is_function(const type_t* type);
 
 type_t* type_copy(const type_t* type);
 
+char* type_print_ez(const type_t* type, char* buf);
+
 /**
  * Primitive type pre-allocated.
  * TODO const
@@ -633,6 +635,9 @@ void function_signature_delete(function_signature_t* signature);
 
 bool function_signature_is_equals(const function_signature_t* a,
                                   const function_signature_t* b);
+
+const char* function_signature_print_ez(const function_signature_t* signature,
+                                        char* buf);
 
 /**
  * Function data structure.

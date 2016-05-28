@@ -60,6 +60,40 @@ bool context_has_function(const context_t* ctx, const identifier_t* id) {
     return program_has_procedure(ctx->program, id);
 }
 
+bool context_funccall_is_valid(const context_t* ctx,
+                               const function_signature_t* func,
+                               const parameters_t* params,
+                               char* error_msg)
+{
+    if (params->parameters.size != func->args_types.size) {
+        sprintf(error_msg,
+                "calling a function with wrong number of arguments");
+        return false;
+    }
+
+    for (int i = 0; i < func->args_types.size; i++) {
+        const type_t* func_arg_type = func->args_types.elements[i];
+        const type_t* param_arg_type =
+                context_expression_get_type(ctx,
+                                            params->parameters.elements[i]);
+
+        if (!types_are_equivalent(func_arg_type, param_arg_type)) {
+            char expected_type[512] = "";
+            char given_type[512] = "";
+
+            type_print_ez(func_arg_type, expected_type);
+            type_print_ez(param_arg_type, given_type);
+
+            sprintf(error_msg,
+                    "invalid type for argument %d, expected '%s', got '%s'",
+                    i + 1, expected_type, given_type);
+            return false;
+        }
+    }
+
+    return true;
+}
+
 static bool _context_valref_is_valid(const context_t* ctx,
                                      const valref_t* valref,
                                      const type_t* type,
@@ -82,6 +116,7 @@ static bool _context_valref_is_valid(const context_t* ctx,
             function_t* proc = program_find_procedure(ctx->program,
                                                       &valref->identifier);
             function_signature_t* lambda = context_find_lambda_function(ctx, &valref->identifier);
+            const function_signature_t* signature = NULL;
 
             if (!func && !proc && !lambda) {
                 sprintf(error_msg, "'%s' is not a function or a procedure",
@@ -89,13 +124,24 @@ static bool _context_valref_is_valid(const context_t* ctx,
                 return false;
             } else if (func) {
                 type = func->return_type;
+                signature = function_get_signature(func);
             } else if (proc) {
                 type = proc->return_type;
+                signature = function_get_signature(proc);
             } else if (lambda) {
                 type = lambda->return_type;
+                signature = lambda;
             }
 
             /* TODO check arguments match function signature */
+            char suberr[512];
+            if (!context_funccall_is_valid(ctx, signature, &valref->parameters,
+                                           suberr))
+            {
+                sprintf(error_msg, "invalid function '%s' call: %s",
+                        valref->identifier.value, suberr);
+                return false;
+            }
 
         } else {
             type = context_find_identifier_type(ctx, &valref->identifier);

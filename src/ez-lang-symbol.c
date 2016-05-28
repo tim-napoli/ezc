@@ -205,8 +205,72 @@ type_t* type_copy(const type_t* type) {
     } else
     if (copy->type == TYPE_TYPE_FUNCTION) {
         copy->signature = function_signature_copy(type->signature);
+    } else
+    if (copy->type == TYPE_TYPE_OPTIONAL) {
+        copy->optional_type = type_copy(type->optional_type);
     }
     return copy;
+}
+
+char* type_print_ez(const type_t* type, char* buf) {
+    char subbuf[512] = "";
+    const type_t* it = type;
+    while (it != NULL) {
+        switch (it->type) {
+          case TYPE_TYPE_BOOLEAN:
+            strcat(buf, "boolean");
+            it = NULL;
+            break;
+
+          case TYPE_TYPE_INTEGER:
+            strcat(buf, "integer");
+            it = NULL;
+            break;
+
+          case TYPE_TYPE_NATURAL:
+            strcat(buf, "natural");
+            it = NULL;
+            break;
+
+          case TYPE_TYPE_REAL:
+            strcat(buf, "real");
+            it = NULL;
+            break;
+
+          case TYPE_TYPE_CHAR:
+            strcat(buf, "char");
+            it = NULL;
+            break;
+
+          case TYPE_TYPE_STRING:
+            strcat(buf, "string");
+            it = NULL;
+            break;
+
+          case TYPE_TYPE_VECTOR:
+            strcat(buf, "vector of ");
+            it = it->vector_type;
+            break;
+
+          case TYPE_TYPE_STRUCTURE:
+            strcat(buf, it->structure_type->identifier.value);
+            it = NULL;
+            break;
+
+          case TYPE_TYPE_OPTIONAL:
+            strcat(buf, "optional ");
+            it = it->optional_type;
+            break;
+
+          case TYPE_TYPE_FUNCTION:
+            strcat(buf, "function ");
+            strcat(buf, function_signature_print_ez(it->signature, subbuf));
+            it = NULL;
+            break;
+        }
+    }
+
+    return buf;
 }
 
 type_t* type_boolean;

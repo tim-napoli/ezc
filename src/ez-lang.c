@@ -48,7 +48,7 @@ function_signature_copy(const function_signature_t* signature)
 {
     function_signature_t* copy = function_signature_new();
 
-    for (int i = 0; signature->args_types.size; i++) {
+    for (int i = 0; i < signature->args_types.size; i++) {
         vector_push(&copy->args_types,
                     type_copy(signature->args_types.elements[i]));
     }
@@ -85,6 +85,26 @@ bool function_signature_is_equals(const function_signature_t* a,
     }
 
     return true;
+}
+
+const char* function_signature_print_ez(const function_signature_t* signature,
+                                        char* buf)
+{
+    strcat(buf, "(");
+    for (int i = 0; i < signature->args_types.size; i++) {
+        type_print_ez(signature->args_types.elements[i], buf);
+        if (i + 1 < signature->args_types.size) {
+            strcat(buf, ", ");
+        }
+    }
+    strcat(buf, ")");
+
+    if (signature->return_type) {
+        strcat(buf, " return ");
+        type_print_ez(signature->return_type, buf);
+    }
+
+    return buf;
 }
 
 function_t* function_new(const identifier_t* id) {
