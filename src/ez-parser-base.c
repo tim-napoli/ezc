@@ -113,19 +113,16 @@ parser_status_t function_signature_parser(FILE* input, const context_t* ctx,
     PARSE_ERR(char_parser(input, ")", NULL),
               "a function signature must be closed with ')'");
 
-    PARSE_ERR(char_parser(input, " ", NULL),
-              "a space is required after function signature ')'");
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
-    PARSE_ERR(word_parser(input, "return", NULL),
-              "a 'return' keyword is required after function signature");
+    if (TRY(input, word_parser(input, "return", NULL)) == PARSER_SUCCESS) {
+        PARSE_ERR(char_parser(input, " ", NULL),
+                  "a space is required after function signature 'return'");
+        SKIP_MANY(input, space_parser(input, NULL, NULL));
 
-    PARSE_ERR(char_parser(input, " ", NULL),
-              "a space is required after function signature 'return'");
-    SKIP_MANY(input, space_parser(input, NULL, NULL));
-
-    PARSE_ERR(type_parser(input, ctx, &(*signature)->return_type),
-              "a valid return type is required for a function signature");
+        PARSE_ERR(type_parser(input, ctx, &(*signature)->return_type),
+                  "a valid return type is required for a function signature");
+    }
 
     return PARSER_SUCCESS;
 }

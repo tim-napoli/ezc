@@ -16,6 +16,14 @@ begin
     endfor
 end
 
+procedure vector_map(inout v is vector of integer, in f is function(integer))
+    local i is integer
+begin
+    for i in 0 .. v.size() do
+        f(v[i])
+    endfor
+end
+
 function lambda(in args is vector of string) return integer
     local v is vector of integer
     local i is integer
@@ -28,6 +36,7 @@ begin
     endfor
 
     sort(v, lambda (in x is integer, in y is integer) return boolean is return x < y)
+    vector_map(v, lambda (inout x is integer) is x = x * 2)
 
     print v, "\n"
 

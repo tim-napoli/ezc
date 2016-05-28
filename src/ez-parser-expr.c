@@ -139,10 +139,34 @@ static parser_status_t lambda_parser(FILE* input, const context_t* ctx,
 
     expression_t* return_expr = NULL;
     instruction_t* instr = NULL;
-    PARSE_ERR(return_parser(input, &sub_ctx, &return_expr),
-              "a 'return' instruction is expected for lambda function");
-    instr = instruction_new(INSTRUCTION_TYPE_RETURN);
-    instr->expression = return_expr;
+    parameters_t params;
+    valref_t* valref = NULL;
+    affectation_instr_t affectation;
+
+    if ((*lambda)->return_type) {
+        PARSE_ERR(return_parser(input, &sub_ctx, &return_expr),
+                  "a 'return' instruction is expected for lambda function "
+                  "with return type");
+        instr = instruction_new(INSTRUCTION_TYPE_RETURN);
+        instr->expression = return_expr;
+    } else
+    if (TRY(input, print_parser(input, &sub_ctx, &params)) == PARSER_SUCCESS) {
+        instr = instruction_new(INSTRUCTION_TYPE_PRINT);
+        memcpy(&instr->parameters, &params, sizeof(parameters_t));
+    } else
+    if (TRY(input, read_parser(input, &sub_ctx, &valref)) == PARSER_SUCCESS) {
+        instr = instruction_new(INSTRUCTION_TYPE_READ);
+        instr->valref = valref;
+    } else
+    if (TRY(input, affectation_parser(input, &sub_ctx, &affectation))
+        == PARSER_SUCCESS)
+    {
+        instr = instruction_new(INSTRUCTION_TYPE_AFFECTATION);
+        memcpy(&instr->affectation, &affectation, sizeof(affectation_instr_t));
+    } else {
+        PARSE_ERR(PARSER_FATAL, "invalid lambda instruction");
+    }
+
     vector_push(&(*lambda)->instructions, instr);
 
     return PARSER_SUCCESS;

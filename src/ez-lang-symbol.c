@@ -82,6 +82,11 @@ type_t* type_function_new(function_signature_t* signature) {
 }
 
 void type_print(FILE* output, const context_t* ctx, const type_t* type) {
+    if (!type) {
+        fprintf(output, "void");
+        return;
+    }
+
     switch (type->type) {
       case TYPE_TYPE_BOOLEAN:
         fprintf(output, "bool");
