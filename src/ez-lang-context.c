@@ -177,7 +177,7 @@ static bool _context_valref_is_valid(const context_t* ctx,
                 }
                 if (!optional_function_call_is_valid(ctx, valref, type))
                 {
-                    sprintf(error_msg, "invalid vector function '%s' call",
+                    sprintf(error_msg, "invalid optional function '%s' call",
                             valref->identifier.value);
                     return false;
                 }

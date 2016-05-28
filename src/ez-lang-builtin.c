@@ -319,7 +319,7 @@ bool optional_function_call_is_valid(const context_t* ctx,
         const type_t* arg_type =
             context_expression_get_type(ctx,
                                 valref->parameters.parameters.elements[0]);
-        bool res = types_are_equals(arg_type, optional_type->optional_type);
+        bool res = types_are_equivalent(arg_type, optional_type->optional_type);
         if (!res) {
             return false;
         }

@@ -30,7 +30,7 @@ begin
     sort(v, lambda (in x is integer, in y is integer) return boolean is return x < y)
 
     print "removing even numbers\n"
-    v.filter(lambda (in x is integer) return boolean is return x % 2 == 1)
+    v.filter(lambda (in x is integer) return boolean is return x % 2 == 0)
 
     print "double each numbers"
     v.map(lambda (inout x is integer) is x = x * 2)
