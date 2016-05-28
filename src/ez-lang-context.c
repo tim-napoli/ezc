@@ -133,7 +133,6 @@ static bool _context_valref_is_valid(const context_t* ctx,
                 signature = lambda;
             }
 
-            /* TODO check arguments match function signature */
             char suberr[512];
             if (!context_funccall_is_valid(ctx, signature, &valref->parameters,
                                            suberr))
@@ -394,7 +393,6 @@ bool context_affectation_is_valid(const context_t* ctx,
                 context_valref_get_type(ctx, affectation->lvalue),
                 context_expression_get_type(ctx, affectation->expression)))
     {
-        /* TODO get_type_name(type) */
         sprintf(error_msg, "expression has not the same type the left-value");
         return false;
     }

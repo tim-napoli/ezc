@@ -122,7 +122,6 @@ bool vector_function_call_is_valid(const context_t* ctx,
         const type_t* arg_type =
             context_expression_get_type(ctx,
                                 valref->parameters.parameters.elements[0]);
-        /* TODO type_is_number */
         bool res = type_is_number(arg_type);
         if (!res) {
             return false;

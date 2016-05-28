@@ -254,7 +254,6 @@ typedef enum {
      */
     TYPE_TYPE_FUNCTION,
 
-    /* TODO TYPE_TYPE_FUNCTION (because lambda are cool :) ) */
     /* TODO TYPE_TYPE_REFERENCE (to have control on when puttin reference or
             not when using local or globals. */
 } type_type_t;
