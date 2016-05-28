@@ -2,6 +2,7 @@
 #define _ez_vector_hpp_
 
 #include <vector>
+#include <functional>
 
 namespace ez {
 
@@ -37,11 +38,36 @@ class vector : private std::vector<T> {
     }
 
     void remove(unsigned int n) {
-        std::vector<T>::erase(n);
+        std::vector<T>::erase(std::vector<T>::begin() + n);
     }
 
     unsigned int size() const {
         return std::vector<T>::size();
+    }
+
+    void map(const std::function<void(T&)>& func) {
+        for (int i = 0; i < size(); i++) {
+            func(at(i));
+        }
+    }
+
+    T reduce(const std::function<const T&(const T&, const T&)>& func,
+             const T& initial_value)
+    {
+        T current = initial_value;
+        for (int i = 0; i < size(); i++) {
+            current = func(at(i), current);
+        }
+        return current;
+    }
+
+    void filter(const std::function<bool(const T&)>& func) {
+        for (int i = 0; i < size(); i++) {
+            if (func(at(i))) {
+                remove(i);
+                i--;
+            }
+        }
     }
 };
 

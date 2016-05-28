@@ -10,6 +10,9 @@ enum {
     VECTOR_FUNC_CLEAR,
     VECTOR_FUNC_SIZE,
     VECTOR_FUNC_AT,
+    VECTOR_FUNC_MAP,
+    VECTOR_FUNC_REDUCE,
+    VECTOR_FUNC_FILTER,
     VECTOR_FUNC_NFUNCTIONS,
 };
 
@@ -21,6 +24,9 @@ static const char* vector_functions[VECTOR_FUNC_NFUNCTIONS] = {
     [VECTOR_FUNC_CLEAR]  = "clear",
     [VECTOR_FUNC_SIZE]   = "size",
     [VECTOR_FUNC_AT]     = "at",
+    [VECTOR_FUNC_MAP]    = "map",
+    [VECTOR_FUNC_REDUCE] = "reduce",
+    [VECTOR_FUNC_FILTER] = "filter",
 };
 
 static int vector_get_function(const identifier_t* func) {
@@ -128,6 +134,113 @@ bool vector_function_call_is_valid(const context_t* ctx,
         }
         break;
       }
+
+      case VECTOR_FUNC_MAP: {
+        if (valref->parameters.parameters.size != 1) {
+            return false;
+        }
+        const type_t* arg_type =
+            context_expression_get_type(ctx,
+                                valref->parameters.parameters.elements[0]);
+
+        if (arg_type->type != TYPE_TYPE_FUNCTION) {
+            return false;
+        }
+
+        const function_signature_t* signature = arg_type->signature;
+        if (signature->return_type != NULL) {
+            return false;
+        }
+        if (signature->args_types.size != 1) {
+            return false;
+        }
+        if (!types_are_equals(vector_type->vector_type,
+                              signature->args_types.elements[0]))
+        {
+            return false;
+        }
+
+        access_type_t at = (access_type_t)signature->args_access.elements[0];
+        if (at != ACCESS_TYPE_INPUT_OUTPUT) {
+            return false;
+        }
+
+        break;
+      }
+
+      case VECTOR_FUNC_REDUCE: {
+        if (valref->parameters.parameters.size != 2) {
+            return false;
+        }
+        const type_t* arg_type =
+            context_expression_get_type(ctx,
+                                valref->parameters.parameters.elements[0]);
+
+        if (arg_type->type != TYPE_TYPE_FUNCTION) {
+            return false;
+        }
+
+        const function_signature_t* signature = arg_type->signature;
+        if (!types_are_equals(signature->return_type, vector_type->vector_type))
+        {
+            return false;
+        }
+        if (signature->args_types.size != 2) {
+            return false;
+        }
+        if (!types_are_equals(vector_type->vector_type,
+                              signature->args_types.elements[0]))
+        {
+            return false;
+        }
+        if (!types_are_equals(vector_type->vector_type,
+                              signature->args_types.elements[1]))
+        {
+            return false;
+        }
+
+        access_type_t at_0 = (access_type_t)signature->args_access.elements[0];
+        access_type_t at_1 = (access_type_t)signature->args_access.elements[1];
+        if (at_0 != ACCESS_TYPE_INPUT || at_1 != ACCESS_TYPE_INPUT) {
+            return false;
+        }
+
+        break;
+      }
+
+      case VECTOR_FUNC_FILTER: {
+        if (valref->parameters.parameters.size != 1) {
+            return false;
+        }
+        const type_t* arg_type =
+            context_expression_get_type(ctx,
+                                valref->parameters.parameters.elements[0]);
+
+        if (arg_type->type != TYPE_TYPE_FUNCTION) {
+            return false;
+        }
+
+        const function_signature_t* signature = arg_type->signature;
+        if (!types_are_equals(signature->return_type, type_boolean)) {
+            return false;
+        }
+        if (signature->args_types.size != 1) {
+            return false;
+        }
+        if (!types_are_equals(vector_type->vector_type,
+                              signature->args_types.elements[0]))
+        {
+            return false;
+        }
+
+        access_type_t at = (access_type_t)signature->args_access.elements[0];
+        if (at != ACCESS_TYPE_INPUT) {
+            return false;
+        }
+
+        break;
+      }
+
     }
 
     return true;
