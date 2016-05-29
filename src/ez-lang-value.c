@@ -97,9 +97,19 @@ void value_wipe(value_t* value) {
         valref_delete(value->valref);
         break;
 
+      case VALUE_TYPE_EMPTY:
+        type_delete(value->empty_type);
+        break;
+
       default:
         break;
     }
+}
+
+void empty_print(FILE* output, const context_t* ctx, const type_t* type) {
+    fprintf(output, "ez::optional< ");
+    type_print(output, ctx, type->optional_type);
+    fprintf(output, " >()");
 }
 
 void value_print(FILE* output, const context_t* ctx, const value_t* value) {
@@ -130,6 +140,10 @@ void value_print(FILE* output, const context_t* ctx, const value_t* value) {
 
       case VALUE_TYPE_VALREF:
         valref_print(output, ctx, value->valref);
+        break;
+
+      case VALUE_TYPE_EMPTY:
+        empty_print(output, ctx, value->empty_type);
         break;
     }
 }

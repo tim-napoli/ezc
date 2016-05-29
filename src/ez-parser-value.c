@@ -200,6 +200,21 @@ parser_status_t valref_parser(FILE* input, const context_t* ctx,
     return PARSER_SUCCESS;
 }
 
+parser_status_t empty_value_parser(FILE* input, const context_t* ctx,
+                                   type_t** empty_type)
+{
+    type_t* optional_type = NULL;
+
+    PARSE(word_parser(input, "empty ", NULL));
+    SKIP_MANY(input, space_parser(input, NULL, NULL));
+
+    PARSE_ERR(type_parser(input, ctx, &optional_type),
+              "a valid type must be given after 'empty' keyword");
+    *empty_type = type_optional_new(optional_type);
+
+    return PARSER_SUCCESS;
+}
+
 parser_status_t value_parser(FILE* input, const context_t* ctx,
                              value_t* value)
 {
@@ -246,7 +261,14 @@ parser_status_t value_parser(FILE* input, const context_t* ctx,
         value->type = VALUE_TYPE_VALREF;
 
         return PARSER_SUCCESS;
+    } else
+    if (TRY(input, empty_value_parser(input, ctx, &value->empty_type))
+        == PARSER_SUCCESS)
+    {
+        value->type = VALUE_TYPE_EMPTY;
+        return PARSER_SUCCESS;
     }
 
     return PARSER_FAILURE;
 }
+

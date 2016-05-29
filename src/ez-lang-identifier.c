@@ -48,7 +48,9 @@ bool identifier_is_reserved(const identifier_t* id) {
         "else",
         "endif",
         "print",
-        "read"
+        "read",
+        "lambda",
+        "empty",
     };
 
     unsigned int nreserved = sizeof(reserved_keywords) / sizeof(char*);

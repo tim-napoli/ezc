@@ -100,6 +100,7 @@ typedef enum {
     VALUE_TYPE_BOOLEAN,
     VALUE_TYPE_CHAR,
     VALUE_TYPE_VALREF,
+    VALUE_TYPE_EMPTY,
 } value_type_t;
 
 /**
@@ -116,6 +117,7 @@ typedef struct value {
         unsigned int natural;
         bool         boolean;
         valref_t*    valref;
+        type_t*      empty_type;
     };
 } value_t;
 
@@ -178,6 +180,7 @@ struct expression {
     union {
         value_t value;
         function_t* lambda;
+        type_t* empty_type;
         struct {
             struct expression *left, *right;
         };

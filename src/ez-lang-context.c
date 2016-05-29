@@ -482,6 +482,9 @@ const type_t* context_value_get_type(const context_t* ctx,
 
       case VALUE_TYPE_VALREF:
         return context_valref_get_type(ctx, value->valref);
+
+      case VALUE_TYPE_EMPTY:
+        return value->empty_type;
     }
 
     return NULL;
