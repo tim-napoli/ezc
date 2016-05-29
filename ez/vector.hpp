@@ -52,7 +52,7 @@ class vector : private std::vector<T> {
     }
 
     T reduce(const std::function<const T&(const T&, const T&)>& func,
-             const T& initial_value)
+             const T& initial_value) const
     {
         T current = initial_value;
         for (int i = 0; i < size(); i++) {

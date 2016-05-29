@@ -258,6 +258,9 @@ const type_t* vector_function_get_type(const valref_t* valref,
       case VECTOR_FUNC_SIZE:
         return type_natural;
 
+      case VECTOR_FUNC_REDUCE:
+        return vector_type->vector_type;
+
       default:
         return NULL;
     }

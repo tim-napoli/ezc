@@ -394,7 +394,18 @@ bool context_affectation_is_valid(const context_t* ctx,
                 /* TODO context_expression_get_result_type */
                 context_expression_get_type(ctx, affectation->expression)))
     {
-        sprintf(error_msg, "expression has not the same type the left-value");
+        char left_type[512];
+        char right_type[512];
+
+        type_print_ez(context_valref_get_type(ctx, affectation->lvalue),
+                      left_type);
+        type_print_ez(context_expression_get_type(ctx, affectation->expression),
+                      right_type);
+
+        sprintf(error_msg,
+                "expression has not the same type than the left-value "
+                "have '%s' expected '%s'",
+                right_type, left_type);
         return false;
     }
 
