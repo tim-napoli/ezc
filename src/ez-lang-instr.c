@@ -103,9 +103,9 @@ void loop_instr_print(FILE* output, const context_t* ctx,
 {
     fprintf(output, "do {\n");
     instructions_print(output, ctx, &loop_instr->instructions);
-    fprintf(output, "} while (");
+    fprintf(output, "} while (!(");
     expression_print(output, ctx, loop_instr->coundition);
-    fprintf(output, ");\n");
+    fprintf(output, "));\n");
 }
 
 while_instr_t* while_instr_new(expression_t* coundition) {
