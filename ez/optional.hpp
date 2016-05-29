@@ -9,15 +9,22 @@ namespace ez {
 template <typename T>
 class optional {
   private:
+    int _refcount;
     T* _value;
 
   public:
     optional() {
+        _refcount = 0;
         _value = NULL;
     }
 
+    optional(const optional<T>& opt) {
+        _refcount = opt._refcount + 1;
+        _value = opt._value;
+    }
+
     ~optional() {
-        if (_value) {
+        if (!_refcount && _value) {
             delete _value;
         }
     }

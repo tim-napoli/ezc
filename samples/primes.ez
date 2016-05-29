@@ -15,11 +15,7 @@ function average(in primes is vector of integer) return real
     local i is integer
     local sum is real
 begin
-    sum = 0
-    for i in 0 .. primes.size() do
-        sum = sum + primes[i]
-    endfor
-
+    sum = primes.reduce(lambda (in x is integer, in y is integer) return integer is return x + y, 0)
     return sum / primes.size()
 end
 

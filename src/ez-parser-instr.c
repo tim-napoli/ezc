@@ -6,10 +6,8 @@
 parser_status_t print_parser(FILE* input, const context_t* ctx,
                              parameters_t* output)
 {
-    PARSE(word_parser(input, "print", NULL));
+    PARSE(word_parser(input, "print ", NULL));
 
-    PARSE_ERR(space_parser(input, NULL, NULL),
-          "a space is expected after 'print' keyword");
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
     parameters_init(output);
@@ -24,10 +22,8 @@ parser_status_t read_parser(FILE* input, const context_t* ctx,
 {
     char suberr[512];
 
-    PARSE(word_parser(input, "read", NULL));
+    PARSE(word_parser(input, "read ", NULL));
 
-    PARSE_ERR(space_parser(input, NULL, NULL),
-          "a space is expected after 'read' keyword");
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
     PARSE_ERR(valref_parser(input, ctx, valref),
@@ -45,10 +41,7 @@ parser_status_t read_parser(FILE* input, const context_t* ctx,
 parser_status_t return_parser(FILE* input, const context_t* ctx,
                               expression_t** expression)
 {
-    PARSE(word_parser(input, "return", NULL));
-
-    PARSE_ERR(space_parser(input, NULL, NULL),
-          "a space is expcted after 'return' keyword");
+    PARSE(word_parser(input, "return ", NULL));
 
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 

@@ -151,6 +151,9 @@ static parser_status_t lambda_parser(FILE* input, const context_t* ctx,
         instr->expression = return_expr;
     } else
     if (TRY(input, print_parser(input, &sub_ctx, &params)) == PARSER_SUCCESS) {
+        /* TODO with print instruction, could "eat" parameters of original
+         *      function call for the print instruction.
+         */
         instr = instruction_new(INSTRUCTION_TYPE_PRINT);
         memcpy(&instr->parameters, &params, sizeof(parameters_t));
     } else

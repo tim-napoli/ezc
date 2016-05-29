@@ -246,7 +246,7 @@ bool context_expression_is_valid(const context_t* ctx, const expression_t* e,
         return context_value_is_valid(ctx, &e->value, error_msg);
     } else
     if (e->type == EXPRESSION_TYPE_LAMBDA) {
-        /* XXX maube have some checks here... */
+        /* XXX maybe have some checks here... */
         return true;
     }
 
@@ -391,6 +391,7 @@ bool context_affectation_is_valid(const context_t* ctx,
 
     if (!types_are_equivalent(
                 context_valref_get_type(ctx, affectation->lvalue),
+                /* TODO context_expression_get_result_type */
                 context_expression_get_type(ctx, affectation->expression)))
     {
         sprintf(error_msg, "expression has not the same type the left-value");
@@ -499,10 +500,12 @@ const type_t* context_expression_get_type(const context_t* ctx,
 
     if (expr->type == EXPRESSION_TYPE_VALUE) {
         return context_value_get_type(ctx, &expr->value);
-    } else if (expr->type == EXPRESSION_TYPE_LAMBDA) {
+    } else
+    if (expr->type == EXPRESSION_TYPE_LAMBDA) {
         return function_get_type((function_t*)expr->lambda);
-    } else if (expr->type >= EXPRESSION_TYPE_CMP_OP_EQUALS
-           &&  expr->type <= EXPRESSION_TYPE_BOOL_OP_OR) {
+    } else
+    if (expr->type >= EXPRESSION_TYPE_CMP_OP_EQUALS
+    &&  expr->type <= EXPRESSION_TYPE_BOOL_OP_OR) {
         return type_boolean;
     }
 
@@ -529,8 +532,8 @@ const type_t* context_expression_get_type(const context_t* ctx,
 }
 
 access_type_t context_value_get_access_type(const context_t* ctx,
-                                                  const value_t* v) {
-
+                                            const value_t* v)
+{
     if (v->type != VALUE_TYPE_VALREF) {
         return ACCESS_TYPE_INPUT;
     }
