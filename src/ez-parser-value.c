@@ -92,7 +92,7 @@ parser_status_t real_parser(FILE* input, const void* args,
     PARSE(natural_parser(input, NULL, &decimal));
 
     true_decimal = decimal;
-    while (true_decimal > 0.0) {
+    while (true_decimal > 1.0) {
         true_decimal *= 0.1;
     }
 
