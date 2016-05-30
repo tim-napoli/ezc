@@ -55,14 +55,14 @@ class vector : private std::vector<T> {
              const T& initial_value) const
     {
         T current = initial_value;
-        for (int i = 0; i < size(); i++) {
+        for (unsigned int i = 0; i < size(); i++) {
             current = func(at(i), current);
         }
         return current;
     }
 
     void filter(const std::function<bool(const T&)>& func) {
-        for (int i = 0; i < size(); i++) {
+        for (unsigned int i = 0; i < size(); i++) {
             if (func(at(i))) {
                 remove(i);
                 i--;
@@ -81,6 +81,7 @@ std::ostream& operator<<(std::ostream& os, const vector<T>& v) {
         }
     }
     os << "]";
+    return os;
 }
 
 }

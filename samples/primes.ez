@@ -1,7 +1,7 @@
 program prime_numbers
 
 function is_prime(in x is integer, in v is vector of integer) return boolean
-    local i is integer
+    local i is natural
 begin
     for i in 0 .. v.size() do
         on x % v[i] == 0 do return false
@@ -12,7 +12,6 @@ begin
 end
 
 function average(in primes is vector of integer) return real
-    local i is integer
     local sum is real
 begin
     sum = primes.reduce(lambda (in x is integer, in y is integer) return integer is return x + y, 0)
@@ -22,7 +21,7 @@ end
 function prime_numbers(in args is vector of string) return integer
     local primes is vector of integer
     local current_prime is integer
-    local number_of_primes is integer
+    local number_of_primes is natural
 begin
     primes.push(2)
     current_prime = 3

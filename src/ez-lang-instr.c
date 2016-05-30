@@ -195,7 +195,7 @@ void for_instr_delete(for_instr_t* for_instr) {
 void for_instr_print(FILE* output, const context_t* ctx,
                      const for_instr_t* for_instr)
 {
-    fprintf(output, "for (int %s = ", for_instr->subject.value);
+    fprintf(output, "for (%s = ", for_instr->subject.value);
     expression_print(output, ctx, for_instr->range.from);
     fprintf(output, "; %s < ", for_instr->subject.value);
     expression_print(output, ctx, for_instr->range.to);

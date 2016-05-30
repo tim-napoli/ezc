@@ -219,6 +219,17 @@ parser_status_t for_parser(FILE* input, const context_t* ctx,
 
     PARSE_ERR(identifier_parser(input, NULL, &id),
               "a valid identifier is expected after the 'for' keyword");
+    const type_t* type = context_find_identifier_type(ctx, &id);
+    if (!type) {
+        error_identifier_not_found(input, &id);
+    } else
+    if (!types_are_equals(type, type_integer)
+    &&  !types_are_equals(type, type_natural))
+    {
+        error_print(input);
+        fprintf(stderr, "identifier '%s' must be an integer or a natural\n",
+                        id.value);
+    }
 
     *for_instr = for_instr_new(&id);
 

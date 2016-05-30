@@ -38,6 +38,7 @@ end
 function test_arbre(in args is vector of string) return integer
     local arbre_trie is optional arbre
     local nombre_saisi is integer
+    local i is natural
 begin
     for i in 0 .. 10 do
         print "Entrez un nombre : "
