@@ -22,7 +22,7 @@ begin
             print "lower\n"
         endif
         try_number = try_number + 1
-    until user_number != mysterious_num
+    until user_number == mysterious_num
 
     print "won using ", try_number, " tries\n"
 
