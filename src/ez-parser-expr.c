@@ -88,7 +88,7 @@ static parser_status_t arithmetic_op_parser(FILE* input, const void* args,
     return PARSER_FAILURE;
 }
 
-static parser_status_t lambda_parser(FILE* input, const context_t* ctx,
+static parser_status_t lambda_parser(FILE* input, context_t* ctx,
                                      function_t** lambda)
 {
     context_t sub_ctx = (context_t){
@@ -175,10 +175,10 @@ static parser_status_t lambda_parser(FILE* input, const context_t* ctx,
     return PARSER_SUCCESS;
 }
 
-static parser_status_t expression_in_parser(FILE* input, const context_t* ctx,
+static parser_status_t expression_in_parser(FILE* input, context_t* ctx,
                                             expr_stacks_t* stacks);
 
-static parser_status_t expression_next_parser(FILE* input, const context_t* ctx,
+static parser_status_t expression_next_parser(FILE* input, context_t* ctx,
                                               expr_stacks_t* stacks)
 {
     expression_type_t expr_type;
@@ -209,7 +209,7 @@ static parser_status_t expression_next_parser(FILE* input, const context_t* ctx,
     return PARSER_SUCCESS;
 }
 
-static parser_status_t expression_in_parser(FILE* input, const context_t* ctx,
+static parser_status_t expression_in_parser(FILE* input, context_t* ctx,
                                             expr_stacks_t* stacks)
 {
     value_t value;
@@ -247,10 +247,12 @@ static parser_status_t expression_in_parser(FILE* input, const context_t* ctx,
 
         /* NOTE CHECK */
         if (!context_value_is_valid(ctx, &value, sub_err_msg)) {
+            ctx->error_prg = true;
             error_value_not_valid(input, ctx, &value, sub_err_msg);
         } else
         if (!access_type_is_input(context_value_get_access_type(ctx, &value)))
         {
+            ctx->error_prg = true;
             error_bad_access_expr_value(input, &value);
         }
 
@@ -300,7 +302,9 @@ static expression_t* expression_from_stack(expr_stacks_t* stacks)
     while (stacks->noperators > 0) {
         expression_type_t op = stacks->operators[--stacks->noperators];
 
-        /* TODO if lambda here, then error (a lambda must be alone in the expression) */
+        /* TODO if lambda here, then error (a lambda must be alone in the expression)
+         *      (or put lambda in value_t, would be more coherent.
+         */
         if (op == EXPRESSION_TYPE_BOOL_OP_NOT) {
             expression_t* prev_expr = expr;
             expr = expression_new(op);
@@ -329,7 +333,7 @@ static expression_t* expression_from_stack(expr_stacks_t* stacks)
 }
 
 
-parser_status_t expression_parser(FILE* input, const context_t* ctx,
+parser_status_t expression_parser(FILE* input, context_t* ctx,
                                   expression_t** expression)
 {
     char sub_err_msg[512];
@@ -343,6 +347,7 @@ parser_status_t expression_parser(FILE* input, const context_t* ctx,
 
     /* NOTE Check */
     if (!context_expression_is_valid(ctx, *expression, sub_err_msg)) {
+        ctx->error_prg = true;
         error_expression_not_valid(input, ctx, *expression, sub_err_msg);
     }
 

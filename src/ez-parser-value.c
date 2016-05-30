@@ -113,7 +113,7 @@ parser_status_t bool_parser(FILE* input, const void* args,
     return PARSER_SUCCESS;
 }
 
-parser_status_t parameters_parser(FILE* input, const context_t* ctx,
+parser_status_t parameters_parser(FILE* input, context_t* ctx,
                                   parameters_t** parameters)
 {
     expression_t* expr = NULL;
@@ -134,7 +134,7 @@ parser_status_t parameters_parser(FILE* input, const context_t* ctx,
     return PARSER_SUCCESS;
 }
 
-parser_status_t valref_parser(FILE* input, const context_t* ctx,
+parser_status_t valref_parser(FILE* input, context_t* ctx,
                               valref_t** valref)
 {
     identifier_t id;
@@ -200,7 +200,7 @@ parser_status_t valref_parser(FILE* input, const context_t* ctx,
     return PARSER_SUCCESS;
 }
 
-parser_status_t empty_value_parser(FILE* input, const context_t* ctx,
+parser_status_t empty_value_parser(FILE* input, context_t* ctx,
                                    type_t** empty_type)
 {
     type_t* optional_type = NULL;
@@ -215,7 +215,7 @@ parser_status_t empty_value_parser(FILE* input, const context_t* ctx,
     return PARSER_SUCCESS;
 }
 
-parser_status_t value_parser(FILE* input, const context_t* ctx,
+parser_status_t value_parser(FILE* input, context_t* ctx,
                              value_t* value)
 {
     // XXX (->)

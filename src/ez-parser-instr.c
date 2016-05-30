@@ -3,7 +3,7 @@
 #include "ez-parser.h"
 #include <ez-lang-errors.h>
 
-parser_status_t print_parser(FILE* input, const context_t* ctx,
+parser_status_t print_parser(FILE* input, context_t* ctx,
                              parameters_t* output)
 {
     PARSE(word_parser(input, "print ", NULL));
@@ -17,7 +17,7 @@ parser_status_t print_parser(FILE* input, const context_t* ctx,
     return PARSER_SUCCESS;
 }
 
-parser_status_t read_parser(FILE* input, const context_t* ctx,
+parser_status_t read_parser(FILE* input, context_t* ctx,
                             valref_t** valref)
 {
     char suberr[512];
@@ -32,13 +32,14 @@ parser_status_t read_parser(FILE* input, const context_t* ctx,
     /* NOTE Check */
     /* TODO check accessibility */
     if (!context_valref_is_valid(ctx, *valref, suberr)) {
+        ctx->error_prg = true;
         error_valref_not_valid(input, ctx, *valref, suberr);
     }
 
     return PARSER_SUCCESS;
 }
 
-parser_status_t return_parser(FILE* input, const context_t* ctx,
+parser_status_t return_parser(FILE* input, context_t* ctx,
                               expression_t** expression)
 {
     PARSE(word_parser(input, "return ", NULL));
@@ -51,7 +52,7 @@ parser_status_t return_parser(FILE* input, const context_t* ctx,
     return PARSER_SUCCESS;
 }
 
-parser_status_t elsif_parser(FILE* input, const context_t* ctx,
+parser_status_t elsif_parser(FILE* input, context_t* ctx,
                              elsif_instr_t** elsif_intr)
 {
     expression_t* coundition = NULL;
@@ -82,7 +83,7 @@ parser_status_t elsif_parser(FILE* input, const context_t* ctx,
     return PARSER_SUCCESS;
 }
 
-parser_status_t else_parser(FILE* input, const context_t* ctx,
+parser_status_t else_parser(FILE* input, context_t* ctx,
                             vector_t* vector)
 {
     PARSE(word_parser(input, "else", NULL));
@@ -95,7 +96,7 @@ parser_status_t else_parser(FILE* input, const context_t* ctx,
     return PARSER_SUCCESS;
 }
 
-parser_status_t if_parser(FILE* input, const context_t* ctx,
+parser_status_t if_parser(FILE* input, context_t* ctx,
                           if_instr_t** if_instr)
 {
     expression_t* coundition = NULL;
@@ -142,7 +143,7 @@ parser_status_t if_parser(FILE* input, const context_t* ctx,
     return PARSER_SUCCESS;
 }
 
-parser_status_t on_parser(FILE* input, const context_t* ctx,
+parser_status_t on_parser(FILE* input, context_t* ctx,
                           on_instr_t** on_instr)
 {
     expression_t* coundition = NULL;
@@ -171,7 +172,7 @@ parser_status_t on_parser(FILE* input, const context_t* ctx,
     return PARSER_SUCCESS;
 }
 
-parser_status_t while_parser(FILE* input, const context_t* ctx,
+parser_status_t while_parser(FILE* input, context_t* ctx,
                              while_instr_t** while_instr)
 {
     expression_t* expr = NULL;
@@ -206,7 +207,7 @@ parser_status_t while_parser(FILE* input, const context_t* ctx,
     return PARSER_SUCCESS;
 }
 
-parser_status_t for_parser(FILE* input, const context_t* ctx,
+parser_status_t for_parser(FILE* input, context_t* ctx,
                            for_instr_t** for_instr)
 {
     identifier_t id;
@@ -221,11 +222,13 @@ parser_status_t for_parser(FILE* input, const context_t* ctx,
               "a valid identifier is expected after the 'for' keyword");
     const type_t* type = context_find_identifier_type(ctx, &id);
     if (!type) {
+        ctx->error_prg = true;
         error_identifier_not_found(input, &id);
     } else
     if (!types_are_equals(type, type_integer)
     &&  !types_are_equals(type, type_natural))
     {
+        ctx->error_prg = true;
         error_print(input);
         fprintf(stderr, "identifier '%s' must be an integer or a natural\n",
                         id.value);
@@ -265,7 +268,7 @@ parser_status_t for_parser(FILE* input, const context_t* ctx,
     return PARSER_SUCCESS;
 }
 
-parser_status_t loop_parser(FILE* input, const context_t* ctx,
+parser_status_t loop_parser(FILE* input, context_t* ctx,
                             loop_instr_t** loop_instr)
 {
     PARSE(word_parser(input, "loop", NULL));
@@ -293,7 +296,7 @@ parser_status_t loop_parser(FILE* input, const context_t* ctx,
     return PARSER_SUCCESS;
 }
 
-parser_status_t flowcontrol_parser(FILE* input, const context_t* ctx,
+parser_status_t flowcontrol_parser(FILE* input, context_t* ctx,
                                    flowcontrol_t* flowcontrol)
 {
     // XXX XXX XXX
@@ -331,7 +334,7 @@ parser_status_t flowcontrol_parser(FILE* input, const context_t* ctx,
     return PARSER_FAILURE;
 }
 
-parser_status_t affectation_parser(FILE* input, const context_t* ctx,
+parser_status_t affectation_parser(FILE* input, context_t* ctx,
                                    affectation_instr_t* affectation_instr)
 {
     char suberr[512];
@@ -344,11 +347,13 @@ parser_status_t affectation_parser(FILE* input, const context_t* ctx,
 
     // NOTE Check valref validity and access type
     if (!context_valref_is_valid(ctx, affectation_instr->lvalue, suberr)) { // XXX
+        ctx->error_prg = true;
         error_valref_not_valid(input, ctx, affectation_instr->lvalue, suberr); // XXX
     } else
     if (!access_type_is_output(
             context_valref_get_access_type(ctx, affectation_instr->lvalue)))
     {
+        ctx->error_prg = true;
         error_bad_access_left_value(input, affectation_instr->lvalue);
     }
 
@@ -360,13 +365,14 @@ parser_status_t affectation_parser(FILE* input, const context_t* ctx,
 
     // NOTE Check types equivalence
     if (!context_affectation_is_valid(ctx, affectation_instr, suberr)) {
+        ctx->error_prg = true;
         error_affectation_not_valid(input, suberr);
     }
 
     return PARSER_SUCCESS;
 }
 
-parser_status_t instruction_parser(FILE* input, const context_t* ctx,
+parser_status_t instruction_parser(FILE* input, context_t* ctx,
                                    instruction_t** instruction)
 {
     valref_t* valref = NULL;
@@ -430,7 +436,7 @@ parser_status_t instruction_parser(FILE* input, const context_t* ctx,
     return PARSER_FAILURE;
 }
 
-parser_status_t instructions_parser(FILE* input, const context_t* ctx,
+parser_status_t instructions_parser(FILE* input, context_t* ctx,
                                     vector_t* instructions)
 {
     instruction_t* instr = NULL;

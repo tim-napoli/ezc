@@ -111,6 +111,20 @@
 
     This program shows different EZ elements:
 
+    EZ EXPRESSIONS
+
+    An expression is 
+
+    EZ INSTRUCTIONS
+
+    All lines that follow a "begin" procedure or function keyword must be
+    instructions.
+    The EZ language have number of instructions.
+    We will explain each of these instructions.
+
+        PRINT INSTRUCTION
+
+        The "print" instruction is used to print expressions
 
  ANNEXE
 

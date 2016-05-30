@@ -47,7 +47,7 @@ parser_status_t access_type_parser(FILE* input, const void* args,
     return PARSER_FAILURE;
 }
 
-parser_status_t function_args_parser(FILE* input, const context_t* ctx,
+parser_status_t function_args_parser(FILE* input, context_t* ctx,
                                      vector_t* arguments)
 {
     SKIP_MANY(input, space_parser(input, NULL, NULL));
@@ -96,7 +96,7 @@ parser_status_t function_args_parser(FILE* input, const context_t* ctx,
     return PARSER_SUCCESS;
 }
 
-parser_status_t local_parser(FILE* input, const context_t* ctx,
+parser_status_t local_parser(FILE* input, context_t* ctx,
                              symbol_t** symbol)
 {
     PARSE(word_parser(input, "local", NULL));
@@ -162,6 +162,7 @@ parser_status_t function_parser(FILE* input, context_t* ctx,
               "a new line is expected after a function head");
 
     if (context_has_identifier(ctx, &(*function)->identifier)) {
+        ctx->error_prg = true;
         error_identifier_exists(input, &(*function)->identifier);
         function_delete(*function);
         return PARSER_FATAL;
@@ -177,6 +178,7 @@ parser_status_t function_parser(FILE* input, context_t* ctx,
                   "invalid local declaration");
 
         if (context_has_identifier(ctx, &local->identifier)) {
+            ctx->error_prg = true;
             error_identifier_exists(input, &local->identifier);
             symbol_delete(local);
         } else {
@@ -245,6 +247,7 @@ parser_status_t procedure_parser(FILE* input, context_t* ctx,
               "a new line is expected after a procedure head");
 
     if (context_has_identifier(ctx, &(*function)->identifier)) {
+        ctx->error_prg = true;
         error_identifier_exists(input, &(*function)->identifier);
         function_delete(*function);
         return PARSER_FATAL;
@@ -259,6 +262,7 @@ parser_status_t procedure_parser(FILE* input, context_t* ctx,
         PARSE(local_parser(input, ctx, &local));
 
         if (context_has_identifier(ctx, &local->identifier)) {
+            ctx->error_prg = true;
             error_identifier_exists(input, &local->identifier);
             symbol_delete(local);
         } else {
@@ -291,7 +295,7 @@ parser_status_t procedure_parser(FILE* input, context_t* ctx,
 }
 
 parser_status_t constant_parser(FILE* input,
-                                const context_t* ctx,
+                                context_t* ctx,
                                 constant_t** constant)
 {
     expression_t* expression = NULL;
@@ -324,7 +328,7 @@ parser_status_t constant_parser(FILE* input,
 }
 
 parser_status_t global_parser(FILE* input,
-                              const context_t* ctx,
+                              context_t* ctx,
                               symbol_t** symbol)
 {
     PARSE(word_parser(input, "global", NULL));
@@ -342,7 +346,7 @@ parser_status_t global_parser(FILE* input,
 }
 
 parser_status_t structure_member_parser(FILE* input,
-                                        const context_t* ctx,
+                                        context_t* ctx,
                                         symbol_t** symbol)
 {
     PARSE(variable_tail_parser(input, ctx, symbol));
@@ -369,6 +373,7 @@ parser_status_t structure_parser(FILE* input,
 
     *structure = structure_new(&id);
     if (context_has_identifier(ctx, &(*structure)->identifier)) {
+        ctx->error_prg = true;
         error_identifier_exists(input, &(*structure)->identifier);
         structure_delete(*structure);
         return PARSER_FATAL;
@@ -417,6 +422,7 @@ parser_status_t entity_parser(FILE* input, context_t* ctx,
     if (TRY(input, constant_parser(input, ctx, &constant)) == PARSER_SUCCESS)
     {
         if (context_has_identifier(ctx, &constant->symbol->identifier)) {
+            ctx->error_prg = true;
             error_identifier_exists(input, &constant->symbol->identifier);
             constant_delete(constant);
         } else {
@@ -427,6 +433,7 @@ parser_status_t entity_parser(FILE* input, context_t* ctx,
     } else
     if (TRY(input, global_parser(input, ctx, &global)) == PARSER_SUCCESS) {
         if (context_has_identifier(ctx, &global->identifier)) {
+            ctx->error_prg = true;
             error_identifier_exists(input, &global->identifier);
             symbol_delete(global);
         } else {
@@ -638,12 +645,13 @@ parser_status_t program_parser(FILE* input,
     }
 
     if (!program_has_function(*program, &program_id)) {
+        ctx->error_prg = true;
         error_no_main_function(&program_id);
 
         return PARSER_FATAL;
-    }
-
+    } else
     if (!program_main_function_is_valid(*program)) {
+        ctx->error_prg = true;
         error_invalid_main_function(&program_id);
 
         return PARSER_FATAL;

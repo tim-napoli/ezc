@@ -64,7 +64,7 @@ parser_status_t end_of_file_parser(FILE* input, const void* args,
     return PARSER_SUCCESS;
 }
 
-parser_status_t identifier_parser(FILE* input, const context_t* ctx,
+parser_status_t identifier_parser(FILE* input, context_t* ctx,
                                   identifier_t* id)
 {
     const char id_charset_first[] = "azertyuiopqsdfghjklmwxcvbn"
@@ -93,7 +93,7 @@ parser_status_t identifier_parser(FILE* input, const context_t* ctx,
     return PARSER_SUCCESS;
 }
 
-parser_status_t function_signature_parser(FILE* input, const context_t* ctx,
+parser_status_t function_signature_parser(FILE* input, context_t* ctx,
                                           function_signature_t** signature)
 {
     type_t* type = NULL;
@@ -136,7 +136,7 @@ parser_status_t function_signature_parser(FILE* input, const context_t* ctx,
     return PARSER_SUCCESS;
 }
 
-parser_status_t type_parser(FILE* input, const context_t* ctx,
+parser_status_t type_parser(FILE* input, context_t* ctx,
                             type_t* *type)
 {
     identifier_t structure_id;
@@ -219,7 +219,7 @@ parser_status_t type_parser(FILE* input, const context_t* ctx,
     return PARSER_FAILURE;
 }
 
-parser_status_t variable_tail_parser(FILE* input, const context_t* ctx,
+parser_status_t variable_tail_parser(FILE* input, context_t* ctx,
                                      symbol_t** symbol)
 {
     identifier_t id;
@@ -228,6 +228,7 @@ parser_status_t variable_tail_parser(FILE* input, const context_t* ctx,
     PARSE(identifier_parser(input, NULL, &id));
 
     if (identifier_is_reserved(&id)) {
+        ctx->error_prg = true;
         error_identifier_is_keyword(input, &id);
 
         return PARSER_FAILURE;
@@ -254,7 +255,7 @@ parser_status_t variable_tail_parser(FILE* input, const context_t* ctx,
     return PARSER_SUCCESS;
 }
 
-parser_status_t range_parser(FILE* input, const context_t* ctx,
+parser_status_t range_parser(FILE* input, context_t* ctx,
                              range_t* range)
 {
     expression_t* from = NULL;

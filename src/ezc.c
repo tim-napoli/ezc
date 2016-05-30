@@ -36,13 +36,21 @@ int main(int argc, char** argv) {
     program_t* prg = NULL;
     FILE* input = fopen(input_path, "r");
     if (program_parser(input, &ctx, &prg) != PARSER_SUCCESS) {
-        fprintf(stderr, "parser failure\n");
+        fprintf(stderr, "Program has invalid syntax\n");
+        goto error;
+    } else if (ctx.error_prg) {
+        fprintf(stderr, "Program has semantix error\n");
+        goto error;
     } else {
         program_print(stdout, prg);
-        program_delete(prg);
     }
 
+    program_delete(prg);
     fclose(input);
-
     return 0;
+
+  error:
+    fclose(input);
+    program_delete(prg);
+    return 1;
 }

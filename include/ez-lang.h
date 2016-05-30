@@ -773,6 +773,8 @@ bool program_main_function_is_valid(const program_t* prg);
 struct context {
     program_t* program;
     function_t* function;
+
+    bool error_prg;
 };
 
 void context_init(context_t* ctx);

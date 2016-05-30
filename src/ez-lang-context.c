@@ -6,6 +6,7 @@
 void context_init(context_t* ctx) {
     ctx->program = NULL;
     ctx->function = NULL;
+    ctx->error_prg = false;
 }
 
 void context_set_program(context_t* ctx, program_t* prg) {
@@ -454,6 +455,9 @@ static const type_t* _context_valref_get_type(const context_t* ctx,
             structure_t* structure = type->structure_type;
             symbol_t* member = structure_find_member(structure,
                                                      &valref->identifier);
+            if (!member) {
+                return NULL;
+            }
             return _context_valref_get_type(ctx, valref->next, member->is);
         }
     }
