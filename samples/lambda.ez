@@ -1,6 +1,7 @@
 program lambda_test
 
-procedure sort(inout v is vector of integer, in f is function(in integer, in integer) return boolean)
+procedure sort(inout v is vector of integer,
+               in f is function(in integer, in integer) return boolean)
     local i is integer
     local j is integer
     local tmp is integer
@@ -16,7 +17,8 @@ begin
     endfor
 end
 
-function lambda_test(in args is vector of string) return integer
+function lambda_test(in args is vector of string)
+        return integer
     local v is vector of integer
     local i is integer
     local n is integer
@@ -27,7 +29,8 @@ begin
         v.push(n)
     endfor
 
-    sort(v, lambda (in x is integer, in y is integer) return boolean is return x < y)
+    sort(v, lambda (in x is integer, in y is integer) return boolean
+                is return x < y)
 
     print "removing even numbers\n"
     v.filter(lambda (in x is integer) return boolean is return x % 2 == 0)
@@ -37,7 +40,9 @@ begin
 
     print v, "\n"
 
-    print "vector sum is: ", v.reduce(lambda (in vvalue is integer, in reduction is integer) return integer is return vvalue + reduction, 0), "\n"
+    print "vector sum is: ", v.reduce(lambda (in vvalue is integer,
+                                              in reduction is integer) return integer
+                                       is return vvalue + reduction, 0), "\n"
 
     return 0
 end

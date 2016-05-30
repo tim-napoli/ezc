@@ -50,7 +50,7 @@ parser_status_t access_type_parser(FILE* input, const void* args,
 parser_status_t function_args_parser(FILE* input, context_t* ctx,
                                      vector_t* arguments)
 {
-    SKIP_MANY(input, space_parser(input, NULL, NULL));
+    SKIP_MANY(input, comment_or_empty_parser(input, NULL, NULL));
 
     symbol_t* symbol;
     type_t* is = NULL;
@@ -141,11 +141,11 @@ parser_status_t function_parser(FILE* input, context_t* ctx,
 
     PARSE_ERR(char_parser(input, ")", NULL), "missing ')'");
 
-    SKIP_MANY(input, space_parser(input, NULL, NULL));
+    SKIP_MANY(input, empty_parser(input, NULL, NULL));
 
     PARSE_ERR(word_parser(input, "return", NULL), "missing 'return'");
 
-    SKIP_MANY(input, space_parser(input, NULL, NULL));
+    SKIP_MANY(input, empty_parser(input, NULL, NULL));
 
     type_t* return_type = NULL;
 
@@ -476,11 +476,11 @@ parser_status_t builtin_function_parser(FILE* input, context_t* ctx,
 
     PARSE_ERR(char_parser(input, ")", NULL), "missing ')'");
 
-    SKIP_MANY(input, space_parser(input, NULL, NULL));
+    SKIP_MANY(input, empty_parser(input, NULL, NULL));
 
     PARSE_ERR(word_parser(input, "return", NULL), "missing 'return'");
 
-    SKIP_MANY(input, space_parser(input, NULL, NULL));
+    SKIP_MANY(input, empty_parser(input, NULL, NULL));
 
     type_t* return_type = NULL;
 
