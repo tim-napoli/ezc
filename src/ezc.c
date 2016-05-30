@@ -39,7 +39,7 @@ int main(int argc, char** argv) {
         fprintf(stderr, "Program has invalid syntax\n");
         goto error;
     } else if (ctx.error_prg) {
-        fprintf(stderr, "Program has semantix error\n");
+        fprintf(stderr, "Program has semantic error\n");
         goto error;
     } else {
         program_print(stdout, prg);
@@ -51,6 +51,8 @@ int main(int argc, char** argv) {
 
   error:
     fclose(input);
-    program_delete(prg);
+    if (prg != NULL) {
+        program_delete(prg);
+    }
     return 1;
 }

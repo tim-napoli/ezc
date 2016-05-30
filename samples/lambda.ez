@@ -1,4 +1,4 @@
-program lambda
+program lambda_test
 
 procedure sort(inout v is vector of integer, in f is function(in integer, in integer) return boolean)
     local i is integer
@@ -16,7 +16,7 @@ begin
     endfor
 end
 
-function lambda(in args is vector of string) return integer
+function lambda_test(in args is vector of string) return integer
     local v is vector of integer
     local i is integer
     local n is integer
