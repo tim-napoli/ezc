@@ -343,7 +343,7 @@ parser_status_t affectation_parser(FILE* input, context_t* ctx,
 
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
-    PARSE(char_parser(input, "=", NULL));
+    PARSE_CB(char_parser(input, "=", NULL), valref_delete(affectation_instr->lvalue));
 
     // NOTE Check valref validity and access type
     if (!context_valref_is_valid(ctx, affectation_instr->lvalue, suberr)) { // XXX

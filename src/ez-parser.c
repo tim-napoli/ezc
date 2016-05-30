@@ -134,12 +134,8 @@ parser_status_t function_parser(FILE* input, context_t* ctx,
 
     PARSE_ERR(char_parser(input, "(", NULL), "missing '('");
 
-    /* TODO args = &(*function)->args */
-    vector_t* args = vector_new(0);
-
+    vector_t* args = &(*function)->args;
     PARSE(function_args_parser(input, ctx, args));
-
-    function_set_args(*function, args);
 
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
@@ -192,11 +188,8 @@ parser_status_t function_parser(FILE* input, context_t* ctx,
     PARSE_ERR(end_of_line_parser(input, NULL, NULL),
               "a newline is expected after the 'begin' keyword");
 
-    vector_t* instructions = vector_new(0);
-
+    vector_t* instructions = &(*function)->instructions;
     PARSE(instructions_parser(input, ctx, instructions));
-
-    function_set_instructions(*function, instructions);
 
     SKIP_MANY(input, comment_or_empty_parser(input, NULL, NULL));
 
@@ -233,11 +226,8 @@ parser_status_t procedure_parser(FILE* input, context_t* ctx,
 
     PARSE_ERR(char_parser(input, "(", NULL), "missing '('");
 
-    vector_t* args = vector_new(0);
-
+    vector_t* args = &(*function)->args;
     PARSE(function_args_parser(input, ctx, args));
-
-    function_set_args(*function, args);
 
     SKIP_MANY(input, space_parser(input, NULL, NULL));
 
@@ -275,11 +265,9 @@ parser_status_t procedure_parser(FILE* input, context_t* ctx,
     PARSE_ERR(end_of_line_parser(input, NULL, NULL),
               "a newline is expected after the 'begin' keyword");
 
-    vector_t* instructions = vector_new(0);
 
+    vector_t* instructions = &(*function)->instructions;
     PARSE(instructions_parser(input, ctx, instructions));
-
-    function_set_instructions(*function, instructions);
 
     SKIP_MANY(input, comment_or_empty_parser(input, NULL, NULL));
 

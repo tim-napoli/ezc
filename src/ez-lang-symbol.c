@@ -24,6 +24,12 @@ void type_delete(type_t* t) {
     if (t) {
         if (t->type == TYPE_TYPE_VECTOR) {
             type_delete(t->vector_type);
+        } else
+        if (t->type == TYPE_TYPE_OPTIONAL) {
+            type_delete(t->optional_type);
+        } else
+        if (t->type == TYPE_TYPE_FUNCTION) {
+            function_signature_delete(t->signature);
         }
 
         free(t);

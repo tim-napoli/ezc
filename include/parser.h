@@ -37,6 +37,18 @@ void get_file_coordinates(FILE* f, int* line, int* column, char* c);
         } \
     }
 
+#define PARSE_CB(_parser, _cb) \
+    { \
+        long _status = (_parser); \
+        if (_status == PARSER_FAILURE) { \
+            _cb; \
+            return PARSER_FAILURE; \
+        } else if (_status == PARSER_FATAL) { \
+            _cb; \
+            return PARSER_FATAL; \
+        } \
+    }
+
 /* Parse using a parser func. If the function failed, return NULL and print
  * the given error message.
  */

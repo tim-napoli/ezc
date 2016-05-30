@@ -18,7 +18,7 @@ elsif_instr_t* elsif_instr_new(expression_t* coundition) {
 
 void elsif_instr_delete(elsif_instr_t* elsif) {
     expression_delete(elsif->coundition);
-    vector_wipe(&elsif->instructions, NULL);
+    vector_wipe(&elsif->instructions, (delete_func_t)&instruction_delete);
     free(elsif);
 }
 
@@ -52,9 +52,9 @@ if_instr_t* if_instr_new(expression_t* coundition) {
 void if_instr_delete(if_instr_t* if_instr) {
     expression_delete(if_instr->coundition);
 
-    vector_wipe(&if_instr->instructions, NULL);
+    vector_wipe(&if_instr->instructions, (delete_func_t)&instruction_delete);
     vector_wipe(&if_instr->elsifs, (delete_func_t)&elsif_instr_delete);
-    vector_wipe(&if_instr->else_instrs, NULL);
+    vector_wipe(&if_instr->else_instrs, (delete_func_t)&instruction_delete);
     free(if_instr);
 }
 
@@ -94,7 +94,7 @@ loop_instr_t* loop_instr_new(expression_t* coundition) {
 
 void loop_instr_delete(loop_instr_t* loop) {
     expression_delete(loop->coundition);
-    vector_wipe(&loop->instructions, NULL);
+    vector_wipe(&loop->instructions, (delete_func_t)&instruction_delete);
     free(loop);
 }
 
@@ -123,7 +123,7 @@ while_instr_t* while_instr_new(expression_t* coundition) {
 
 void while_instr_delete(while_instr_t* while_instr) {
     expression_delete(while_instr->coundition);
-    vector_wipe(&while_instr->instructions, NULL);
+    vector_wipe(&while_instr->instructions, (delete_func_t)&instruction_delete);
     free(while_instr);
 }
 
@@ -152,6 +152,7 @@ on_instr_t* on_instr_new(expression_t* coundition) {
 
 void on_instr_delete(on_instr_t* on_instr) {
     expression_delete(on_instr->coundition);
+    instruction_delete(on_instr->instruction);
     free(on_instr);
 }
 
@@ -188,7 +189,7 @@ void for_instr_delete(for_instr_t* for_instr) {
     expression_delete(for_instr->range.from);
     expression_delete(for_instr->range.to);
 
-    vector_wipe(&for_instr->instructions, NULL);
+    vector_wipe(&for_instr->instructions, (delete_func_t)&instruction_delete);
     free(for_instr);
 }
 

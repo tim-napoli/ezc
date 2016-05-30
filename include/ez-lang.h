@@ -684,7 +684,7 @@ void function_set_instructions(function_t* func, vector_t* instructions);
 
 bool function_is(const function_t* func, const identifier_t* id);
 
-function_signature_t* function_get_signature(const function_t* func);
+function_signature_t* function_get_signature(function_t* func);
 
 const type_t* function_get_type(function_t* func);
 

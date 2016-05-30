@@ -70,6 +70,11 @@ void function_signature_wipe(function_signature_t* signature) {
     vector_wipe(&signature->args_access, NULL);
 }
 
+void function_signature_delete(function_signature_t* signature) {
+    function_signature_wipe(signature);
+    free(signature);
+}
+
 bool function_signature_is_equals(const function_signature_t* a,
                                   const function_signature_t* b)
 {
@@ -282,9 +287,12 @@ bool function_is(const function_t* func, const identifier_t* id) {
     return strcmp(func->identifier.value, id->value) == 0;
 }
 
-function_signature_t* function_get_signature(const function_t* func) {
-    function_signature_t* signature = function_signature_new();
+function_signature_t* function_get_signature(function_t* func) {
+    if (func->function_type) {
+        return func->function_type->signature;
+    }
 
+    function_signature_t* signature = function_signature_new();
     if (func->return_type) {
         signature->return_type = type_copy(func->return_type);
     }
@@ -295,12 +303,14 @@ function_signature_t* function_get_signature(const function_t* func) {
         vector_push(&signature->args_access, (void*)arg->access_type);
     }
 
+    func->function_type = type_function_new(signature);
     return signature;
 }
 
 const type_t* function_get_type(function_t* func) {
     if (func->function_type == NULL) {
-        func->function_type = type_function_new(function_get_signature(func));
+        /* XXX this is ugly */
+        function_get_signature(func);
     }
     return func->function_type;
 }
@@ -321,6 +331,7 @@ constant_t* constant_new(symbol_t* symbol, expression_t* value) {
 void constant_delete(constant_t* constant) {
     symbol_delete(constant->symbol);
     expression_delete(constant->value);
+    free(constant);
 }
 
 void constant_print(FILE* output, const context_t* ctx,

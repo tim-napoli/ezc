@@ -5,7 +5,11 @@
 void vector_init(vector_t* vector, size_t reserved) {
     vector->reserved = reserved;
     vector->size     = 0;
-    vector->elements = calloc(reserved, sizeof(void*));
+    if (reserved > 0) {
+        vector->elements = calloc(reserved, sizeof(void*));
+    } else {
+        vector->elements = NULL;
+    }
 }
 
 void vector_wipe(vector_t* vector, void (*free_element)(void*)) {
