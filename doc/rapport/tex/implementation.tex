@@ -4,8 +4,8 @@
 arbre de syntaxe abstraite, qui est ensuite utiliser afin de réaliser la vérification sémantique.
 
 %% PARLER DU MODE DE FONCTIONNEMENT DU PARSER + GRAMMAIRE LL
-
-%% PARLER QUE TOUTEFOIS LES EXPRESSIONS SONT SOUS FORME D'ARBRE. (DONNER ALGORITHME DE CRÉATION ?)
+%% https://en.wikipedia.org/wiki/Parser_combinator
+%% https://en.wikipedia.org/wiki/Recursive_descent_parser
 
 \paragraph{}La vérification sémantique ce fait ensuite via l'aide des tables suivantes :
 
@@ -29,7 +29,24 @@ et constantes globales, ainsi que les les functions et procédures.
 \paragraph{}Les fonctions et procédures contiennent les parametres, les variables locales, ainsi que 
 la liste d'instruction de la fonction et le type de retour pour les fonctions.
 
-\paragraph{}On peut toutefois noter que le fait de se passer de la table des symboles peut entrainer 
+\paragraph{}Nous ne créons donc pas d'arbre syntaxique lors du parsing d'un programme ez, on remplit
+directement les différentes structures utiles. 
+
+Nous utilisons toutefois une structure d'arbre pour stocker les expressions, ce qui nous permet 
+de mettre en place une vérification en fonction de la priorité des opérateurs.
+
+La méthode de parsing étant différentes de celle générée par YACC, nous n'avons ps d'arbre
+implicite créer au moment du parcours du fichier. En effet, avec une grammaire LALR, on peut directement
+mettre en place la priorité des opérateurs au moment du parsing, il en résulte un arbre syntaxique
+implicite que nous n'avons qu'a explicité avec le structure souhaité.
+
+Dans notre cas, cet arbre syntaxique implicite n'éxiste pas et les opérateurs on donc tous la même priorité,
+syntaxiquement parlant. Dans le but de pouvoir effectuer différentes vérifications sur nos expressions, comme la résolution
+du type, nous avons dû traiter les expressions.
+
+%% EXPLIQUER ALGO ??
+
+\paragraph{}Il est à noter, que le fait de se passer de la table des symboles peut entrainer 
 une perte de performance du compilateur, l'interet de cette table étant en effet d'associer les 
 différents identifieurs à un label (typiquement grâce à une table de hachage) permettant de les 
 retrouver en un temps constant.
@@ -45,5 +62,6 @@ syntaxique et sémantique d'un programme.
 Par soucis de clareté dans le code, la phase de réécriture en langage intermédiaire (dans notre cas C++)
 est elle réalisée lors d'un parcours du contexte généré lors de la première passe. On aurait cependant, très bien
 pu imaginer n'effectuer qu'une seule et unique passe pour l'ensemble des étapes de compilations.
+
 
 %% PARLER DE LA RÉÉCRITURE AVEC LES CLASSES CPP IMPLÉMENTÉE
