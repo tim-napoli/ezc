@@ -18,11 +18,11 @@ class vector : private std::vector<T> {
     }
 
     T& at(unsigned int n) {
-        return std::vector<T>::at(n);
+        return (*this)[n];
     }
 
     const T& at(unsigned int n) const {
-        return std::vector<T>::at(n);
+        return (*this)[n];
     }
 
     void push(const T& v) {
@@ -43,6 +43,10 @@ class vector : private std::vector<T> {
 
     unsigned int size() const {
         return std::vector<T>::size();
+    }
+
+    void clear() {
+        std::vector<T>::clear();
     }
 
     void map(const std::function<void(T&)>& func) {

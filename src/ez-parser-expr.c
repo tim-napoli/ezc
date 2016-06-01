@@ -249,12 +249,17 @@ static parser_status_t expression_in_parser(FILE* input, context_t* ctx,
         if (!context_value_is_valid(ctx, &value, sub_err_msg)) {
             ctx->error_prg = true;
             error_value_not_valid(input, ctx, &value, sub_err_msg);
-        } else
+        }
+
+        /* TODO check access type at the end of the parsing */
+        /*
+         else
         if (!access_type_is_input(context_value_get_access_type(ctx, &value)))
         {
             ctx->error_prg = true;
             error_bad_access_expr_value(input, &value);
         }
+        */
 
         SKIP_MANY(input, space_parser(input, NULL, NULL));
 

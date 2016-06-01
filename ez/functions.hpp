@@ -5,10 +5,15 @@
 #include <cstdio>
 #include <ctime>
 #include <cmath>
+#include <unistd.h>
+#include "functions-glfw.hpp"
 
 namespace ez {
 
 int random(int start, int stop) {
+    if (stop - start <= 0) {
+        return 0;
+    }
     return start + std::rand() % (stop - start);
 }
 
@@ -28,6 +33,21 @@ double sqrt(double v) {
     return std::sqrt(v);
 }
 
+double cos(double v) {
+    return std::cos(v);
+}
+
+double sin(double v) {
+    return std::sin(v);
+}
+
+double log(double v) {
+    return std::log(v);
+}
+
+void sleep_us(unsigned int time) {
+    usleep(time);
+}
 
 typedef std::FILE* File;
 

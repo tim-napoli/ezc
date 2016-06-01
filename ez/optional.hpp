@@ -19,6 +19,12 @@ class optional {
         _value = NULL;
     }
 
+    optional(const T& value) {
+        _refcount = new int;
+        *_refcount = 0;
+        set(value);
+    }
+
     optional(const optional<T>& opt) {
         _refcount = opt._refcount;
         (*_refcount)++;

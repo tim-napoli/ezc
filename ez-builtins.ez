@@ -24,6 +24,13 @@ builtin function get_timestamp() return integer
  */
 builtin function sqrt(in v is real) return real
 
+builtin function cos(in v is real) return real
+
+builtin function sin(in v is real) return real
+
+builtin function log(in v is real) return real
+
+builtin procedure sleep_us(in time is integer)
 
 builtin structure File
 
@@ -36,4 +43,36 @@ builtin procedure close_file(out file is File)
 builtin function read_line_from_file(inout file is File) return string
 
 builtin function is_file_over(in file is File) return boolean
+
+
+
+builtin structure Window
+
+builtin function open_window(out window is Window,
+                             in title is string,
+                             in width is natural,
+                             in height is natural)
+    return optional string
+
+builtin function open_fullscreen_window(out window is Window)
+    return optional string
+
+builtin procedure close_window(out window is Window)
+
+builtin procedure update_window(out window is Window)
+
+builtin function should_close_window(out window is Window) return boolean
+
+builtin procedure clear_window(out window is Window)
+
+builtin structure Color
+
+builtin function color(in red is natural,
+                       in green is natural,
+                       in blue is natural)
+    return Color
+
+builtin procedure put_pixel(out window is Window,
+                            in x is natural, in y is natural,
+                            in c is Color)
 
