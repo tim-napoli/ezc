@@ -176,6 +176,53 @@ supplémentaires.
 Par exemple, lorsque le type est "TYPE\_TYPE\_VECTOR", le champs "vector\_type"
 est affecté au type du vecteur.
 
+Nous avons développé une fonction pour déterminer si deux types sont équivalents
+afin d'affiner la validation sémantique du programme analysé :
+\begin{verbatim}
+bool types_are_equals(const type_t* a, const type_t* b) {
+    if (a && b) {
+        if (a->type == b->type) {
+            if (a->type == TYPE_TYPE_STRUCTURE) {
+                /* Can compare structure address since it comes from the
+                 * program. */
+                return a->structure_type == b->structure_type;
+            } else
+            if (a->type == TYPE_TYPE_VECTOR) {
+                return types_are_equals(a->vector_type, b->vector_type);
+            } else
+            if (a->type == TYPE_TYPE_OPTIONAL) {
+                return types_are_equals(a->optional_type, b->optional_type);
+            } else
+            if (a->type == TYPE_TYPE_FUNCTION) {
+                return function_signature_is_equals(a->signature,
+                                                    b->signature);
+            }
+            return true;
+        }
+        return false;
+    } else if (!a && !b) {
+        return true;
+    }
+    return false;
+}
+
+bool type_is_number(const type_t* type) {
+    if (!type) {
+        return false;
+    }
+    return    type->type == TYPE_TYPE_INTEGER
+           || type->type == TYPE_TYPE_NATURAL
+           || type->type == TYPE_TYPE_REAL;
+}
+
+bool types_are_equivalent(const type_t* a, const type_t* b) {
+    if (type_is_number(a)) {
+        return type_is_number(b);
+    }
+    return types_are_equals(a, b);
+}
+\end{verbatim}
+
 \subsubsection{Représentation des expressions}
 
 Les expressions forment un arbre binaire, dont les feuilles sont une valeur.
@@ -234,6 +281,55 @@ struct expression {
 };
 \end{verbatim}
 
+L'analyse des expressions s'est avéré être une des tâches la plus complexe du
+compilateur. En effet, puique l'on utilise un analyseur "top-down", il nous a
+fallu développer un petit algorithme afin de gérer la priorité des différents
+opérateurs.
+
+Ainsi, lors de l'analyse, nous remplissons deux piles :
+\begin{itemize}
+    \item La pile des valeurs (qui contient des expressions) ;
+    \item La pile des opérateurs (qui contient les opérateurs de l'expression) ;
+\end{itemize}
+
+Une fois les deux piles constitués on applique un petit algorithme pour recréeer
+les expressions en prenant en compte la priorité des opérateurs :
+\begin{verbatim}
+static expression_t* expression_from_stack(expr_stacks_t* stacks)
+{
+    expression_t* tree = NULL;
+    expression_t* expr = NULL;
+
+    while (stacks->noperators > 0) {
+        expression_type_t op = stacks->operators[--stacks->noperators];
+
+        if (op == EXPRESSION_TYPE_BOOL_OP_NOT) {
+            expression_t* prev_expr = expr;
+            expr = expression_new(op);
+            expr->right = stacks->leaves[stacks->nleaves - 1];
+            stacks->leaves[stacks->nleaves - 1] = expr;
+            expr = prev_expr;
+        } else {
+            expr = expression_new(op);
+            if (expression_insert(&tree, expr) == 0) {
+                expr->right = stacks->leaves[--stacks->nleaves];
+            } else {
+                expression_insert_at_left(&expr->right,
+                                          stacks->leaves[--stacks->nleaves]);
+            }
+        }
+    }
+
+    assert (stacks->nleaves == 1);
+    if (expr == NULL) {
+        tree = stacks->leaves[--stacks->nleaves];
+    } else {
+        expr->left = stacks->leaves[--stacks->nleaves];
+    }
+
+    return tree;
+}
+\end{verbatim}
 
 \subsection{Vérification sémantique du programme}
 
