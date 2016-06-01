@@ -339,11 +339,16 @@ aux structures utilisées.
 
 \subsection{Réécriture du programme}
 
-Par soucis de clareté dans le code, la phase de réécriture en langage 
-intermédiaire (dans notre cas C++) est elle réalisée lors d'un parcours du 
-contexte généré lors de la première passe. On aurait cependant, très bien
+\paragraph{}Par soucis de clareté dans le code, la phase de réécriture en 
+langage intermédiaire (dans notre cas C++) est elle réalisée lors d'un parcours 
+du contexte généré lors de la première passe. On aurait cependant, très bien
 pu imaginer n'effectuer qu'une seule et unique passe pour l'ensemble des 
 étapes de compilations.
 
+\paragraph{}La réécriture est plutôt simple, en effet une fonction 
+\textbf{print} est associé à chaque élément du contexte du programme. 
 
-%% PARLER DE LA RÉÉCRITURE AVEC LES CLASSES CPP IMPLÉMENTÉE
+\paragraph{}On s'assure toutefois de l'ordre de la réécriture. Le compilateur
+écrit d'abord la définition des structures, puis les prototypes des fonctions,
+puis les différentes variables globales et constantes et enfin les fonctions et 
+procédures.
