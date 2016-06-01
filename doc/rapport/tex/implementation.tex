@@ -281,10 +281,51 @@ struct expression {
 };
 \end{verbatim}
 
-L'analyse des expressions s'est avéré être une des tâches la plus complexe du
-compilateur. En effet, puique l'on utilise un analyseur "top-down", il nous a
-fallu développer un petit algorithme afin de gérer la priorité des différents
-opérateurs.
+\subsection{Vérification sémantique du programme}
+
+\paragraph{}Classiquement durant la phase de vérification syntaxique, un 
+compilateur créer un arbre de syntaxe abstraite, qui est ensuite utiliser afin 
+de réaliser la vérification sémantique.
+
+\paragraph{}La vérification sémantique se fait ensuite via l'aide des tables 
+suivantes :
+
+\begin{itemize}
+ \item la table des lexicographique ou table des symboles
+ \item la table des déclarations
+ \item la table des représentations
+ \item la table des régions
+\end{itemize}
+
+\paragraph{}Plutôt que d'utiliser 4 tables de la sorte nous avons opté pour 
+un \textbf{contexte d'analyse} qui est l'ensemble de :
+\begin{itemize}
+    \item Le programme courant que l'on analyse ;
+    \item La fonction courante que l'on analyse.
+\end{itemize}
+
+\paragraph{}Le programme contient toutes les déclarations globales comme les 
+structures, les variables et constantes globales, ainsi que les les fonctions 
+et procédures.
+
+\paragraph{}Les fonctions et procédures contiennent les paramètres, les 
+variables locales, ainsi que la liste d'instructions de la fonction et le type 
+de retour pour les fonctions.
+
+\paragraph{}Nous ne créons donc pas d'arbre syntaxique lors du parsing d'un 
+programme EZ, on remplit directement les différentes structures utiles. 
+
+\paragraph{} La méthode de parsing étant différentes de celle générée par YACC, 
+nous n'avons ps d'arbre implicite créé au moment du parcours du fichier. En 
+effet, avec une grammaire LALR, on peut directement mettre en place la priorité 
+des opérateurs au moment du parsing, il en résulte un arbre syntaxique 
+implicite que nous n'avons qu'a explicité avec le structure souhaité.
+
+Dans notre cas, cet arbre syntaxique implicite n'éxiste pas et les opérateurs 
+on donc tous la même priorité, syntaxiquement parlant.
+
+Dans le but de pouvoir effectuer différentes vérifications sur nos expressions, 
+comme la résolution du type, nous avons dû traiter les expressions.
 
 Ainsi, lors de l'analyse, nous remplissons deux piles :
 \begin{itemize}
@@ -331,58 +372,6 @@ static expression_t* expression_from_stack(expr_stacks_t* stacks)
 }
 \end{verbatim}
 
-\subsection{Vérification sémantique du programme}
-
-\paragraph{}Classiquement durant la phase de vérification syntaxique, un 
-compilateur créer un arbre de syntaxe abstraite, qui est ensuite utiliser afin 
-de réaliser la vérification sémantique.
-
-\paragraph{}La vérification sémantique ce fait ensuite via l'aide des tables 
-suivantes :
-
-\begin{itemize}
- \item la table des lexicographique ou table des symboles
- \item la table des déclarations
- \item la table des représentations
- \item la table des régions
-\end{itemize}
-
-\paragraph{}Plutôt que d'utiliser 4 tables de la sorte nous avons opté pour 
-un \textbf{context d'analyse} qui est l'ensemble de :
-\begin{itemize}
-    \item Le programme courant que l'on analyse ;
-    \item La fonction courante que l'on analyse.
-\end{itemize}
-
-\paragraph{}Le programme contient toutes les déclarations globales comme les 
-structures, les variables et constantes globales, ainsi que les les functions 
-et procédures.
-
-\paragraph{}Les fonctions et procédures contiennent les parametres, les 
-variables locales, ainsi que la liste d'instruction de la fonction et le type 
-de retour pour les fonctions.
-
-\paragraph{}Nous ne créons donc pas d'arbre syntaxique lors du parsing d'un 
-programme ez, on remplit directement les différentes structures utiles. 
-
-Nous utilisons toutefois une structure d'arbre pour stocker les expressions, 
-ce qui nous permet de mettre en place une vérification en fonction de la 
-priorité des opérateurs.
-
-\paragraph{} La méthode de parsing étant différentes de celle générée par YACC, 
-nous n'avons ps d'arbre implicite créer au moment du parcours du fichier. En 
-effet, avec une grammaire LALR, on peut directement mettre en place la priorité 
-des opérateurs au moment du parsing, il en résulte un arbre syntaxique 
-implicite que nous n'avons qu'a explicité avec le structure souhaité.
-
-Dans notre cas, cet arbre syntaxique implicite n'éxiste pas et les opérateurs 
-on donc tous la même priorité, syntaxiquement parlant.
-
-Dans le but de pouvoir effectuer différentes vérifications sur nos expressions, 
-comme la résolution du type, nous avons dû traiter les expressions.
-
-%% EXPLIQUER ALGO ??
-
 \paragraph{}Le compilateur ezc ne fait donc qu'une passe pour effectuer les 
 vérifications lexicale, syntaxique et sémantique d'un programme ez.
 
@@ -406,7 +395,7 @@ contexte ce fait dans l'ordre suivant :
 
  \item[Vérification des types] Lors du parsing d'une expression ou bien lors 
 d'une affectation, le compilateur vérifie la compatibilité des types entre les
-opérateurs. De même que pour la vérification de l'existance du symbol
+opérateurs. De même que pour la vérification de l'existance du symbole
 on recherche le type du symbole rencontrer pour obtenir son type.
 
  \item[Vérification des types d'accès] Le compilateur vérifie également le type
@@ -421,13 +410,13 @@ l'appel qui en est fait, ausi bien au niveau du nombre d'argument que de leurs
 types.
 \end{description}
 
-\paragraph{}Il est à noter, que le fait de se passer de la table des symboles 
-peut entrainer une perte de performance du compilateur, l'interet de cette 
+\paragraph{}Il est à noter que le fait de se passer de la table des symboles 
+peut entrainer une perte de performance du compilateur, l'intérêt de cette 
 table étant en effet d'associer les différents identifieurs à un label 
 (typiquement grâce à une table de hachage) permettant de les 
 retrouver en un temps constant.
 
-Dans notre cas, nous éxecutons une simple recherche dans un tableau,
+Dans notre cas, nous exécutons une simple recherche dans un tableau,
 la tâche est donc alourdie. En revanche, là où classiquement après avoir 
 trouver l'identifieur, il faut examiner la table des déclarations pour 
 connaitre son type et sa portée, nous connaissont déjà ces informations grâce 
@@ -436,8 +425,8 @@ aux structures utilisées.
 \subsection{Réécriture du programme}
 
 \paragraph{}Par soucis de clareté dans le code, la phase de réécriture en 
-langage intermédiaire (dans notre cas C++) est elle réalisée lors d'un parcours 
-du contexte généré lors de la première passe. On aurait cependant, très bien
+langage intermédiaire (dans notre cas C++) est réalisée lors d'un parcours 
+du contexte généré lors de la première passe. On aurait cependant très bien
 pu imaginer n'effectuer qu'une seule et unique passe pour l'ensemble des 
 étapes de compilations.
 
@@ -448,3 +437,4 @@ pu imaginer n'effectuer qu'une seule et unique passe pour l'ensemble des
 écrit d'abord la définition des structures, puis les prototypes des fonctions,
 puis les différentes variables globales et constantes et enfin les fonctions et 
 procédures.
+

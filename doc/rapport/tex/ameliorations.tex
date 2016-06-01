@@ -1,14 +1,81 @@
 \section{Les pistes d'amélioration du langage}
 
+\subsection{Les énumérations}
 
-Enums
+Le langage ne permet pas encore de définir d'énumérations. On peut cependant
+lister des constantes.
+L'avantage d'utiliser des énumérations est d'ordre syntaxique (simplicité
+d'écriture) et sémantique (vérifier qu'une fonction prenant en paramètre une
+valeur de type énumération est bien appellée avec une valeur de l'énumération).
 
-Tuples
+\begin{verbatim}
+enumeration Fruit is
+    ANANAS,
+    APPLE,
+    PEACH,
+    RASBERRY,
+end
 
-Inférence de types ?? (Exemple en Rust: création d'un vector sans type, puis au premier push d'un élément inférence du type de vector)
+procedure print_fruit(in fruit is Fruit)
+begin
+    // ...
+end
 
-Modules
+// Ok, value is member of Fruit :
+print_fruit(ANANAS)
 
-Threads ??
+// Will fail, not member of fruit :
+print_fruit(42)
 
-Gestion des erreurs
+\end{verbatim}
+
+
+\subsection{Programmation modulaire}
+
+Permettre d'écrire un programme dans plusieurs fichiers.
+Par exemple, avoir un fichier de la sorte :
+
+\begin{verbatim}
+module Personne
+
+structure Personne is
+    nom is string
+    prenim is string
+end
+
+function nouvelle_personne(in nom is string, prenom is string) return Personne
+    local p is Personne
+begin
+    p.nom = nom
+    p.prenom = prenom
+    return p
+end
+\end{verbatim}
+
+Dans un autre fichier
+
+\begin{verbatim}
+program Famille
+
+use Personne
+
+// On a compris...
+\end{verbatim}
+
+\subsection{Tuples}
+Introduire le type "tuple of" permettant de donner des valeurs plus complexes :
+
+\begin{verbatim}
+function vector_add(in u is tuple of (real, real),
+                    in v is tuple of (real, real))
+        return tuple of (real, real)
+begin
+    return (u.first + v.first, u.second + v.second)
+end
+\end{verbatim}
+
+\subsection{Enrichir le langage}
+
+Profiter du mapping avec le langage C++ pour introduire davantage de builtins
+(support OpenGL, les maps, les threads, accès au système de fichier, réseau...).
+
