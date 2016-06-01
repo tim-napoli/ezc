@@ -1,0 +1,144 @@
+\section{Annexe}
+
+\subsection{Grammaire du langage EZ}
+
+ Les éléments contenus entre chevrons sont les tokens du langage :
+\begin{verbatim}
+<eol> -> Fin de ligne
+\end{verbatim}
+
+Le symbol '*' représente une règle de production nulle.
+
+\begin{verbatim}
+Commentaire -> // .* <eol> Commentaire
+Commentaire -> /* .* */ Commentaire
+Commentaire -> *
+
+Identifier -> [a-zA-Z_][a-zA-Z0-9_]*
+
+EnteteProgramme -> program Identifier <eol>
+
+Type -> integer | real | string | vector of Type | Identifier
+
+VariableGlobale -> Global Identifier is Type <eol>
+
+Constant -> constant Identifier is Type = Value <eol>
+
+Structure -> structure Identifier is <eol> Membres
+Membres -> DefinitionVariable Membres
+Membres -> end <eol>
+
+DefinitionVariable -> Identifier is Type <eol>
+
+TypeAcces -> in | out | inout
+
+Parametres -> TypeAcces DefinitionVariable Parametres
+Parametres -> , Parametres
+Parametres -> *
+
+Procedure -> procedure Identifier ( Parametres ) <eol> VariablesLocales Instructions end
+
+Function -> function Identifier ( Parametres ) return Type <eol> VariablesLocales Instructions end
+
+VariablesLocales -> *
+VariablesLocales -> local Identifier is Type <eol> VariablesLocales
+
+Instructions -> Instruction Instructions
+Instructions -> *
+
+Instruction -> ControleFlux
+Instruction -> Affectation
+Instruction -> Expression
+Instruction -> Print
+Instruction -> Read
+Instruction -> Return
+
+ControleFlux -> If | For | While | Loop | On
+
+If -> if Expression then <eol> Instructions Elsif Else endif <eol>
+Elsif -> elsif Expression then <eol> Instructions Elsif
+Elsif -> *
+Else -> else <eol> Instructions
+Else -> *
+
+Range -> Expression .. Expression
+For -> for Identifier in Range do <eol> Instructions endfor <eol>
+
+While -> while Expression do <eol> Instructions endwhile <eol>
+
+Loop -> loop <eol> Instructions until Expression <eol>
+
+On -> on Expression do Instruction <eol>
+
+Affectation -> Identifier = Expression <eol>
+
+Print -> print ListeExpression <eol>
+
+Read -> read Varref <eol>
+
+Return -> return Expression <eol>
+
+Varref -> Identifier SuiteVarref
+SuiteVarref -> . Varref
+SuiteVarref -> ( ListeExpression ) SuiteVarref
+SuiteVarref -> [ Expression ] SuiteVarref
+SuiteVarref -> *
+
+Valeur -> <integer> | <natural> | <real> | <caractère> | <chaine> | Varref
+
+Signature -> ( Parameters ) return Type
+Lambda -> lambda Signature is Instruction
+
+Expression -> Valeur SuiteExpression
+Expression -> not Expression
+Expression -> ( Expression )
+SuiteExpression -> <opérateur binaire> Expression
+
+ListeExpression -> Expression ListeExpressionSuite
+ListeExpression -> *
+ListeExpressionPasVide -> Expression ListeExpressionSuite
+ListeExpressionSuite -> , ListeExpressionPasVide
+ListeExpressionSuite -> *
+
+\end{verbatim}
+
+
+\subsection{Méthodes du type vector}
+
+Nous donnons en syntaxe EZ les différentes méthodes du type vector :
+
+\begin{verbatim}
+
+// Retourne le nieme élément du vecteur
+function at(in n is natural) return Type
+
+// Ajoute un élément en fin de vecteur
+procedure push(in element is Type)
+
+// Retire le dernier élément du vecteur
+procedure pop()
+
+// Insère un élément à un emplacement donné du vecteur
+procedure insert(in n is natural, in v is Type)
+
+// Retire un élément à un emplacement donné du vecteur
+procedure remove(in n is natural)
+
+// Retourne le nombre d'éléments du vecteur
+function size() return natural
+
+// Supprime tous les éléments du vecteur
+procedure clear()
+
+// Applique la fonction donnée à tous les éléments du vecteur
+procedure map(in f is function(inout Type))
+
+// Applique une réduction de gauche à droite sur le vecteur. Le paramètre
+// 'initial_value' est l'élément initial donné à la réduction.
+function reduce(in f is function(in Type, in Type)) return Type
+
+// Retire tous les éléments à vrai par le prédicat donné
+procedure filter(in predicate is function(in Type) return boolean)
+
+\end{verbatim}
+
