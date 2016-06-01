@@ -1,5 +1,253 @@
 \section{Implémentation du compilateur}
 
+Cette section présente la réalisation du compilateur \textbf{ezc}.
+
+Nous avons choisi le langage de programmation C99 pour réaliser ce projet.
+Aucune autre bibliothèque que la bibliothèque standard n'a été utilisé. Le
+projet est donc à priori compatible POSIX.
+
+\subsection{L'analyseur}
+
+La technologie d'analyse utilisée est inspiré de la bibliothèque
+Parsec\footnote{\url{https://wiki.haskell.org/Parsec}} d'Haskell.
+
+Ce type d'analyseur est un analyseur fonctionnel, c'est à dire qui utilise des
+fonctions pour analyser le texte.
+
+L'analyseur résultant est un analyseur fonctionnant en récursivité à gauche,
+c'est à dire que l'on analyse l'entrée de gauche à droite (analyseur LL(n).
+De plus, cet analyseur fonctionne de haut en bas, c'est à dire que l'on débute
+l'analyse par le plus haut niveau de l'arbre d'analyse.
+
+Voici les 5 fonctions de base utilisées par tout le reste du parser EZ :
+\begin{verbatim}
+typedef enum {
+    PARSER_SUCCESS,
+    PARSER_FAILURE,
+    PARSER_FATAL,
+} parser_status_t;
+
+parser_status_t char_parser(FILE* input, const char* allowed, char** output);
+
+parser_status_t chars_parser(FILE* input, const char* allowed, char** output);
+
+parser_status_t word_parser(FILE* input, const char* word, char** output);
+
+parser_status_t until_char_parser(FILE* input, const char* c, char** output);
+
+parser_status_t until_word_parser(FILE* input, const char* word, char** output);
+\end{verbatim}
+Chaque fonction a un prototype similaire, et retourne un "status de parseur" :
+\begin{itemize}
+    \item PARSER\_SUCCESS: la fonction a réussi à analyser l'entrée donnée ;
+    \item PARSER\_FAILURE: la fontion n'a pas réussi à analyser l'entrée donnée ;
+    \item PARSER\_FATAL: la fonction a échoué et le parsing doit s'arrêter ;
+\end{itemize}
+
+On utilise ensuite des fonctions d'analyse que l'on appelle "de combinaison"
+pour combiner les fonctions d'analyse de base afin de créer des fonctions plus
+complexes.
+
+Afin de nous assister dans la réalisation de ces fonctions, nous avons rédigé
+un ensemble de macro C :
+\begin{verbatim}
+/* Parse using a parser func. */
+#define PARSE(_parser) \
+    { \
+        long _status = (_parser); \
+        if (_status == PARSER_FAILURE) { \
+            return PARSER_FAILURE; \
+        } else if (_status == PARSER_FATAL) { \
+            return PARSER_FATAL; \
+        } \
+    }
+
+/* Parse using a parser func. If the function failed, return PARSER_FATAL and
+ * print the given error message.
+ */
+#define PARSE_ERR(_parser, _err_msg) \
+    if ((_parser) == PARSER_FAILURE) { \
+        int _line, _column; \
+        char _c; \
+        /* TODO input in PARSE_ERR args */ \
+        get_file_coordinates(input, &_line, &_column, &_c); \
+        fprintf(stderr, "error (line %d column %d at '%c'): " _err_msg "\n", \
+                _line, _column, _c); \
+        return PARSER_FATAL; \
+    }
+
+/* Try to parse using a parser func. If the function failed, reset the
+ * offset of `input` stream to its original seek. Return the parser status.
+ */
+#define TRY(_input, _parser) \
+    ({ \
+        long _offset = ftell(_input); \
+        parser_status_t _try_status = (_parser); \
+        if (_try_status == PARSER_FAILURE) { \
+            fseek(_input, _offset, SEEK_SET); \
+        } else if (_try_status == PARSER_FATAL) { \
+            return PARSER_FATAL; \
+        } \
+        _try_status; \
+    })
+
+/* Try the parser until it return PARSER_FAILURE. */
+#define SKIP_MANY(_input, _parser) \
+    { \
+        while ((TRY(_input, _parser)) != PARSER_FAILURE) { } \
+    }
+\end{verbatim}
+
+A titre d'illustration, voici le code de l'analyse d'un ensemble d'expressions
+séparés par une virgule, comme ce que l'on rencontre lors de l'appel d'une
+fonction :
+\begin{verbatim}
+parser_status_t parameters_parser(FILE* input, context_t* ctx,
+                                  parameters_t** parameters)
+{
+    expression_t* expr = NULL;
+
+    if (TRY(input, expression_parser(input, ctx, &expr)) == PARSER_SUCCESS) {
+        parameters_add(*parameters, expr);
+
+        SKIP_MANY(input, space_parser(input, NULL, NULL));
+
+        if (TRY(input, char_parser(input, ",", NULL)) == PARSER_SUCCESS) {
+            SKIP_MANY(input, space_parser(input, NULL, NULL));
+
+            PARSE_ERR(parameters_parser(input, ctx, parameters),
+                      "invalid parameter");
+        }
+    }
+
+    return PARSER_SUCCESS;
+}
+\end{verbatim}
+La grammaire de cet analyseur pourrait être :
+\begin{verbatim}
+    PARMATERS -> *      // Possiblement rien
+    PARAMETERS -> EXPRESSION PARAMETERS_NEXT
+    PARAMETERS_NEXT -> , EXPRESSION PARAMETERS
+    PARAMETERS_NEXT -> *
+\end{verbatim}
+
+Un point important pour clore cette section, est de noter que l'on rempli la
+structure abstraite du programme au fur-et-à-mesure de l'analyse
+("parameters\_add").
+
+\subsection{Représentation abstraite du programme}
+
+A chaque élément du langage nous avons associé une structure de donnée
+correspondante, le tout formant directement notre arbre d'analyse, que l'on
+rempli et vérifi au fur-et-à-mesure de l'analyse du programme.
+
+Le schéma ci-dessous montre les relations existantes entre les différents
+éléments du langage :
+
+% TODO insertion du schéma
+\begin{center}
+\includegraphics[width=16cm]{structs-diagram.png}
+\end{center}
+
+\subsubsection{Représentation des types}
+
+Le type est une structure de donnée récursive, dont la récursion dépends du
+type de type :
+\begin{verbatim}
+/**
+ * The type data structure. Have a look to type_type_t enumeration for more
+ * details.
+ */
+struct type {
+    type_type_t type;
+    union {
+        structure_t* structure_type;
+        type_t* vector_type;
+        type_t* optional_type;
+        function_signature_t* signature;
+    };
+};
+\end{verbatim}
+
+Le champ type de cette structure est ou bien un type primitif (boolean,
+integer, real...), ou bien un type plus complexe nécessitant des détails
+supplémentaires.
+
+Par exemple, lorsque le type est "TYPE\_TYPE\_VECTOR", le champs "vector\_type"
+est affecté au type du vecteur.
+
+\subsubsection{Représentation des expressions}
+
+Les expressions forment un arbre binaire, dont les feuilles sont une valeur.
+
+\begin{verbatim}
+/**
+ * Different kinds of expression nodes.
+ */
+typedef enum {
+    EXPRESSION_TYPE_VALUE,
+    EXPRESSION_TYPE_LAMBDA,
+
+    EXPRESSION_TYPE_CMP_OP_EQUALS,
+    EXPRESSION_TYPE_CMP_OP_DIFFERENT,
+    EXPRESSION_TYPE_CMP_OP_LOWER_OR_EQUALS,
+    EXPRESSION_TYPE_CMP_OP_GREATER_OR_EQUALS,
+    EXPRESSION_TYPE_CMP_OP_LOWER,
+    EXPRESSION_TYPE_CMP_OP_GREATER,
+
+    EXPRESSION_TYPE_BOOL_OP_AND,
+    EXPRESSION_TYPE_BOOL_OP_OR,
+    EXPRESSION_TYPE_BOOL_OP_NOT,
+
+    EXPRESSION_TYPE_ARITHMETIC_OP_PLUS,
+    EXPRESSION_TYPE_ARITHMETIC_OP_MINUS,
+    EXPRESSION_TYPE_ARITHMETIC_OP_MUL,
+    EXPRESSION_TYPE_ARITHMETIC_OP_DIV,
+    EXPRESSION_TYPE_ARITHMETIC_OP_MOD,
+
+    EXPRESSION_TYPE_SIZE
+} expression_type_t;
+
+/**
+ * Expression representation.
+ *
+ * An expression is a tree (number of childs of a given node depends of the
+ * node's kind), where `type` is the kind of node.
+ *
+ * If a node is of kind `EXPRESSION_TYPE_VALUE`, it has its internal union
+ * `value` set to a valid value.
+ *
+ * If it has a binary operator kind (all other kinds excepted
+ * 'EXPRESSION_TYPE_BOOL_OP_NOT'), all `left` and `right` childs are set.
+ * If it is of kind `EXPRESSION_TYPE_BOOL_OP_NOT`, only right child is set.
+ */
+struct expression {
+    expression_type_t type;
+    union {
+        value_t value;
+        function_t* lambda;
+        type_t* empty_type;
+        struct {
+            struct expression *left, *right;
+        };
+    };
+};
+\end{verbatim}
+
+
+\subsection{Vérification sémantique du programme}
+
+Afin de vérifier que le programme est correct, nous utilisons un
+\textbf{context d'analyse} qui est l'ensemble de :
+\begin{itemize}
+    \item Le programme courant que l'on analyse ;
+    \item La fonction courante que l'on analyse.
+\end{itemize}
+
+
+\subsection{Réécriture du programme}
+
+
 \paragraph{}Classiquement durant la phase de vérification syntaxique, un compilateur créer un
 arbre de syntaxe abstraite, qui est ensuite utiliser afin de réaliser la vérification sémantique.
 
