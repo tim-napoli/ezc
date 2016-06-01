@@ -333,25 +333,12 @@ static expression_t* expression_from_stack(expr_stacks_t* stacks)
 
 \subsection{Vérification sémantique du programme}
 
-Afin de vérifier que le programme est correct, nous utilisons un
-\textbf{context d'analyse} qui est l'ensemble de :
-\begin{itemize}
-    \item Le programme courant que l'on analyse ;
-    \item La fonction courante que l'on analyse.
-\end{itemize}
+\paragraph{}Classiquement durant la phase de vérification syntaxique, un 
+compilateur créer un arbre de syntaxe abstraite, qui est ensuite utiliser afin 
+de réaliser la vérification sémantique.
 
-
-\subsection{Réécriture du programme}
-
-
-\paragraph{}Classiquement durant la phase de vérification syntaxique, un compilateur créer un
-arbre de syntaxe abstraite, qui est ensuite utiliser afin de réaliser la vérification sémantique.
-
-%% PARLER DU MODE DE FONCTIONNEMENT DU PARSER + GRAMMAIRE LL
-%% https://en.wikipedia.org/wiki/Parser_combinator
-%% https://en.wikipedia.org/wiki/Recursive_descent_parser
-
-\paragraph{}La vérification sémantique ce fait ensuite via l'aide des tables suivantes :
+\paragraph{}La vérification sémantique ce fait ensuite via l'aide des tables 
+suivantes :
 
 \begin{itemize}
  \item la table des lexicographique ou table des symboles
@@ -360,52 +347,104 @@ arbre de syntaxe abstraite, qui est ensuite utiliser afin de réaliser la vérif
  \item la table des régions
 \end{itemize}
 
-\paragraph{}Plutôt que d'utiliser 4 tables de la sorte nous avons opté pour une structure de contexte
-plus proche de la signification sémantique directe du langage.
-Il en résulte donc un code à la fois plus clair et plus simple à comprendre pour un oeil extérieur.
+\paragraph{}Plutôt que d'utiliser 4 tables de la sorte nous avons opté pour 
+un \textbf{context d'analyse} qui est l'ensemble de :
+\begin{itemize}
+    \item Le programme courant que l'on analyse ;
+    \item La fonction courante que l'on analyse.
+\end{itemize}
 
-Ainsi le contexte contient deux membres: le programme et la fonction courrante, ce qui nous permet de 
-gérer les portés des variables.
+\paragraph{}Le programme contient toutes les déclarations globales comme les 
+structures, les variables et constantes globales, ainsi que les les functions 
+et procédures.
 
-\paragraph{}Le programme contient toutes les déclarations globales comme les structures, les variables
-et constantes globales, ainsi que les les functions et procédures.
+\paragraph{}Les fonctions et procédures contiennent les parametres, les 
+variables locales, ainsi que la liste d'instruction de la fonction et le type 
+de retour pour les fonctions.
 
-\paragraph{}Les fonctions et procédures contiennent les parametres, les variables locales, ainsi que 
-la liste d'instruction de la fonction et le type de retour pour les fonctions.
+\paragraph{}Nous ne créons donc pas d'arbre syntaxique lors du parsing d'un 
+programme ez, on remplit directement les différentes structures utiles. 
 
-\paragraph{}Nous ne créons donc pas d'arbre syntaxique lors du parsing d'un programme ez, on remplit
-directement les différentes structures utiles. 
+Nous utilisons toutefois une structure d'arbre pour stocker les expressions, 
+ce qui nous permet de mettre en place une vérification en fonction de la 
+priorité des opérateurs.
 
-Nous utilisons toutefois une structure d'arbre pour stocker les expressions, ce qui nous permet 
-de mettre en place une vérification en fonction de la priorité des opérateurs.
-
-La méthode de parsing étant différentes de celle générée par YACC, nous n'avons ps d'arbre
-implicite créer au moment du parcours du fichier. En effet, avec une grammaire LALR, on peut directement
-mettre en place la priorité des opérateurs au moment du parsing, il en résulte un arbre syntaxique
+\paragraph{} La méthode de parsing étant différentes de celle générée par YACC, 
+nous n'avons ps d'arbre implicite créer au moment du parcours du fichier. En 
+effet, avec une grammaire LALR, on peut directement mettre en place la priorité 
+des opérateurs au moment du parsing, il en résulte un arbre syntaxique 
 implicite que nous n'avons qu'a explicité avec le structure souhaité.
 
-Dans notre cas, cet arbre syntaxique implicite n'éxiste pas et les opérateurs on donc tous la même priorité,
-syntaxiquement parlant. Dans le but de pouvoir effectuer différentes vérifications sur nos expressions, comme la résolution
-du type, nous avons dû traiter les expressions.
+Dans notre cas, cet arbre syntaxique implicite n'éxiste pas et les opérateurs 
+on donc tous la même priorité, syntaxiquement parlant.
+
+Dans le but de pouvoir effectuer différentes vérifications sur nos expressions, 
+comme la résolution du type, nous avons dû traiter les expressions.
 
 %% EXPLIQUER ALGO ??
 
-\paragraph{}Il est à noter, que le fait de se passer de la table des symboles peut entrainer 
-une perte de performance du compilateur, l'interet de cette table étant en effet d'associer les 
-différents identifieurs à un label (typiquement grâce à une table de hachage) permettant de les 
+\paragraph{}Le compilateur ezc ne fait donc qu'une passe pour effectuer les 
+vérifications lexicale, syntaxique et sémantique d'un programme ez.
+
+\paragraph{}Plusieurs vérifications sémantiques sont effectuées durant 
+l'analyse du programme.
+
+\begin{description}
+ \item[Existance des symboles] Lorsque l'on rencontre un symbol on vérifie son 
+existance. Pour une déclarations, le symbole ne doit pas être déjà existant. 
+Lors de l'utilisation d'un symbole (variable ou bien appel de fonction), il doit
+en revanche avoir été précédement déclaré. La recherche d'un symbole dans le
+contexte ce fait dans l'ordre suivant :
+
+ \begin{enumerate}
+  \item Les variables locales de la fonction
+  \item Les paramatres de la fonction
+  \item Les variables globales du programme
+  \item Les constantes du programme
+  \item Les fonctions et procédures
+ \end{enumerate}
+
+ \item[Vérification des types] Lors du parsing d'une expression ou bien lors 
+d'une affectation, le compilateur vérifie la compatibilité des types entre les
+opérateurs. De même que pour la vérification de l'existance du symbol
+on recherche le type du symbole rencontrer pour obtenir son type.
+
+ \item[Vérification des types d'accès] Le compilateur vérifie également le type
+d'acces des variables dans une expression, un paramatres de fonction
+déclaré avec un type d'accès de sortie ne peut donc pas être utilisé en partie 
+droite d'une affectation, alors qu'un parametres déclaré comme une entrée
+seulement, ne peut pas être modifié.
+ 
+ \item[Vérification des appels de fonction] Pour les appels de fonction, le 
+compilateur s'assure que la signature de la fonction correspont bien avec 
+l'appel qui en est fait, ausi bien au niveau du nombre d'argument que de leurs 
+types.
+\end{description}
+
+\paragraph{}Il est à noter, que le fait de se passer de la table des symboles 
+peut entrainer une perte de performance du compilateur, l'interet de cette 
+table étant en effet d'associer les différents identifieurs à un label 
+(typiquement grâce à une table de hachage) permettant de les 
 retrouver en un temps constant.
 
 Dans notre cas, nous éxecutons une simple recherche dans un tableau,
-la tâche est donc alourdie. En revanche, là où classiquement après avoir trouver l'identifieur, 
-il faut examiner la table des déclarations pour connaitre son type et sa portée, 
-nous connaissont déjà ces informations grâce aux structures utilisées.
+la tâche est donc alourdie. En revanche, là où classiquement après avoir 
+trouver l'identifieur, il faut examiner la table des déclarations pour 
+connaitre son type et sa portée, nous connaissont déjà ces informations grâce 
+aux structures utilisées.
 
-\paragraph{}Le compilateur ezc ne fait donc qu'une passe pour effectuer les vérifications lexicale, 
-syntaxique et sémantique d'un programme.
+\subsection{Réécriture du programme}
 
-Par soucis de clareté dans le code, la phase de réécriture en langage intermédiaire (dans notre cas C++)
-est elle réalisée lors d'un parcours du contexte généré lors de la première passe. On aurait cependant, très bien
-pu imaginer n'effectuer qu'une seule et unique passe pour l'ensemble des étapes de compilations.
+\paragraph{}Par soucis de clareté dans le code, la phase de réécriture en 
+langage intermédiaire (dans notre cas C++) est elle réalisée lors d'un parcours 
+du contexte généré lors de la première passe. On aurait cependant, très bien
+pu imaginer n'effectuer qu'une seule et unique passe pour l'ensemble des 
+étapes de compilations.
 
+\paragraph{}La réécriture est plutôt simple, en effet une fonction 
+\textbf{print} est associé à chaque élément du contexte du programme. 
 
-%% PARLER DE LA RÉÉCRITURE AVEC LES CLASSES CPP IMPLÉMENTÉE
+\paragraph{}On s'assure toutefois de l'ordre de la réécriture. Le compilateur
+écrit d'abord la définition des structures, puis les prototypes des fonctions,
+puis les différentes variables globales et constantes et enfin les fonctions et 
+procédures.
