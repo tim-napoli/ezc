@@ -1,0 +1,176 @@
+program test_gl
+
+procedure rand_dimensions(inout xmin is real,
+                          inout xmax is real,
+                          inout ymin is real,
+                          inout ymax is real)
+    local width is real
+    local height is real
+    local tmp is real
+    local xratio is real
+    local yheight is real
+begin
+    width = 3.5
+    height = 2.0
+
+    loop
+        xmin = (-250 + random(0, 350)) / 100.0
+        xmax = (-250 + random(0, 350)) / 100.0
+    until (xmax - xmin) != 0.0
+
+    if xmin > xmax then
+        tmp = xmin
+        xmin = xmax
+        xmax = tmp
+    endif
+
+    xratio = (xmax - xmin) / width
+    yheight = height * xratio
+
+    loop
+        ymin = (-100 + random(0, (yheight * 100) + 1)) / 100.0
+        ymax = ymin + yheight
+    until (ymax - ymin) != 0.0
+end
+
+procedure mandelbrot(in cx is real, in cy is real,
+                     in sx is real, in sy is real,
+                     out dx is real, out dy is real)
+begin
+    dx = sx * sx - sy * sy + cx
+    dy = 2.0 * sx * sy + cy
+end
+
+function in_mandelbrot_set(in cx is real, in cy is real, in limit is real,
+                           in nit_max is integer)
+        return integer
+    local x is real
+    local y is real
+    local nx is real
+    local ny is real
+    local it is integer
+begin
+    x = 0.0
+    y = 0.0
+    it = 0
+
+    while ((x * x) + (y * y) < limit * limit and it < nit_max) do
+        mandelbrot(cx, cy, x, y, nx, ny)
+        x = nx
+        y = ny
+        it = it + 1
+    endwhile
+
+    return it
+end
+
+procedure generate(in width is integer, in height is integer,
+                   out iterations is vector of integer,
+                   in it_max is integer)
+    local xmin is real
+    local xmax is real
+    local ymin is real
+    local ymax is real
+    local yi is integer
+    local xi is integer
+    local cx is real
+    local cy is real
+begin
+    rand_dimensions(xmin, xmax, ymin, ymax)
+
+    for yi in 0 .. height do
+        for xi in 0 .. width do
+            cx = xmin + xi * ((xmax - xmin) / width)
+            cy = ymin + yi * ((ymax - ymin) / height)
+
+            iterations.push(in_mandelbrot_set(cx, cy, 2, it_max))
+        endfor
+    endfor
+end
+
+constant PI is real = 3.14365
+
+procedure do_palette(inout palette is vector of Color, in size is integer)
+    local color_funcs is vector of function(in real, in real) return real
+    local i is natural
+    local r is natural
+    local g is natural
+    local b is natural
+    local blue_func  is function(in real, in real) return real
+    local red_func   is function(in real, in real) return real
+    local green_func is function(in real, in real) return real
+begin
+    color_funcs.push(lambda (in i is real, in size is real) return real
+                        is return (1 + cos((i / size) * PI)) * 0.5 * 255)
+    color_funcs.push(lambda (in i is real, in size is real) return real
+                        is return (1 + sin((i / size) * PI)) * 0.5 * 255)
+    color_funcs.push(lambda (in i is real, in size is real) return real
+                        is return i * (255 / size))
+    color_funcs.push(lambda (in i is real, in size is real) return real
+                        is return 0)
+    color_funcs.push(lambda (in i is real, in size is real) return real
+                        is return 255)
+
+    blue_func = color_funcs[random(0, color_funcs.size())]
+    red_func = color_funcs[random(0, color_funcs.size())]
+    green_func = color_funcs[random(0, color_funcs.size())]
+
+    for i in 0 .. size do
+        r = red_func(i, size)
+        b = blue_func(i, size)
+        g = green_func(i, size)
+
+        palette.push(color(r, g, b))
+    endfor
+end
+
+procedure draw_iterations(out window is Window,
+                          in width is integer, in height is integer,
+                          in iterations is vector of integer,
+                          in it_max is integer)
+    local palette is vector of Color
+    local k is real
+    local yi is integer
+    local xi is integer
+    local iteration is integer
+begin
+    k = 100.0 / log(it_max + 1)
+    do_palette(palette, 100)
+
+    for yi in 0 .. height do
+        for xi in 0 .. width do
+            iteration = iterations[yi * width + xi]
+            put_pixel(window, xi, yi, palette[k * log(iteration)])
+        endfor
+    endfor
+end
+
+function test_gl(in args is vector of string) return integer
+    local window is Window
+    local error is optional string
+    local iterations is vector of integer
+    local nit is integer
+begin
+    error = open_window(window, "test-gl", 1024, 768)
+
+    if error.is_set() then
+        print "couldn't open window:", error.get()
+    endif
+
+    set_random_seed(get_timestamp())
+
+    while not should_close_window(window) do
+        clear_window(window)
+
+        nit = random(10, 1000)
+        iterations.clear()
+        generate(1024, 768, iterations, nit)
+        draw_iterations(window, 1024, 768, iterations, nit)
+
+        update_window(window)
+        sleep_us(1000000)
+    endwhile
+
+    close_window(window)
+end
+
