@@ -150,8 +150,19 @@ function test_gl(in args is vector of string) return integer
     local error is optional string
     local iterations is vector of integer
     local nit is integer
+    local width is integer
+    local height is integer
 begin
-    error = open_window(window, "test-gl", 1024, 768)
+
+    if args.size() < 3 then
+        print "usage: test-gl width height\n"
+        return 1
+    else
+        width = integer_from_string(args[1])
+        height = integer_from_string(args[2])
+    endif
+
+    error = open_window(window, "test-gl", width, height)
 
     if error.is_set() then
         print "couldn't open window:", error.get()
@@ -164,8 +175,8 @@ begin
 
         nit = random(10, 1000)
         iterations.clear()
-        generate(1024, 768, iterations, nit)
-        draw_iterations(window, 1024, 768, iterations, nit)
+        generate(width, height, iterations, nit)
+        draw_iterations(window, width, height, iterations, nit)
 
         update_window(window)
         sleep_us(1000000)

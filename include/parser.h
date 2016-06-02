@@ -49,8 +49,8 @@ void get_file_coordinates(FILE* f, int* line, int* column, char* c);
         } \
     }
 
-/* Parse using a parser func. If the function failed, return NULL and print
- * the given error message.
+/* Parse using a parser func. If the function failed, return PARSER_FATAL and
+ * print the given error message.
  */
 #define PARSE_ERR(_parser, _err_msg) \
     if ((_parser) == PARSER_FAILURE) { \

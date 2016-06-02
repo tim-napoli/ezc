@@ -234,7 +234,7 @@ typedef enum {
 
     /**
      * Dynamic array type.
-     * When a `type_t` has this type, it has a subtype in `optional_type`.
+     * When a `type_t` has this type, it has a subtype in `vector_type`.
      */
     TYPE_TYPE_VECTOR,
 

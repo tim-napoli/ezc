@@ -15,6 +15,7 @@ file(COPY samples DESTINATION .)
 file(COPY ez DESTINATION .)
 file(COPY ez-builtins.ez DESTINATION .)
 file(COPY ezc.sh DESTINATION .)
+file(COPY compile-test-gl.sh DESTINATION .)
 
 add_library(parser STATIC
             src/parser.c)
