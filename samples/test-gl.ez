@@ -1,6 +1,8 @@
 program test_gl
 
-procedure rand_dimensions(inout xmin is real,
+procedure rand_dimensions(in screen_width is real,
+                          in screen_height is real,
+                          inout xmin is real,
                           inout xmax is real,
                           inout ymin is real,
                           inout ymax is real)
@@ -9,9 +11,12 @@ procedure rand_dimensions(inout xmin is real,
     local tmp is real
     local xratio is real
     local yheight is real
+    local screen_ratio is real
 begin
     width = 3.5
     height = 2.0
+
+    screen_ratio = screen_width / screen_height
 
     loop
         xmin = (-250 + random(0, 350)) / 100.0
@@ -24,13 +29,10 @@ begin
         xmax = tmp
     endif
 
-    xratio = (xmax - xmin) / width
-    yheight = height * xratio
+    yheight = (xmax - xmin) / screen_ratio
 
-    loop
-        ymin = (-100 + random(0, (yheight * 100) + 1)) / 100.0
-        ymax = ymin + yheight
-    until (ymax - ymin) != 0.0
+    ymin = (-100 + random(0, 200 - (yheight * 100))) / 100.0
+    ymax = ymin + yheight
 end
 
 procedure mandelbrot(in cx is real, in cy is real,
@@ -76,7 +78,7 @@ procedure generate(in width is integer, in height is integer,
     local cx is real
     local cy is real
 begin
-    rand_dimensions(xmin, xmax, ymin, ymax)
+    rand_dimensions(width, height, xmin, xmax, ymin, ymax)
 
     for yi in 0 .. height do
         for xi in 0 .. width do
